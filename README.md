@@ -16,7 +16,7 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - name: Bump version and push tag
-      uses: mathieudutour/github-tag-action@v2
+      uses: mathieudutour/github-tag-action@v1
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
 ```
