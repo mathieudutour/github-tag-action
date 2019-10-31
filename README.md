@@ -4,7 +4,7 @@ A Github Action to automatically bump and tag master, on merge, with the latest 
 
 ## Usage
 
-```Dockerfile
+```yaml
 name: Bump version
 on:
   push:
@@ -14,11 +14,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
-    - name: Bump version and push tag
-      uses: mathieudutour/github-tag-action@v1
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@master
+      - name: Bump version and push tag
+        uses: mathieudutour/github-tag-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ### Inputs
