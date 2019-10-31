@@ -1,0 +1,36 @@
+{
+  "name": "github-tag-action",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A Github Action to automatically bump and tag master, on merge, with the latest SemVer formatted version.",
+  "main": "lib/main.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mathieudutour/github-tag-action.git"
+  },
+  "keywords": [
+    "actions",
+    "node",
+    "setup"
+  ],
+  "author": "Mathieu Dutour",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^1.0.0",
+    "@actions/exec": "^1.0.1",
+    "@actions/github": "^1.1.0",
+    "semver": "^6.3.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.13",
+    "@types/node": "^12.0.4",
+    "@types/semver": "^6.2.0",
+    "jest": "^24.8.0",
+    "jest-circus": "^24.7.1",
+    "ts-jest": "^24.0.2",
+    "typescript": "^3.5.1"
+  }
+}
