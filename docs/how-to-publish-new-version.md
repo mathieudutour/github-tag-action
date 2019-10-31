@@ -14,10 +14,12 @@ Comment out node_modules in .gitignore and create a releases/v1 branch
 
 ```bash
 $ git checkout -b releases/v1
+$ npm install
+$ npm run build
 $ npm prune --production
-$ git add node_modules
+$ git add .
 $ git commit -a -m "prod dependencies"
-$ git push origin releases/v1
+$ git push
 ```
 
 Your action is now published! :rocket:
