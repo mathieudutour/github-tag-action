@@ -6,7 +6,7 @@ outputs:
     description: "Generated tag"
 inputs:
   github_token:
-    description: "Required for permission to tag the repo. Usually `${{ secrets.GITHUB_TOKEN }}`."
+    description: "Required for permission to tag the repo."
     required: true
   default_bump:
     description: "Which type of bump to use when none explicitly provided (default: `minor`)."
