@@ -59,13 +59,14 @@ async function run() {
       .split(",")
       .every(branch => !GITHUB_REF.replace("refs/heads/", "").match(branch));
 
-    const hasTag = !!(await exec("git tag")).stdout;
+    const hasTag = !!(await exec("git tag")).stdout.trim();
     let tag = "";
 
     if (hasTag) {
-      const previousTagSha = (await exec("git rev-list --tags --max-count=1"))
-        .stdout;
-      tag = (await exec(`git describe --tags ${previousTagSha}`)).stdout;
+      const previousTagSha = (await exec(
+        "git rev-list --tags --max-count=1"
+      )).stdout.trim();
+      tag = (await exec(`git describe --tags ${previousTagSha}`)).stdout.trim();
 
       if (previousTagSha === GITHUB_SHA) {
         core.debug("No new commits since previous tag. Skipping...");
