@@ -19,11 +19,7 @@ async function exec(command: string) {
       }
     };
 
-    const code = await _exec(
-      "git describe --tags `git rev-list --tags --max-count=1`",
-      undefined,
-      options
-    );
+    const code = await _exec(command, undefined, options);
 
     return {
       code,
