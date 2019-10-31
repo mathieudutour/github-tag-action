@@ -32,18 +32,14 @@ You can now validate the action by referencing the releases/v1 branch
 
 ```yaml
 uses: mathieudutour/github-tag-action@releases/v1
-with:
-  milliseconds: 1000
 ```
 
 See the [actions tab](https://github.com/actions/javascript-action/actions) for runs of this action! :rocket:
 
-## Usage
+## Create a tag
 
-After testing you can [create a v1 tag](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md) to reference the stable and tested action
+After testing you can [create a tag](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md) to reference the stable and tested action
 
 ```yaml
 uses: mathieudutour/github-tag-action@v1
-with:
-  milliseconds: 1000
 ```
