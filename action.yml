@@ -4,6 +4,8 @@ author: "Mathieu Dutour"
 outputs:
   new_tag:
     description: "Generated tag"
+  previous_tag:
+    description: "Previous tag (or `0.0.0`)"
 inputs:
   github_token:
     description: "Required for permission to tag the repo."

@@ -30,7 +30,8 @@ jobs:
 
 ### Outputs
 
-- **new_tag** - The value of the newly created tag.
+- **new_tag** - The value of the newly created tag. Note that if there hasn't been any new commit, this will be `undefined`.
+- **previous_tag** - The value of the previous tag (or `0.0.0` if none).
 
 > **_Note:_** This action creates a [lightweight tag](https://developer.github.com/v3/git/refs/#create-a-reference).
 

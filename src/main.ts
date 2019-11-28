@@ -63,17 +63,19 @@ async function run() {
     let tag = "";
 
     if (hasTag) {
-      const previousTagSha = (await exec(
-        "git rev-list --tags --max-count=1"
-      )).stdout.trim();
+      const previousTagSha = (
+        await exec("git rev-list --tags --max-count=1")
+      ).stdout.trim();
       tag = (await exec(`git describe --tags ${previousTagSha}`)).stdout.trim();
 
       if (previousTagSha === GITHUB_SHA) {
         core.debug("No new commits since previous tag. Skipping...");
+        core.setOutput("previous_tag", tag);
         return;
       }
     } else {
       tag = "0.0.0";
+      core.setOutput("previous_tag", tag);
     }
 
     const newTag = `${tagPrefix}${semver.inc(tag, bump)}${
