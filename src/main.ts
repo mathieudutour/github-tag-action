@@ -2,6 +2,9 @@ import * as core from "@actions/core";
 import { exec as _exec } from "@actions/exec";
 import { context, GitHub } from "@actions/github";
 import semver, { ReleaseType } from "semver";
+import { analyzeCommits } from "@semantic-release/commit-analyzer";
+
+const SEPARATOR = "==============================================";
 
 async function exec(command: string) {
   let stdout = "";
@@ -38,8 +41,7 @@ async function exec(command: string) {
 
 async function run() {
   try {
-    // @ts-ignore
-    const bump: ReleaseType = core.getInput("default_bump");
+    const defaultBump = core.getInput("default_bump") as ReleaseType;
     const tagPrefix = core.getInput("tag_prefix");
     const releaseBranches = core.getInput("release_branches");
 
@@ -61,12 +63,18 @@ async function run() {
 
     const hasTag = !!(await exec("git tag")).stdout.trim();
     let tag = "";
+    let logs = "";
 
     if (hasTag) {
       const previousTagSha = (
         await exec("git rev-list --tags --max-count=1")
       ).stdout.trim();
       tag = (await exec(`git describe --tags ${previousTagSha}`)).stdout.trim();
+      logs = (
+        await exec(
+          `git log ${tag}..HEAD --pretty=format:'%s%n%b${SEPARATOR}' --abbrev-commit`
+        )
+      ).stdout.trim();
 
       if (previousTagSha === GITHUB_SHA) {
         core.debug("No new commits since previous tag. Skipping...");
@@ -75,10 +83,21 @@ async function run() {
       }
     } else {
       tag = "0.0.0";
+      logs = (
+        await exec(
+          `git log --pretty=format:'%s%n%b${SEPARATOR}' --abbrev-commit`
+        )
+      ).stdout.trim();
       core.setOutput("previous_tag", tag);
     }
 
-    const newTag = `${tagPrefix}${semver.inc(tag, bump)}${
+    const commits = logs.split(SEPARATOR).map(x => ({ message: x }));
+    const bump = await analyzeCommits(
+      {},
+      { commits, logger: { log: core.debug.bind(core) } }
+    );
+
+    const newTag = `${tagPrefix}${semver.inc(tag, bump || defaultBump)}${
       preRelease ? `-${GITHUB_SHA.slice(0, 7)}` : ""
     }`;
 

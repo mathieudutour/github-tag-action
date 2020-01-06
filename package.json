@@ -22,6 +22,7 @@
     "@actions/core": "^1.2.0",
     "@actions/exec": "^1.0.1",
     "@actions/github": "^1.1.0",
+    "@semantic-release/commit-analyzer": "^6.3.3",
     "semver": "^6.3.0"
   },
   "devDependencies": {

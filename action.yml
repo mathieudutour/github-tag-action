@@ -11,9 +11,9 @@ inputs:
     description: "Required for permission to tag the repo."
     required: true
   default_bump:
-    description: "Which type of bump to use when none explicitly provided (default: `minor`)."
+    description: "Which type of bump to use when none explicitly provided (default: `patch`)."
     required: false
-    default: "minor"
+    default: "patch"
   tag_prefix:
     description: "A prefix to the tag name (default: `v`)."
     required: false
