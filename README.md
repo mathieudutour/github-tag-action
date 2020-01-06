@@ -27,13 +27,14 @@ jobs:
 - **default_bump** _(optional)_ - Which type of bump to use when [none explicitly provided](#bumping) (default: `patch`).
 - **tag_prefix** _(optional)_ - A prefix to the tag name (default: `v`).
 - **release_branches** _(optional)_ - Comma separated list of branches (bash reg exp accepted) that will generate the release tags. Other branches and pull-requests generate versions postfixed with the commit hash and do not generate any tag. Examples: `master` or `.*` or `release.*,hotfix.*,master`... (default: `master`).
+- **create_annotated_tag** _(optional)_ - Boolean to create an annotated rather than a lightweight one (default: `false`).
 
 ### Outputs
 
 - **new_tag** - The value of the newly created tag. Note that if there hasn't been any new commit, this will be `undefined`.
 - **previous_tag** - The value of the previous tag (or `0.0.0` if none).
 
-> **_Note:_** This action creates a [lightweight tag](https://developer.github.com/v3/git/refs/#create-a-reference).
+> **_Note:_** This action creates a [lightweight tag] by default (https://developer.github.com/v3/git/refs/#create-a-reference).
 
 ### Bumping
 

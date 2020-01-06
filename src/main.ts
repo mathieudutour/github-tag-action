@@ -44,8 +44,9 @@ async function run() {
     const defaultBump = core.getInput("default_bump") as ReleaseType;
     const tagPrefix = core.getInput("tag_prefix");
     const releaseBranches = core.getInput("release_branches");
+    const createAnnotatedTag = core.getInput("create_annotated_tag");
 
-    const { GITHUB_REF, GITHUB_SHA } = process.env;
+    const { GITHUB_REF, GITHUB_SHA, GITHUB_REPOSITORY } = process.env;
 
     if (!GITHUB_REF) {
       core.setFailed("Missing GITHUB_REF");
@@ -54,6 +55,10 @@ async function run() {
 
     if (!GITHUB_SHA) {
       core.setFailed("Missing GITHUB_SHA");
+      return;
+    }
+    if (createAnnotatedTag && !GITHUB_REPOSITORY) {
+      core.setFailed("Missing GITHUB_REPOSITORY");
       return;
     }
 
@@ -115,6 +120,24 @@ async function run() {
     const octokit = new GitHub(core.getInput("github_token"));
 
     core.debug(`Pushing new tag to the repo`);
+
+    if (createAnnotatedTag) {
+      core.debug(`Creating annotated tag`);
+
+      const [owner, repository] = GITHUB_REPOSITORY!.split("/");
+      
+      core.debug(`owner: ${owner}`);
+      core.debug(`repository ${repository}`);
+
+      await octokit.git.createTag({
+        owner: owner,
+        repo: repository,
+        tag: newTag,
+        message: newTag,
+        object: GITHUB_SHA,
+        type: "commit"
+      });
+    }
 
     await octokit.git.createRef({
       ...context.repo,
