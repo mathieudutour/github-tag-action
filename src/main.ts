@@ -115,7 +115,7 @@ async function run() {
 
     const octokit = new GitHub(core.getInput("github_token"));
 
-    if (createAnnotatedTag) {
+    if (createAnnotatedTag === "true") {
       core.debug(`Creating annotated tag`);
 
       const tagCreateResponse = await octokit.git.createTag({
