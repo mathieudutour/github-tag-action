@@ -44,6 +44,7 @@ async function run() {
     const defaultBump = core.getInput("default_bump") as ReleaseType;
     const tagPrefix = core.getInput("tag_prefix");
     const releaseBranches = core.getInput("release_branches");
+    const createAnnotatedTag = core.getInput("create_annotated_tag");
 
     const { GITHUB_REF, GITHUB_SHA } = process.env;
 
@@ -114,6 +115,27 @@ async function run() {
 
     const octokit = new GitHub(core.getInput("github_token"));
 
+    if (createAnnotatedTag === "true") {
+      core.debug(`Creating annotated tag`);
+
+      const tagCreateResponse = await octokit.git.createTag({
+        ...context.repo,
+        tag: newTag,
+        message: newTag,
+        object: GITHUB_SHA,
+        type: "commit"
+      });
+
+      core.debug(`Pushing annotated tag to the repo`);
+
+      await octokit.git.createRef({
+        ...context.repo,
+        ref: `refs/tags/${newTag}`,
+        sha: tagCreateResponse.data.sha
+      });
+      return;
+    }
+    
     core.debug(`Pushing new tag to the repo`);
 
     await octokit.git.createRef({
