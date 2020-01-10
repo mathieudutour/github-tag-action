@@ -98,10 +98,12 @@ async function run() {
       { commits, logger: { log: core.debug.bind(core) } }
     );
 
-    const newTag = `${tagPrefix}${semver.inc(tag, bump || defaultBump)}${
+    const newVersion = `${semver.inc(tag, bump || defaultBump)}${
       preRelease ? `-${GITHUB_SHA.slice(0, 7)}` : ""
     }`;
+    const newTag = `${tagPrefix}${newVersion}`;
 
+    core.setOutput("new_version", newVersion);
     core.setOutput("new_tag", newTag);
 
     core.debug(`New tag: ${newTag}`);
@@ -135,7 +137,7 @@ async function run() {
       });
       return;
     }
-    
+
     core.debug(`Pushing new tag to the repo`);
 
     await octokit.git.createRef({
