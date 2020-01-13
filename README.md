@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
+      - run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: Bump version and push tag
         uses: mathieudutour/github-tag-action@v3
         with:
