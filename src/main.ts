@@ -62,6 +62,8 @@ async function run() {
       .split(",")
       .every(branch => !GITHUB_REF.replace("refs/heads/", "").match(branch));
 
+    await exec("git fetch --tags");
+
     const hasTag = !!(await exec("git tag")).stdout.trim();
     let tag = "";
     let logs = "";
