@@ -97,7 +97,7 @@ async function run() {
     const commits = logs.split(SEPARATOR).map(x => ({ message: x.trim() }));
     const bump = await analyzeCommits(
       {},
-      { commits, logger: { log: core.debug.bind(core) } }
+      { commits, logger: { log: console.info.bind(console) } }
     );
 
     const newVersion = `${semver.inc(tag, bump || defaultBump)}${
