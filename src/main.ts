@@ -3,6 +3,7 @@ import { exec as _exec } from "@actions/exec";
 import { context, GitHub } from "@actions/github";
 import semver, { ReleaseType } from "semver";
 import { analyzeCommits } from "@semantic-release/commit-analyzer";
+import { generateNotes } from "@semantic-release/release-notes-generator";
 
 const SEPARATOR = "==============================================";
 
@@ -113,6 +114,21 @@ async function run() {
     core.setOutput("new_tag", newTag);
 
     core.debug(`New tag: ${newTag}`);
+
+    const changelog = generateNotes(
+      {},
+      {
+        commits,
+        logger: { log: console.info.bind(console) },
+        options: {
+          repositoryUrl: `https://github.com/${process.env.GITHUB_REPOSITORY}`
+        },
+        lastRelease: { gitTag: tag },
+        nextRelease: { gitTag: newTag, version: newVersion }
+      }
+    );
+
+    core.setOutput("changelog", changelog);
 
     if (preRelease) {
       core.debug(
