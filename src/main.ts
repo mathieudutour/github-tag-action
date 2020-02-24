@@ -94,6 +94,7 @@ async function run() {
       core.setOutput("previous_tag", tag);
     }
 
+    // for some reason the commits start with a `'` on the CI so we ignore it
     const commits = logs
       .split(SEPARATOR)
       .map(x => ({ message: x.trim().replace(/^'/g, "") }))
