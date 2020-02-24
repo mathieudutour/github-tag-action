@@ -94,7 +94,10 @@ async function run() {
       core.setOutput("previous_tag", tag);
     }
 
-    const commits = logs.split(SEPARATOR).map(x => ({ message: x.trim() }));
+    const commits = logs
+      .split(SEPARATOR)
+      .map(x => ({ message: x.trim().replace(/^'/g, "") }))
+      .filter(x => !!x.message);
     const bump = await analyzeCommits(
       {},
       { commits, logger: { log: console.info.bind(console) } }
