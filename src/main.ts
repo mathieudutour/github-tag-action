@@ -137,6 +137,15 @@ async function run() {
       return;
     }
 
+    const tagAlreadyExists = !!(
+      await exec(`git tag -l "${newTag}"`)
+    ).stdout.trim();
+
+    if (tagAlreadyExists) {
+      core.debug("This tag already exists. Skipping the tag creation.");
+      return;
+    }
+
     const octokit = new GitHub(core.getInput("github_token"));
 
     if (createAnnotatedTag === "true") {
