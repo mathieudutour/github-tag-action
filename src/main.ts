@@ -115,7 +115,7 @@ async function run() {
 
     core.debug(`New tag: ${newTag}`);
 
-    const changelog = generateNotes(
+    const changelog = await generateNotes(
       {},
       {
         commits,
