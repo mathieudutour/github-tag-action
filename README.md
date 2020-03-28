@@ -28,6 +28,7 @@ jobs:
 - **tag_prefix** _(optional)_ - A prefix to the tag name (default: `v`).
 - **release_branches** _(optional)_ - Comma separated list of branches (bash reg exp accepted) that will generate the release tags. Other branches and pull-requests generate versions postfixed with the commit hash and do not generate any tag. Examples: `master` or `.*` or `release.*,hotfix.*,master`... (default: `master`).
 - **create_annotated_tag** _(optional)_ - Boolean to create an annotated rather than a lightweight one (default: `false`).
+- **dry_run** _(optional)_ - Do not perform taging, just calculate next version and changelog, then exit
 
 ### Outputs
 
