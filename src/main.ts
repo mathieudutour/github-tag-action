@@ -46,6 +46,7 @@ async function run() {
     const tagPrefix = core.getInput("tag_prefix");
     const releaseBranches = core.getInput("release_branches");
     const createAnnotatedTag = core.getInput("create_annotated_tag");
+    const dryRun = core.getInput("dry_run");
 
     const { GITHUB_REF, GITHUB_SHA } = process.env;
 
@@ -143,6 +144,11 @@ async function run() {
 
     if (tagAlreadyExists) {
       core.debug("This tag already exists. Skipping the tag creation.");
+      return;
+    }
+
+    if (dryRun) {
+      core.info("Dry run: not performing tag action.");
       return;
     }
 
