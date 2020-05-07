@@ -81,9 +81,11 @@ async function run() {
         )
       ).stdout.trim();
 
+      core.debug(`Setting previous_tag to: ${tag}`);
+      core.setOutput("previous_tag", tag);
+
       if (previousTagSha === GITHUB_SHA) {
         core.debug("No new commits since previous tag. Skipping...");
-        core.setOutput("previous_tag", tag);
         return;
       }
     } else {
