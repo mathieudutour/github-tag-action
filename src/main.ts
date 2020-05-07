@@ -147,7 +147,7 @@ async function run() {
       return;
     }
 
-    if (dryRun) {
+    if ((/true/i).test(dryRun)) {
       core.info("Dry run: not performing tag action.");
       return;
     }
