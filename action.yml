@@ -4,8 +4,12 @@ author: "Mathieu Dutour"
 outputs:
   new_tag:
     description: "Generated tag"
+  new_version:
+    description: "Generated tag without the prefix"
   previous_tag:
     description: "Previous tag (or `0.0.0`)"
+  changelog:
+    description: "The conventional changelog since the previous tag"
 inputs:
   github_token:
     description: "Required for permission to tag the repo."

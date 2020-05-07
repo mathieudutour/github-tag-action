@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import { exec as _exec } from "@actions/exec";
 import { context, GitHub } from "@actions/github";
-import semver, { ReleaseType } from "semver";
+import { inc, ReleaseType } from "semver";
 import { analyzeCommits } from "@semantic-release/commit-analyzer";
 import { generateNotes } from "@semantic-release/release-notes-generator";
 
@@ -19,8 +19,8 @@ async function exec(command: string) {
         },
         stderr: (data: Buffer) => {
           stderr += data.toString();
-        }
-      }
+        },
+      },
     };
 
     const code = await _exec(command, undefined, options);
@@ -28,14 +28,14 @@ async function exec(command: string) {
     return {
       code,
       stdout,
-      stderr
+      stderr,
     };
   } catch (err) {
     return {
       code: 1,
       stdout,
       stderr,
-      error: err
+      error: err,
     };
   }
 }
@@ -62,7 +62,7 @@ async function run() {
 
     const preRelease = releaseBranches
       .split(",")
-      .every(branch => !GITHUB_REF.replace("refs/heads/", "").match(branch));
+      .every((branch) => !GITHUB_REF.replace("refs/heads/", "").match(branch));
 
     await exec("git fetch --tags");
 
@@ -101,14 +101,14 @@ async function run() {
     // for some reason the commits start with a `'` on the CI so we ignore it
     const commits = logs
       .split(SEPARATOR)
-      .map(x => ({ message: x.trim().replace(/^'/g, "") }))
-      .filter(x => !!x.message);
+      .map((x) => ({ message: x.trim().replace(/^'/g, "") }))
+      .filter((x) => !!x.message);
     const bump = await analyzeCommits(
       {},
       { commits, logger: { log: console.info.bind(console) } }
     );
 
-    const newVersion = `${semver.inc(tag, bump || defaultBump)}${
+    const newVersion = `${inc(tag, bump || defaultBump)}${
       preRelease ? `-${GITHUB_SHA.slice(0, 7)}` : ""
     }`;
     const newTag = `${tagPrefix}${newVersion}`;
@@ -124,10 +124,10 @@ async function run() {
         commits,
         logger: { log: console.info.bind(console) },
         options: {
-          repositoryUrl: `https://github.com/${process.env.GITHUB_REPOSITORY}`
+          repositoryUrl: `https://github.com/${process.env.GITHUB_REPOSITORY}`,
         },
         lastRelease: { gitTag: tag },
-        nextRelease: { gitTag: newTag, version: newVersion }
+        nextRelease: { gitTag: newTag, version: newVersion },
       }
     );
 
@@ -149,7 +149,7 @@ async function run() {
       return;
     }
 
-    if ((/true/i).test(dryRun)) {
+    if (/true/i.test(dryRun)) {
       core.info("Dry run: not performing tag action.");
       return;
     }
@@ -164,7 +164,7 @@ async function run() {
         tag: newTag,
         message: newTag,
         object: GITHUB_SHA,
-        type: "commit"
+        type: "commit",
       });
 
       core.debug(`Pushing annotated tag to the repo`);
@@ -172,7 +172,7 @@ async function run() {
       await octokit.git.createRef({
         ...context.repo,
         ref: `refs/tags/${newTag}`,
-        sha: tagCreateResponse.data.sha
+        sha: tagCreateResponse.data.sha,
       });
       return;
     }
@@ -182,7 +182,7 @@ async function run() {
     await octokit.git.createRef({
       ...context.repo,
       ref: `refs/tags/${newTag}`,
-      sha: GITHUB_SHA
+      sha: GITHUB_SHA,
     });
   } catch (error) {
     core.setFailed(error.message);

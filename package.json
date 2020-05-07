@@ -19,16 +19,16 @@
   "author": "Mathieu Dutour",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.2.0",
-    "@actions/exec": "^1.0.1",
-    "@actions/github": "^1.1.0",
-    "@semantic-release/commit-analyzer": "^6.3.3",
-    "@semantic-release/release-notes-generator": "^9.0.0",
-    "semver": "^6.3.0"
+    "@actions/core": "^1.2.4",
+    "@actions/exec": "^1.0.4",
+    "@actions/github": "^2.2.0",
+    "@semantic-release/commit-analyzer": "^8.0.1",
+    "@semantic-release/release-notes-generator": "^9.0.1",
+    "semver": "^7.3.2"
   },
   "devDependencies": {
-    "@types/node": "^12.12.14",
-    "@types/semver": "^6.2.0",
-    "typescript": "^3.7.2"
+    "@types/node": "^13.13.5",
+    "@types/semver": "^7.1.0",
+    "typescript": "^3.8.3"
   }
 }
