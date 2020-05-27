@@ -42,7 +42,7 @@ async function exec(command: string) {
 
 async function run() {
   try {
-    const defaultBump = core.getInput("default_bump") as ReleaseType;
+    const defaultBump = core.getInput("default_bump") as ReleaseType | "false";
     const tagPrefix = core.getInput("tag_prefix");
     const releaseBranches = core.getInput("release_branches");
     const createAnnotatedTag = core.getInput("create_annotated_tag");
@@ -109,6 +109,11 @@ async function run() {
       {},
       { commits, logger: { log: console.info.bind(console) } }
     );
+
+    if (!bump && defaultBump === "false") {
+      core.debug("No commit specifies the version bump. Skipping...");
+      return;
+    }
 
     const newVersion = `${inc(tag, bump || defaultBump)}${
       preRelease ? `-${GITHUB_SHA.slice(0, 7)}` : ""

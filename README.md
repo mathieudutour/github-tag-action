@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - name: Bump version and push tag
-        uses: mathieudutour/github-tag-action@v4.3
+        uses: mathieudutour/github-tag-action@v4.4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -24,7 +24,7 @@ jobs:
 ### Inputs
 
 - **github_token** _(required)_ - Required for permission to tag the repo. Usually `${{ secrets.GITHUB_TOKEN }}`.
-- **default_bump** _(optional)_ - Which type of bump to use when [none explicitly provided](#bumping) (default: `patch`).
+- **default_bump** _(optional)_ - Which type of bump to use when [none is explicitly provided](#bumping) (default: `patch`). You can also set `false` to avoid generating a new tag when none is explicitly provided.
 - **tag_prefix** _(optional)_ - A prefix to the tag name (default: `v`).
 - **release_branches** _(optional)_ - Comma separated list of branches (bash reg exp accepted) that will generate the release tags. Other branches and pull-requests generate versions postfixed with the commit hash and do not generate any tag. Examples: `master` or `.*` or `release.*,hotfix.*,master`... (default: `master`).
 - **create_annotated_tag** _(optional)_ - Boolean to create an annotated rather than a lightweight one (default: `false`).
