@@ -5,6 +5,7 @@ import { inc, ReleaseType } from "semver";
 import { analyzeCommits } from "@semantic-release/commit-analyzer";
 import { generateNotes } from "@semantic-release/release-notes-generator";
 
+const HASH_SEPARATOR = "|commit-hash:";
 const SEPARATOR = "==============================================";
 
 async function exec(command: string) {
@@ -77,7 +78,7 @@ async function run() {
       tag = (await exec(`git describe --tags ${previousTagSha}`)).stdout.trim();
       logs = (
         await exec(
-          `git log ${tag}..HEAD --pretty=format:'%s%n%b${SEPARATOR}' --abbrev-commit`
+          `git log ${tag}..HEAD --pretty=format:'%s%n%b${HASH_SEPARATOR}%h${SEPARATOR}' --abbrev-commit`
         )
       ).stdout.trim();
 
@@ -92,7 +93,7 @@ async function run() {
       tag = "0.0.0";
       logs = (
         await exec(
-          `git log --pretty=format:'%s%n%b${SEPARATOR}' --abbrev-commit`
+          `git log --pretty=format:'%s%n%b${HASH_SEPARATOR}%h${SEPARATOR}' --abbrev-commit`
         )
       ).stdout.trim();
       core.setOutput("previous_tag", tag);
@@ -101,9 +102,14 @@ async function run() {
     // for some reason the commits start and end with a `'` on the CI so we ignore it
     const commits = logs
       .split(SEPARATOR)
-      .map((x) => ({
-        message: x.trim().replace(/^'\n'/g, "").replace(/^'/g, ""),
-      }))
+      .map((x) => {
+        const data = x.trim().replace(/^'\n'/g, "").replace(/^'/g, "");
+        const [message, hash] = data.split(HASH_SEPARATOR);
+        return {
+          message: message.trim(),
+          hash: hash.trim(),
+        };
+      })
       .filter((x) => !!x.message);
     const bump = await analyzeCommits(
       {},
