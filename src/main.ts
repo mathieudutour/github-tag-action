@@ -104,6 +104,9 @@ async function run() {
       .split(SEPARATOR)
       .map((x) => {
         const data = x.trim().replace(/^'\n'/g, "").replace(/^'/g, "");
+        if (!data) {
+          return {};
+        }
         const [message, hash] = data.split(HASH_SEPARATOR);
         return {
           message: message.trim(),
