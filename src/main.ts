@@ -98,10 +98,12 @@ async function run() {
       core.setOutput("previous_tag", tag);
     }
 
-    // for some reason the commits start with a `'` on the CI so we ignore it
+    // for some reason the commits start and end with a `'` on the CI so we ignore it
     const commits = logs
       .split(SEPARATOR)
-      .map((x) => ({ message: x.trim().replace(/^'/g, "") }))
+      .map((x) => ({
+        message: x.trim().replace(/^'\n'/g, "").replace(/^'/g, ""),
+      }))
       .filter((x) => !!x.message);
     const bump = await analyzeCommits(
       {},
