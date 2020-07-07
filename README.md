@@ -15,6 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
+        with:
+          # Fetches entire history, so we can analyze commits since last tag
+          fetch-depth: 0
       - name: Bump version and push tag
         uses: mathieudutour/github-tag-action@v4.5
         with:
