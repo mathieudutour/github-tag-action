@@ -45,6 +45,7 @@ async function run() {
   try {
     const defaultBump = core.getInput("default_bump") as ReleaseType | "false";
     const tagPrefix = core.getInput("tag_prefix");
+    const bodyPrefix = core.getInput("body_prefix");
     const releaseBranches = core.getInput("release_branches");
     const createAnnotatedTag = core.getInput("create_annotated_tag");
     const dryRun = core.getInput("dry_run");
@@ -134,7 +135,7 @@ async function run() {
 
     core.debug(`New tag: ${newTag}`);
 
-    const changelog = await generateNotes(
+    let changelog = await generateNotes(
       {},
       {
         commits,
@@ -146,6 +147,10 @@ async function run() {
         nextRelease: { gitTag: newTag, version: newVersion },
       }
     );
+
+    if (bodyPrefix) {
+      changelog = bodyPrefix + changelog;
+    }
 
     core.setOutput("changelog", changelog);
 
