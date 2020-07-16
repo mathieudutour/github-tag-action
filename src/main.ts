@@ -125,7 +125,11 @@ async function run() {
       return;
     }
 
-    const newVersion = `${inc(tag.replace(tagPrefix, ""), bump || defaultBump)}${
+    const semverRegex = /(?<=^v?|\sv?)(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:0|[1-9]\d*|[\da-z-]*[a-z-][\da-z-]*)(?:\.(?:0|[1-9]\d*|[\da-z-]*[a-z-][\da-z-]*))*)?(?:\+[\da-z-]+(?:\.[\da-z-]+)*)?(?=$|\s)/ig;
+    const semverTagArray = semverRegex.exec(tag);
+    const semverTag = semverTagArray ? semverTagArray[0] : tag;
+
+    const newVersion = `${inc(semverTag, bump || defaultBump)}${
       preRelease ? `-${GITHUB_SHA.slice(0, 7)}` : ""
     }`;
 
