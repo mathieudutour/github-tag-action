@@ -45,7 +45,7 @@ async function run() {
   try {
     const defaultBump = core.getInput("default_bump") as ReleaseType | "false";
     const tagPrefix = core.getInput("tag_prefix");
-    const bodyPrefix = core.getInput("body_prefix");
+    const body = core.getInput("body");
     const releaseBranches = core.getInput("release_branches");
     const createAnnotatedTag = core.getInput("create_annotated_tag");
     const dryRun = core.getInput("dry_run");
@@ -130,12 +130,14 @@ async function run() {
     }`;
     const newTag = `${tagPrefix}${newVersion}`;
 
+    const message = body || `${tagPrefix}${newVersion}`;
+
     core.setOutput("new_version", newVersion);
     core.setOutput("new_tag", newTag);
 
     core.debug(`New tag: ${newTag}`);
 
-    let changelog = await generateNotes(
+    const changelog = await generateNotes(
       {},
       {
         commits,
@@ -147,10 +149,6 @@ async function run() {
         nextRelease: { gitTag: newTag, version: newVersion },
       }
     );
-
-    if (bodyPrefix) {
-      changelog = bodyPrefix + changelog;
-    }
 
     core.setOutput("changelog", changelog);
 
@@ -183,7 +181,7 @@ async function run() {
       const tagCreateResponse = await octokit.git.createTag({
         ...context.repo,
         tag: newTag,
-        message: newTag,
+        message: message,
         object: GITHUB_SHA,
         type: "commit",
       });
