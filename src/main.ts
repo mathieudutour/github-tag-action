@@ -76,7 +76,7 @@ async function run() {
       const previousTagSha = (
         await exec("git rev-list --tags --topo-order --max-count=1")
       ).stdout.trim();
-      tag = (await exec(`git describe --tags ${previousTagSha}`)).stdout.trim().replace(tagPrefix, "");
+      tag = (await exec(`git describe --tags ${previousTagSha}`)).stdout.trim();
       logs = (
         await exec(
           `git log ${tag}..HEAD --pretty=format:'%s%n%b${HASH_SEPARATOR}%h${SEPARATOR}' --abbrev-commit`
@@ -125,7 +125,7 @@ async function run() {
       return;
     }
 
-    const newVersion = `${inc(tag, bump || defaultBump)}${
+    const newVersion = `${inc(tag.replace(tagPrefix, ""), bump || defaultBump)}${
       preRelease ? `-${GITHUB_SHA.slice(0, 7)}` : ""
     }`;
 
