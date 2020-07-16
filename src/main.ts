@@ -130,7 +130,9 @@ async function run() {
     }`;
     const newTag = `${tagPrefix}${newVersion}`;
 
-    const message = body || `${tagPrefix}${newVersion}`;
+    const message = body || newTag;
+
+    core.info("Body message: " + message);
 
     core.setOutput("new_version", newVersion);
     core.setOutput("new_tag", newTag);
