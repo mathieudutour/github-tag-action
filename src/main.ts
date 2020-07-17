@@ -7,6 +7,7 @@ import { generateNotes } from "@semantic-release/release-notes-generator";
 
 const HASH_SEPARATOR = "|commit-hash:";
 const SEPARATOR = "==============================================";
+const SEMVER_REGEX = /(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:0|[1-9]\d*|[\da-z-]*[a-z-][\da-z-]*)(?:\.(?:0|[1-9]\d*|[\da-z-]*[a-z-][\da-z-]*))*)?(?:\+[\da-z-]+(?:\.[\da-z-]+)*)?(?=$|\s)/gi;
 
 async function exec(command: string) {
   let stdout = "";
@@ -45,6 +46,7 @@ async function run() {
   try {
     const defaultBump = core.getInput("default_bump") as ReleaseType | "false";
     const tagPrefix = core.getInput("tag_prefix");
+    const tagMessage = core.getInput("tag_message");
     const releaseBranches = core.getInput("release_branches");
     const createAnnotatedTag = core.getInput("create_annotated_tag");
     const dryRun = core.getInput("dry_run");
@@ -124,10 +126,17 @@ async function run() {
       return;
     }
 
-    const newVersion = `${inc(tag, bump || defaultBump)}${
+    const plainSemverTags = SEMVER_REGEX.exec(tag);
+    const plainSemverTag = plainSemverTags ? plainSemverTags[0] : tag;
+
+    core.debug(`Extracted plain semver tag from previous tag: ${plainSemverTag}`);
+
+    const newVersion = `${inc(plainSemverTag, bump || defaultBump)}${
       preRelease ? `-${GITHUB_SHA.slice(0, 7)}` : ""
     }`;
+
     const newTag = `${tagPrefix}${newVersion}`;
+    const message = tagMessage || newTag;
 
     core.setOutput("new_version", newVersion);
     core.setOutput("new_tag", newTag);
@@ -178,7 +187,7 @@ async function run() {
       const tagCreateResponse = await octokit.git.createTag({
         ...context.repo,
         tag: newTag,
-        message: newTag,
+        message: message,
         object: GITHUB_SHA,
         type: "commit",
       });
