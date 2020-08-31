@@ -126,11 +126,10 @@ async function run() {
 
     const newVersion = `${inc(tag, bump || defaultBump)}${
       preRelease ? `-${GITHUB_SHA.slice(0, 7)}` : ""
-    }`;
+      }`;
     const newTag = `${tagPrefix}${newVersion}`;
 
-    core.setOutput("new_version", newVersion);
-    core.setOutput("new_tag", newTag);
+
 
     core.debug(`New tag: ${newTag}`);
 
@@ -148,6 +147,7 @@ async function run() {
     );
 
     core.setOutput("changelog", changelog);
+    core.setOutput("new_version", newVersion);
 
     if (preRelease) {
       core.debug(
@@ -155,6 +155,8 @@ async function run() {
       );
       return;
     }
+
+    core.setOutput("new_tag", newTag);
 
     const tagAlreadyExists = !!(
       await exec(`git tag -l "${newTag}"`)
