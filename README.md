@@ -29,7 +29,7 @@ jobs:
 - **github_token** _(required)_ - Required for permission to tag the repo. Usually `${{ secrets.GITHUB_TOKEN }}`.
 - **default_bump** _(optional)_ - Which type of bump to use when [none is explicitly provided](#bumping) (default: `patch`). You can also set `false` to avoid generating a new tag when none is explicitly provided.
 - **tag_prefix** _(optional)_ - A prefix to the tag name (default: `v`).
-- **custom_tag** _(optional)_ - Custom tag name. If specified, it overrides byump settings. 
+- **custom_tag** _(optional)_ - Custom tag name. If specified, it overrides bump settings. 
 - **release_branches** _(optional)_ - Comma separated list of branches (bash reg exp accepted) that will generate the release tags. Other branches and pull-requests generate versions postfixed with the commit hash and do not generate any tag. Examples: `master` or `.*` or `release.*,hotfix.*,master`... (default: `master`).
 - **create_annotated_tag** _(optional)_ - Boolean to create an annotated rather than a lightweight one (default: `false`).
 - **dry_run** _(optional)_ - Do not perform taging, just calculate next version and changelog, then exit
