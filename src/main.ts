@@ -45,6 +45,7 @@ async function run() {
   try {
     const defaultBump = core.getInput("default_bump") as ReleaseType | "false";
     const tagPrefix = core.getInput("tag_prefix");
+    const customTag = core.getInput("custom_tag")
     const releaseBranches = core.getInput("release_branches");
     const createAnnotatedTag = core.getInput("create_annotated_tag");
     const dryRun = core.getInput("dry_run");
@@ -124,9 +125,14 @@ async function run() {
       return;
     }
 
-    const newVersion = `${inc(tag, bump || defaultBump)}${
-      preRelease ? `-${GITHUB_SHA.slice(0, 7)}` : ""
-    }`;
+    let newVersion = "";
+    if (!customTag) {
+      newVersion = `${inc(tag, bump || defaultBump)}${
+        preRelease ? `-${GITHUB_SHA.slice(0, 7)}` : ""
+      }`;
+    } else {
+      newVersion = customTag;
+    }
     const newTag = `${tagPrefix}${newVersion}`;
 
     core.setOutput("new_version", newVersion);
