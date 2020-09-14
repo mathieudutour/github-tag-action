@@ -24,7 +24,7 @@ inputs:
     default: "v"
   custom_tag:
     description: "Custom tag name. If specified, it overrides bump settings."
-    required: true
+    required: false
   release_branches:
     description: "Comma separated list of branches (bash reg exp accepted) that will generate the release tags. Other branches and pull-requests generate versions postfixed with the commit hash and do not generate any tag. Examples: `master` or `.*` or `release.*,hotfix.*,master`..."
     required: false
