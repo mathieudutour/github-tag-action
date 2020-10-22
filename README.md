@@ -19,7 +19,7 @@ jobs:
           # Fetches entire history, so we can analyze commits since last tag
           fetch-depth: 0
       - name: Bump version and push tag
-        uses: mathieudutour/github-tag-action@v4.5
+        uses: mathieudutour/github-tag-action@v4.6
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 ```
