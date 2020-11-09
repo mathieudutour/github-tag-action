@@ -99,17 +99,18 @@ async function run() {
     }
 
     const currentBranch = getBranchFromRef(GITHUB_REF);
+    core.debug(`Current branch is ${currentBranch}`);
 
     const releaseBranch = releaseBranches
       .split(",")
       .some((branch) => currentBranch.match(branch));
-
+    
     const preReleaseBranch = preReleaseBranches
       .split(",")
       .some((branch) => currentBranch.match(branch));
 
     if (releaseBranch && preReleaseBranch) {
-      core.setFailed("Branch cannot be both pre-release and release.");
+      core.setFailed("Branch cannot be both pre-release and release at the same time.");
     }
 
     core.debug(`Branch is release branch = ${releaseBranch}, pre-release branch = ${preReleaseBranch}`);
