@@ -99,12 +99,12 @@ async function run() {
     }
 
     const currentBranch = getBranchFromRef(GITHUB_REF);
-    core.debug(`Current branch is ${currentBranch}`);
+    core.debug(`Current branch is ${currentBranch}.`);
 
     const releaseBranch = releaseBranches
       .split(",")
       .some((branch) => currentBranch.match(branch));
-    
+
     const preReleaseBranch = preReleaseBranches
       .split(",")
       .some((branch) => currentBranch.match(branch));
@@ -129,10 +129,6 @@ async function run() {
 
       const repoTag = (await exec(git.describe(previousTagSha))).stdout.trim();
       core.debug(`Repo tag ${repoTag}.`);
-
-      if (!isValidRegex(repoTag)) {
-        core.setFailed(`${repoTag} is not a valid semver.`);
-      }
 
       tag = cleanRepoTag(repoTag);
       core.debug(`Cleaned repo tag ${tag}.`);
@@ -177,12 +173,20 @@ async function run() {
       return;
     }
 
+    const currentVersion = tag
+      .replace(tagPrefix, '')
+      .replace(appendToPreReleaseTag, '');
+
+    if (!isValidRegex(currentVersion)) {
+      core.setFailed(`${currentVersion} is not a valid semver.`);
+    }
+
     const releaseType: ReleaseType = preReleaseBranch ? 'prerelease' : (bump || defaultBump);
-    const incrementedVersion = inc(tag, releaseType);
+    const incrementedVersion = inc(currentVersion, releaseType);
 
     if (!incrementedVersion) {
-      core.error(`ReleaseType = ${releaseType}, tag = ${tag}.`);
-      core.setFailed("Could not increment version.");
+      core.error(`ReleaseType = ${releaseType}, tag = ${tag}, current version = ${currentVersion}.`);
+      core.setFailed('Could not increment version.');
     }
 
     const versionSuffix = preReleaseBranch ? `-${currentBranch}.${GITHUB_SHA.slice(0, 7)}` : "";
