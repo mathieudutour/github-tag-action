@@ -166,7 +166,6 @@ async function run() {
     core.setOutput("previous_tag", previousTagName);
 
     const commits = await getCommits(githubToken, previousTag.name);
-
     const bump = await analyzeCommits(
       {},
       {commits, logger: {log: console.info.bind(console)}}
@@ -177,22 +176,16 @@ async function run() {
       return;
     }
 
-    const currentVersion = previousTagName
-      .replace(tagPrefix, '')
-      .replace(appendToPreReleaseTag, '');
-
     const releaseType: ReleaseType = preReleaseBranch ? 'prerelease' : (bump || defaultBump);
-    const incrementedVersion = inc(currentVersion, releaseType, currentBranch);
+    const incrementedVersion = inc(previousTagName, releaseType, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
 
     if (!incrementedVersion) {
-      core.error(`ReleaseType = ${releaseType}, tag = ${previousTagName}, current version = ${currentVersion}.`);
+      core.error(`ReleaseType = ${releaseType}, tag = ${previousTagName}.`);
       core.setFailed('Could not increment version.');
     }
     core.info(`Incremented version after applying conventional commits: ${incrementedVersion}.`);
 
-
-    const versionSuffix = preReleaseBranch ? `-${currentBranch}.${GITHUB_SHA.slice(0, 7)}` : "";
-    const newVersion = customTag ? customTag : `${incrementedVersion}${versionSuffix}`;
+    const newVersion = customTag ? customTag : incrementedVersion;
     const newTag = appendToPreReleaseTag && preReleaseBranch ? `${tagPrefix}${newVersion}` : `${tagPrefix}${newVersion}`
     core.info(`New tag after applying suffix: ${previousTagName}.`);
 
