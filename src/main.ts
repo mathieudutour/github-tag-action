@@ -1,7 +1,6 @@
 import * as core from "@actions/core";
-import {exec as _exec} from "@actions/exec";
 import {context, GitHub} from "@actions/github";
-import {inc, parse, ReleaseType, valid} from "semver";
+import {inc, rcompare, parse, ReleaseType, valid} from "semver";
 import {analyzeCommits} from "@semantic-release/commit-analyzer";
 import {generateNotes} from "@semantic-release/release-notes-generator";
 
@@ -17,12 +16,12 @@ async function getValidTags(githubToken: string) {
     .map(tag => tag.name)
     .filter(name => !valid(name));
 
-  invalidTags.map(name => core.debug(`Invalid: ${name}.`));
+  invalidTags.map(name => core.info(`Invalid: ${name}.`));
 
   const validTags = tags.data
     .filter(tag => valid(tag.name));
 
-  validTags.map(tag => core.debug(`Valid: ${tag.name}.`));
+  validTags.map(tag => core.info(`Valid: ${tag.name}.`));
 
   return validTags;
 }
