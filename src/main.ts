@@ -5,9 +5,6 @@ import {inc, parse, ReleaseType, valid} from "semver";
 import {analyzeCommits} from "@semantic-release/commit-analyzer";
 import {generateNotes} from "@semantic-release/release-notes-generator";
 
-const HASH_SEPARATOR = "|commit-hash:";
-const SEPARATOR = "==============================================";
-
 async function getValidTags(githubToken: string) {
   const octokit = new GitHub(githubToken);
 
@@ -51,37 +48,14 @@ function getBranchFromRef(ref: string): string {
   return ref.replace("refs/heads/", "");
 }
 
-async function exec(command: string) {
-  let stdout = "";
-  let stderr = "";
-
-  try {
-    const options = {
-      listeners: {
-        stdout: (data: Buffer) => {
-          stdout += data.toString();
-        },
-        stderr: (data: Buffer) => {
-          stderr += data.toString();
-        },
-      },
-    };
-
-    const code = await _exec(command, undefined, options);
-
-    return {
-      code,
-      stdout,
-      stderr,
-    };
-  } catch (err) {
-    return {
-      code: 1,
-      stdout,
-      stderr,
-      error: err,
-    };
-  }
+function getLatestTag(tags: object[]) {
+  return {
+    name: '0.0.0',
+    commit: {
+      sha: 'HEAD'
+    },
+    ...tags[0]
+  };
 }
 
 async function run() {
@@ -99,42 +73,40 @@ async function run() {
     const {GITHUB_REF, GITHUB_SHA} = process.env;
 
     if (!GITHUB_REF) {
-      core.setFailed("Missing GITHUB_REF");
+      core.setFailed("Missing GITHUB_REF.");
       return;
     }
 
     if (!GITHUB_SHA) {
-      core.setFailed("Missing GITHUB_SHA");
+      core.setFailed("Missing GITHUB_SHA.");
       return;
     }
 
     const currentBranch = getBranchFromRef(GITHUB_REF);
     const releaseBranch = releaseBranches
       .split(",")
-      .some((branch) => currentBranch.match(branch));
+      .includes(currentBranch);
     const preReleaseBranch = preReleaseBranches
       .split(",")
-      .some((branch) => currentBranch.match(branch));
+      .includes(currentBranch);
 
     if (releaseBranch && preReleaseBranch) {
       core.setFailed("Branch cannot be both pre-release and release at the same time.");
+      return;
     }
 
-    const tags = await getValidTags(githubToken);
-    const previousTag = tags[0];
+    const validTags = await getValidTags(githubToken);
+    const tag = getLatestTag(validTags);
+    const previousTag = parse(tag.name);
+    const commits = await getCommits(githubToken, tag.commit.sha);
 
-    let previousTagName;
-    let commits;
-    if (previousTag) {
-      previousTagName = parse(previousTag.name);
-      commits = await getCommits(githubToken, previousTag.commit.sha);
-    } else {
-      previousTagName = parse("0.0.0");
-      commits = await getCommits(githubToken, 'HEAD');
+    if (!previousTag) {
+      core.setFailed('Could not parse previous tag.');
+      return;
     }
 
-    core.debug(`Setting previous_tag to: ${previousTagName}`);
-    core.setOutput("previous_tag", previousTagName.version);
+    core.debug(`Setting previous_tag to: ${previousTag}`);
+    core.setOutput("previous_tag", previousTag.version);
 
     const bump = await analyzeCommits(
       {},
@@ -147,7 +119,7 @@ async function run() {
     }
 
     const releaseType: ReleaseType = preReleaseBranch ? 'prerelease' : (bump || defaultBump);
-    const incrementedVersion = inc(previousTagName, releaseType, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
+    const incrementedVersion = inc(previousTag, releaseType, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
     core.info(`Incremented version after applying conventional commits: ${incrementedVersion}.`);
 
     const newVersion = customTag ? customTag : incrementedVersion;
@@ -165,7 +137,7 @@ async function run() {
         options: {
           repositoryUrl: `https://github.com/${process.env.GITHUB_REPOSITORY}`,
         },
-        lastRelease: {gitTag: previousTag.name },
+        lastRelease: {gitTag: previousTag},
         nextRelease: {gitTag: newTag, version: newVersion},
       }
     );
@@ -177,9 +149,7 @@ async function run() {
       return;
     }
 
-    const tagAlreadyExists = !!(await exec(`git tag -l "${newTag}"`)).stdout.trim();
-
-    if (tagAlreadyExists) {
+    if (validTags.map(tag => tag.name).includes(newTag)) {
       core.debug("This tag already exists. Skipping the tag creation.");
       return;
     }
