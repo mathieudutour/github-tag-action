@@ -60,9 +60,12 @@ async function getCommits(githubToken: string, sha: string) {
     sha: sha
   });
 
-  commits.data.map(commit => core.debug(commit.commit.message));
-
-  return commits.data;
+  return commits.data
+    .filter(commit => !!commit.commit.message)
+    .map(commit => ({
+      message: commit.commit.message,
+      hash: commit.sha
+    }));
 }
 
 function getBranchFromRef(ref: string): string {
@@ -147,14 +150,14 @@ async function run() {
 
     const tags = await getValidTags(githubToken);
     const previousTag = tags[0];
-    
+
     let previousTagName;
     let logs;
-    
+
     if (previousTag) {
       const {name, commit: previousTagCommit} = previousTag;
       const {sha: previousTagSha} = previousTagCommit;
-      
+
       previousTagName = cleanRepoTag(name);
       const commits = await getCommits(githubToken, previousTagName);
       core.debug(`name = ${name}, sha = ${previousTagSha}, previousTagName = ${previousTagName}`);
@@ -163,7 +166,7 @@ async function run() {
       previousTagName = "0.0.0";
       logs = (await exec(git.log())).stdout.trim();
     }
-    
+
     core.debug(`Setting previous_tag to: ${previousTagName}`);
     core.setOutput("previous_tag", previousTagName);
 
