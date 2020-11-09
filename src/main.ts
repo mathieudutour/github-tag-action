@@ -72,11 +72,6 @@ function getBranchFromRef(ref: string): string {
   return ref.replace("refs/heads/", "");
 }
 
-function cleanRepoTag(tag: string): string {
-  core.debug(`PARSE == ${parse(tag)}.`);
-  return tag.split('-')[0];
-}
-
 async function exec(command: string) {
   let stdout = "";
   let stderr = "";
@@ -135,11 +130,9 @@ async function run() {
     }
 
     const currentBranch = getBranchFromRef(GITHUB_REF);
-
     const releaseBranch = releaseBranches
       .split(",")
       .some((branch) => currentBranch.match(branch));
-
     const preReleaseBranch = preReleaseBranches
       .split(",")
       .some((branch) => currentBranch.match(branch));
@@ -155,9 +148,7 @@ async function run() {
     let logs;
 
     if (previousTag) {
-      const {name, commit: previousTagCommit} = previousTag;
-      const {sha: previousTagSha} = previousTagCommit;
-      previousTagName = cleanRepoTag(name);
+      previousTagName = parse(previousTagName.name);
     } else {
       previousTagName = "0.0.0";
     }
@@ -165,7 +156,7 @@ async function run() {
     core.debug(`Setting previous_tag to: ${previousTagName}`);
     core.setOutput("previous_tag", previousTagName);
 
-    const commits = await getCommits(githubToken, previousTag.name);
+    const commits = await getCommits(githubToken, previousTag.commit.sha);
     const bump = await analyzeCommits(
       {},
       {commits, logger: {log: console.info.bind(console)}}
