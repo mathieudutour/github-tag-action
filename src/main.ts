@@ -152,10 +152,10 @@ async function run() {
     let logs;
     
     if (previousTag) {
-      const {name: previousTagName, commit: previousTagCommit} = previousTag;
+      const {name, commit: previousTagCommit} = previousTag;
       const {sha: previousTagSha} = previousTagCommit;
 
-      const cleanTag = cleanRepoTag(previousTagName);
+      previousTagName = cleanRepoTag(name);
       const commits = await getCommits(githubToken, previousTagSha);
       logs = (await exec(git.log(previousTagName))).stdout.trim();
     } else {
