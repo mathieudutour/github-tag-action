@@ -29,12 +29,17 @@ const git = {
   }
 }
 
-function getBranchFromRef(ref: string) {
+function getBranchFromRef(ref: string): string {
   return ref.replace("refs/heads/", "");
 }
 
-function cleanRepoTag(tag: string) {
+function cleanRepoTag(tag: string): string {
   return tag.split('-')[0];
+}
+
+function isValidRegex(test: string): boolean {
+  // See: https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
+  return /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/.match(test);
 }
 
 async function exec(command: string) {
@@ -121,6 +126,10 @@ async function run() {
 
       const repoTag = (await exec(git.describe(previousTagSha))).stdout.trim();
       core.info(`Repo tag ${repoTag}.`);
+
+      if (!isValidRegex(repoTag)) {
+        core.setFailed(`${repoTag} is not a valid semver.`);
+      }
 
       tag = cleanRepoTag(repoTag);
       core.info(`Cleaned repo tag ${tag}.`);
