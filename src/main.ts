@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import {exec as _exec} from "@actions/exec";
 import {context, GitHub} from "@actions/github";
-import {inc, rcompare, ReleaseType, valid} from "semver";
+import {inc, ReleaseType, valid} from "semver";
 import {analyzeCommits} from "@semantic-release/commit-analyzer";
 import {generateNotes} from "@semantic-release/release-notes-generator";
 
@@ -145,36 +145,25 @@ async function run() {
     }
 
     const tags = await getValidTags(githubToken);
+    const previousTag = tags[0];
+    
+    let previousTagName;
+    let logs;
+    
+    if (previousTag) {
+      const {name: previousTagName, commit: previousTagCommit} = previousTag;
+      const {sha: previousTagSha} = previousTagCommit;
 
-    let tag = "";
-    let logs = "";
-    core.debug(`Has tag = ${tags.length > 0}.`);
-
-    if (tags.length > 0) {
-      const previousTagSha = (await exec(git.revList())).stdout.trim();
-      core.debug(`Previous tag sha: ${previousTagSha}.`);
-
-      const repoTag = (await exec(git.describe(previousTagSha))).stdout.trim();
-      core.debug(`Repo tag ${repoTag}.`);
-
-      tag = cleanRepoTag(repoTag);
-      core.debug(`Cleaned repo tag ${tag}.`);
-
-      getCommits(githubToken, tags[0].commit.sha);
-
-      logs = (await exec(git.log(tag))).stdout.trim();
-
-      if (previousTagSha === GITHUB_SHA) {
-        core.debug("No new commits since previous tag. Skipping...");
-        return;
-      }
+      const cleanTag = cleanRepoTag(previousTagName);
+      const commits = await getCommits(githubToken, previousTagSha);
+      logs = (await exec(git.log(previousTagName))).stdout.trim();
     } else {
-      tag = "0.0.0";
+      previousTagName = "0.0.0";
       logs = (await exec(git.log())).stdout.trim();
     }
-
-    core.debug(`Setting previous_tag to: ${tag}`);
-    core.setOutput("previous_tag", tag);
+    
+    core.debug(`Setting previous_tag to: ${previousTagName}`);
+    core.setOutput("previous_tag", previousTagName);
 
     // for some reason the commits start and end with a `'` on the CI so we ignore it
     const commits = logs
@@ -202,7 +191,7 @@ async function run() {
       return;
     }
 
-    const currentVersion = tag
+    const currentVersion = previousTagName
       .replace(tagPrefix, '')
       .replace(appendToPreReleaseTag, '');
 
@@ -210,7 +199,7 @@ async function run() {
     const incrementedVersion = inc(currentVersion, releaseType, currentBranch);
 
     if (!incrementedVersion) {
-      core.error(`ReleaseType = ${releaseType}, tag = ${tag}, current version = ${currentVersion}.`);
+      core.error(`ReleaseType = ${releaseType}, tag = ${previousTagName}, current version = ${currentVersion}.`);
       core.setFailed('Could not increment version.');
     }
     core.info(`Incremented version after applying conventional commits: ${incrementedVersion}.`);
@@ -219,7 +208,7 @@ async function run() {
     const versionSuffix = preReleaseBranch ? `-${currentBranch}.${GITHUB_SHA.slice(0, 7)}` : "";
     const newVersion = customTag ? customTag : `${incrementedVersion}${versionSuffix}`;
     const newTag = appendToPreReleaseTag && preReleaseBranch ? `${tagPrefix}${newVersion}` : `${tagPrefix}${newVersion}`
-    core.info(`New tag after applying suffix: ${tag}.`);
+    core.info(`New tag after applying suffix: ${previousTagName}.`);
 
     core.setOutput("new_version", newVersion);
     core.setOutput("new_tag", newTag);
@@ -234,7 +223,7 @@ async function run() {
         options: {
           repositoryUrl: `https://github.com/${process.env.GITHUB_REPOSITORY}`,
         },
-        lastRelease: {gitTag: tag},
+        lastRelease: {gitTag: previousTag},
         nextRelease: {gitTag: newTag, version: newVersion},
       }
     );
