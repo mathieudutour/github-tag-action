@@ -97,15 +97,17 @@ async function run() {
 
     const releaseBranch = releaseBranches
       .split(",")
-      .some((branch) => !currentBranch.match(branch));
+      .some((branch) => currentBranch.match(branch));
 
     const preReleaseBranch = preReleaseBranches
       .split(",")
-      .some((branch) => !currentBranch.match(branch));
+      .some((branch) => currentBranch.match(branch));
 
     if (releaseBranch && preReleaseBranch) {
       core.setFailed("Branch cannot be both pre-release and release.");
     }
+
+    core.debug(`Branch is release branch = ${releaseBranch}, pre-release branch = ${preReleaseBranch}`);
 
     await exec(git.fetch());
 
