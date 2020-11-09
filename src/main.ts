@@ -154,9 +154,10 @@ async function run() {
     if (previousTag) {
       const {name, commit: previousTagCommit} = previousTag;
       const {sha: previousTagSha} = previousTagCommit;
-
+      
       previousTagName = cleanRepoTag(name);
       const commits = await getCommits(githubToken, previousTagSha);
+      core.debug(`name = ${name}, sha = ${previousTagSha}, previousTagName = ${previousTagName}`);
       logs = (await exec(git.log(previousTagName))).stdout.trim();
     } else {
       previousTagName = "0.0.0";
