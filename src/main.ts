@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 import {context, GitHub} from "@actions/github";
-import {inc, parse, coerce, ReleaseType, valid, SemVer} from "semver";
+import {clean, inc, parse, ReleaseType, valid} from "semver";
 import {analyzeCommits} from "@semantic-release/commit-analyzer";
 import {generateNotes} from "@semantic-release/release-notes-generator";
 
@@ -143,10 +143,11 @@ async function run() {
     const releaseType: ReleaseType = preReleaseBranch ? 'prerelease' : (bump || defaultBump);
 
     let incrementedVersion = inc(previousTag, releaseType, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
-    if (!valid(incrementedVersion)) {
-      const coercedVersion = coerce(incrementedVersion, {includePrerelease: true});
-      if (coercedVersion) {
-        incrementedVersion = coercedVersion.version;
+    let validVersion = valid(incrementedVersion);
+    if (incrementedVersion && !validVersion) {
+      const cleanedVersion = clean(incrementedVersion, {includePrerelease: true});
+      if (cleanedVersion) {
+        incrementedVersion = cleanedVersion
       }
     }
 
