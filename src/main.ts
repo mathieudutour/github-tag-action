@@ -37,9 +37,9 @@ function cleanRepoTag(tag: string): string {
   return tag.split('-')[0];
 }
 
-function isValidRegex(test: string): boolean {
+function isValidRegex(test: string): RegExpMatchArray | null {
   // See: https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
-  return /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/.match(test);
+  return test.match(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/);
 }
 
 async function exec(command: string) {
