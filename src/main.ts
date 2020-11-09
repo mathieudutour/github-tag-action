@@ -159,32 +159,16 @@ async function run() {
       const {sha: previousTagSha} = previousTagCommit;
 
       previousTagName = cleanRepoTag(name);
-      const commits = await getCommits(githubToken, previousTagName);
       core.debug(`name = ${name}, sha = ${previousTagSha}, previousTagName = ${previousTagName}`);
-      logs = (await exec(git.log(previousTagName))).stdout.trim();
     } else {
       previousTagName = "0.0.0";
-      logs = (await exec(git.log())).stdout.trim();
     }
 
     core.debug(`Setting previous_tag to: ${previousTagName}`);
     core.setOutput("previous_tag", previousTagName);
 
     // for some reason the commits start and end with a `'` on the CI so we ignore it
-    const commits = logs
-      .split(SEPARATOR)
-      .map((x) => {
-        const data = x.trim().replace(/^'\n'/g, "").replace(/^'/g, "");
-        if (!data) {
-          return {};
-        }
-        const [message, hash] = data.split(HASH_SEPARATOR);
-        return {
-          message: message.trim(),
-          hash: hash.trim(),
-        };
-      })
-      .filter((x) => !!x.message);
+    const commits = await getCommits(githubToken, previousTagName);
 
     const bump = await analyzeCommits(
       {},
