@@ -154,7 +154,7 @@ async function run() {
     }
 
     core.debug(`Setting previous_tag to: ${previousTagName}`);
-    core.setOutput("previous_tag", previousTagName);
+    core.setOutput("previous_tag", previousTagName.version);
 
     const commits = await getCommits(githubToken, previousTag.commit.sha);
     const bump = await analyzeCommits(
