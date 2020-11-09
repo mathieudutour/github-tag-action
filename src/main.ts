@@ -33,6 +33,10 @@ function getBranchFromRef(ref: string) {
   return ref.replace("refs/heads/", "");
 }
 
+function cleanRepoTag(tag: string) {
+  return tag.split('-')[0];
+}
+
 async function exec(command: string) {
   let stdout = "";
   let stderr = "";
@@ -111,7 +115,14 @@ async function run() {
 
     if (hasTag) {
       const previousTagSha = (await exec(git.revList())).stdout.trim();
-      tag = (await exec(git.describe(previousTagSha))).stdout.trim();
+      core.debug(`Previous tag sha: ${previousTagSha}.`);
+
+      const repoTag = (await exec(git.describe(previousTagSha))).stdout.trim();
+      core.debug(`Repo tag ${repoTag}.`);
+
+      tag = cleanRepoTag(repoTag);
+      core.debug(`Cleaned repo tag ${tag}.`);
+
       logs = (await exec(git.log(tag))).stdout.trim();
 
       if (previousTagSha === GITHUB_SHA) {
