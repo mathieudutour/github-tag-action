@@ -167,6 +167,7 @@ async function run() {
     if (createAnnotatedTag === "true") {
       core.debug(`Creating annotated tag`);
 
+      console.log(newTag, GITHUB_SHA);
       const tagCreateResponse = await octokit.git.createTag({
         ...context.repo,
         tag: newTag,
