@@ -142,6 +142,7 @@ async function run() {
 
     const releaseType: ReleaseType = preReleaseBranch ? 'prerelease' : (bump || defaultBump);
 
+    console.log(previousTag, releaseType, appendToPreReleaseTag, currentBranch);
     let incrementedVersion = inc(previousTag, releaseType, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
     if (!incrementedVersion) {
       core.setFailed('Could not increment version.');
@@ -166,7 +167,6 @@ async function run() {
     core.info(`New tag after applying prefix is ${newTag}.`);
     core.setOutput("new_tag", newTag);
 
-    console.log('changelog', tag.name, previousTag, newTag, newVersion);
     const changelog = await generateNotes(
       {},
       {
