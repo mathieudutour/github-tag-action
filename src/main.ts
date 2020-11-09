@@ -119,6 +119,7 @@ async function run() {
     }
 
     const validTags = await getValidTags(githubToken);
+    console.log(validTags);
     const tag = getLatestTag(validTags);
     const previousTag = parse(tag.name);
     const commits = await getCommits(githubToken, tag.commit.sha);
