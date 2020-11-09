@@ -1,44 +1,94 @@
 import * as core from "@actions/core";
-import { exec as _exec } from "@actions/exec";
 import { context, GitHub } from "@actions/github";
-import { inc, ReleaseType } from "semver";
+import { inc, parse, ReleaseType, valid, gte, rcompare, prerelease } from "semver";
 import { analyzeCommits } from "@semantic-release/commit-analyzer";
 import { generateNotes } from "@semantic-release/release-notes-generator";
 
-const HASH_SEPARATOR = "|commit-hash:";
-const SEPARATOR = "==============================================";
+async function getValidTags(githubToken: string) {
 
-async function exec(command: string) {
-  let stdout = "";
-  let stderr = "";
+  const octokit = new GitHub(githubToken);
 
-  try {
-    const options = {
-      listeners: {
-        stdout: (data: Buffer) => {
-          stdout += data.toString();
-        },
-        stderr: (data: Buffer) => {
-          stderr += data.toString();
-        },
-      },
-    };
+  const tags = await octokit.repos.listTags({
+    ...context.repo,
+    per_page: 100
+  });
 
-    const code = await _exec(command, undefined, options);
+  const invalidTags = tags.data
+    .map(tag => tag.name)
+    .filter(name => !valid(name));
 
-    return {
-      code,
-      stdout,
-      stderr,
-    };
-  } catch (err) {
-    return {
-      code: 1,
-      stdout,
-      stderr,
-      error: err,
-    };
+  invalidTags.map(name => core.debug(`Invalid: ${name}.`));
+
+  const validTags = tags.data
+    .filter(tag => valid(tag.name))
+    .sort((a, b) => rcompare(a.name, b.name));
+
+  validTags.map(tag => core.debug(`Valid: ${tag.name}.`));
+
+  return validTags;
+}
+
+async function getCommits(githubToken: string, sha: string) {
+  const octokit = new GitHub(githubToken);
+
+  const commits = await octokit.repos.compareCommits({
+    ...context.repo,
+    base: sha,
+    head: 'HEAD'
+  });
+
+  return commits.data.commits
+    .filter(commit => !!commit.commit.message)
+    .map(commit => ({
+      message: commit.commit.message,
+      hash: commit.sha
+    }));
+}
+
+function getBranchFromRef(ref: string): string {
+  return ref.replace("refs/heads/", "");
+}
+
+function getLatestTag(tags: object[]) {
+  return {
+    name: '0.0.0',
+    commit: {
+      sha: 'HEAD'
+    },
+    // @ts-ignore
+    ...tags.find(tag => !prerelease(tag.name))
+  };
+}
+
+async function createTag(githubToken: string, newTag: string, createAnnotatedTag: boolean, GITHUB_SHA: string) {
+  const octokit = new GitHub(githubToken);
+
+  let createdTag;
+  if (createAnnotatedTag) {
+    core.debug(`Creating annotated tag.`);
+    createdTag = await octokit.git.createTag({
+      ...context.repo,
+      tag: newTag,
+      message: newTag,
+      object: GITHUB_SHA,
+      type: "commit",
+    });
   }
+
+  core.debug(`Pushing new tag to the repo.`);
+  await octokit.git.createRef({
+    ...context.repo,
+    ref: `refs/tags/${newTag}`,
+    sha: createAnnotatedTag ? createdTag.data.sha : GITHUB_SHA,
+  });
+}
+
+function getLatestPrereleaseTag(tags: object[], identifier: string) {
+  return tags
+    // @ts-ignore
+    .filter(tag => prerelease(tag.name))
+    // @ts-ignore
+    .find(tag => tag.name.match(identifier));
 }
 
 async function run() {
@@ -47,98 +97,85 @@ async function run() {
     const tagPrefix = core.getInput("tag_prefix");
     const customTag = core.getInput("custom_tag")
     const releaseBranches = core.getInput("release_branches");
-    const createAnnotatedTag = core.getInput("create_annotated_tag");
+    const preReleaseBranches = core.getInput("pre_release_branches");
+    const appendToPreReleaseTag = core.getInput("append_to_pre_release_tag");
+    const createAnnotatedTag = !!core.getInput("create_annotated_tag");
     const dryRun = core.getInput("dry_run");
+    const githubToken = core.getInput("github_token")
 
     const { GITHUB_REF, GITHUB_SHA } = process.env;
 
     if (!GITHUB_REF) {
-      core.setFailed("Missing GITHUB_REF");
+      core.setFailed("Missing GITHUB_REF.");
       return;
     }
 
     if (!GITHUB_SHA) {
-      core.setFailed("Missing GITHUB_SHA");
+      core.setFailed("Missing GITHUB_SHA.");
       return;
     }
 
-    const preRelease = releaseBranches
+    const currentBranch = getBranchFromRef(GITHUB_REF);
+    const isReleaseBranch = releaseBranches
       .split(",")
-      .every((branch) => !GITHUB_REF.replace("refs/heads/", "").match(branch));
+      .some(branch => currentBranch.match(branch));
+    const isPreReleaseBranch = preReleaseBranches
+      .split(",")
+      .some(branch => currentBranch.match(branch));
+    const isPrerelease = !isReleaseBranch && isPreReleaseBranch;
 
-    await exec("git fetch --tags");
+    const validTags = await getValidTags(githubToken);
+    const latestTag = getLatestTag(validTags);
+    const latestPrereleaseTag = getLatestPrereleaseTag(validTags, currentBranch);
 
-    const hasTag = !!(await exec("git tag")).stdout.trim();
-    let tag = "";
-    let logs = "";
-
-    if (hasTag) {
-      const previousTagSha = (
-        await exec("git rev-list --tags --topo-order --max-count=1")
-      ).stdout.trim();
-      tag = (await exec(`git describe --tags ${previousTagSha}`)).stdout.trim();
-      logs = (
-        await exec(
-          `git log ${tag}..HEAD --pretty=format:'%s%n%b${HASH_SEPARATOR}%h${SEPARATOR}' --abbrev-commit`
-        )
-      ).stdout.trim();
-
-      core.debug(`Setting previous_tag to: ${tag}`);
-      core.setOutput("previous_tag", tag);
-
-      if (previousTagSha === GITHUB_SHA) {
-        core.debug("No new commits since previous tag. Skipping...");
-        return;
-      }
+    let previousTag;
+    if (!latestPrereleaseTag) {
+      previousTag = parse(latestTag.name);
     } else {
-      tag = "0.0.0";
-      logs = (
-        await exec(
-          `git log --pretty=format:'%s%n%b${HASH_SEPARATOR}%h${SEPARATOR}' --abbrev-commit`
-        )
-      ).stdout.trim();
-      core.setOutput("previous_tag", tag);
+      // @ts-ignore
+      previousTag = parse(gte(latestTag.name, latestPrereleaseTag.name) ? latestTag.name : latestPrereleaseTag.name);
     }
 
-    // for some reason the commits start and end with a `'` on the CI so we ignore it
-    const commits = logs
-      .split(SEPARATOR)
-      .map((x) => {
-        const data = x.trim().replace(/^'\n'/g, "").replace(/^'/g, "");
-        if (!data) {
-          return {};
-        }
-        const [message, hash] = data.split(HASH_SEPARATOR);
-        return {
-          message: message.trim(),
-          hash: hash.trim(),
-        };
-      })
-      .filter((x) => !!x.message);
+    const commits = await getCommits(githubToken, latestTag.commit.sha);
+
+    if (!previousTag) {
+      core.setFailed('Could not parse previous tag.');
+      return;
+    }
+
+    core.info(`Previous tag was ${previousTag}.`);
+    core.setOutput("previous_tag", previousTag.version);
+
     const bump = await analyzeCommits(
       {},
       { commits, logger: { log: console.info.bind(console) } }
     );
 
     if (!bump && defaultBump === "false") {
-      core.debug("No commit specifies the version bump. Skipping...");
+      core.debug("No commit specifies the version bump. Skipping the tag creation.");
       return;
     }
 
-    let newVersion = "";
-    if (!customTag) {
-      newVersion = `${inc(tag, bump || defaultBump)}${
-        preRelease ? `-${GITHUB_SHA.slice(0, 7)}` : ""
-      }`;
-    } else {
-      newVersion = customTag;
+    const releaseType: ReleaseType = isPrerelease ? 'prerelease' : (bump || defaultBump);
+    const incrementedVersion = inc(previousTag, releaseType, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
+    if (!incrementedVersion) {
+      core.setFailed('Could not increment version.');
+      return;
     }
-    const newTag = `${tagPrefix}${newVersion}`;
 
+    const validVersion = valid(incrementedVersion);
+    if (!validVersion) {
+      core.setFailed(`${incrementedVersion} is not a valid semver.`);
+      return;
+    }
+
+    const newVersion = customTag ? customTag : incrementedVersion;
+    core.info(`New version is ${newVersion}.`);
     core.setOutput("new_version", newVersion);
-    core.setOutput("new_tag", newTag);
 
-    core.debug(`New tag: ${newTag}`);
+    const newTag = `${tagPrefix}${newVersion}`;
+    core.info(`New tag after applying prefix is ${newTag}.`);
+    core.setOutput("new_tag", newTag);
 
     const changelog = await generateNotes(
       {},
@@ -148,26 +185,20 @@ async function run() {
         options: {
           repositoryUrl: `https://github.com/${process.env.GITHUB_REPOSITORY}`,
         },
-        lastRelease: { gitTag: tag },
+        lastRelease: { gitTag: latestTag.name },
         nextRelease: { gitTag: newTag, version: newVersion },
       }
     );
-
+    core.info(`Changelog is ${changelog}.`);
     core.setOutput("changelog", changelog);
 
-    if (preRelease) {
-      core.debug(
-        "This branch is not a release branch. Skipping the tag creation."
-      );
+    if (!isReleaseBranch && !isPreReleaseBranch) {
+      core.info("This branch is neither a release nor a pre-release branch. Skipping the tag creation.");
       return;
     }
 
-    const tagAlreadyExists = !!(
-      await exec(`git tag -l "${newTag}"`)
-    ).stdout.trim();
-
-    if (tagAlreadyExists) {
-      core.debug("This tag already exists. Skipping the tag creation.");
+    if (validTags.map(tag => tag.name).includes(newTag)) {
+      core.info("This tag already exists. Skipping the tag creation.");
       return;
     }
 
@@ -176,36 +207,7 @@ async function run() {
       return;
     }
 
-    const octokit = new GitHub(core.getInput("github_token"));
-
-    if (createAnnotatedTag === "true") {
-      core.debug(`Creating annotated tag`);
-
-      const tagCreateResponse = await octokit.git.createTag({
-        ...context.repo,
-        tag: newTag,
-        message: newTag,
-        object: GITHUB_SHA,
-        type: "commit",
-      });
-
-      core.debug(`Pushing annotated tag to the repo`);
-
-      await octokit.git.createRef({
-        ...context.repo,
-        ref: `refs/tags/${newTag}`,
-        sha: tagCreateResponse.data.sha,
-      });
-      return;
-    }
-
-    core.debug(`Pushing new tag to the repo`);
-
-    await octokit.git.createRef({
-      ...context.repo,
-      ref: `refs/tags/${newTag}`,
-      sha: GITHUB_SHA,
-    });
+    await createTag(githubToken, newTag, createAnnotatedTag, GITHUB_SHA);
   } catch (error) {
     core.setFailed(error.message);
   }
