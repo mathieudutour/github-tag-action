@@ -38,11 +38,11 @@ inputs:
   create_annotated_tag:
     description: "Boolean to create an annotated tag rather than lightweight"
     required: false
-    default: false
+    default: "false"
   dry_run:
-    description: "Do not perform taging, just calculate next version and changelog, then exit"
+    description: "Do not perform tagging, just calculate next version and changelog, then exit"
     required: false
-    default: false
+    default: "false"
 
 runs:
   using: "node12"
