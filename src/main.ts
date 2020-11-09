@@ -29,17 +29,24 @@ const git = {
   }
 }
 
+async function getTags(githubToken: string) {
+  const octokit = new GitHub(githubToken);
+
+  const tags = await octokit.repos.listTags({
+    ...context.repo
+  });
+
+  return tags.data.map(function (tag) {
+    return tag.name;
+  })
+}
+
 function getBranchFromRef(ref: string): string {
   return ref.replace("refs/heads/", "");
 }
 
 function cleanRepoTag(tag: string): string {
   return tag.split('-')[0];
-}
-
-function isValidRegex(test: string): RegExpMatchArray | null {
-  // See: https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
-  return test.match(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/);
 }
 
 async function exec(command: string) {
@@ -85,6 +92,7 @@ async function run() {
     const appendToPreReleaseTag = core.getInput("append_to_pre_release_tag");
     const createAnnotatedTag = core.getInput("create_annotated_tag");
     const dryRun = core.getInput("dry_run");
+    const githubToken = core.getInput("github_token")
 
     const {GITHUB_REF, GITHUB_SHA} = process.env;
 
@@ -116,6 +124,8 @@ async function run() {
     core.debug(`Branch is release branch = ${releaseBranch}, pre-release branch = ${preReleaseBranch}`);
 
     await exec(git.fetch());
+    const tags = await getTags(githubToken);
+    tags.map(core.debug);
 
     const hasTag = !!(await exec(git.tag())).stdout.trim();
     let tag = "";
@@ -177,21 +187,20 @@ async function run() {
       .replace(tagPrefix, '')
       .replace(appendToPreReleaseTag, '');
 
-    if (!isValidRegex(currentVersion)) {
-      core.setFailed(`${currentVersion} is not a valid semver.`);
-    }
-
     const releaseType: ReleaseType = preReleaseBranch ? 'prerelease' : (bump || defaultBump);
-    const incrementedVersion = inc(currentVersion, releaseType);
+    const incrementedVersion = inc(currentVersion, releaseType, currentBranch);
 
     if (!incrementedVersion) {
       core.error(`ReleaseType = ${releaseType}, tag = ${tag}, current version = ${currentVersion}.`);
       core.setFailed('Could not increment version.');
     }
+    core.info(`Incremented version after applying conventional commits: ${incrementedVersion}.`);
+
 
     const versionSuffix = preReleaseBranch ? `-${currentBranch}.${GITHUB_SHA.slice(0, 7)}` : "";
     const newVersion = customTag ? customTag : `${incrementedVersion}${versionSuffix}`;
-    const newTag = appendToPreReleaseTag && preReleaseBranch ? `${appendToPreReleaseTag}${newVersion}` : `${tagPrefix}${newVersion}`
+    const newTag = appendToPreReleaseTag && preReleaseBranch ? `${tagPrefix}${newVersion}` : `${tagPrefix}${newVersion}`
+    core.info(`New tag after applying suffix: ${tag}.`);
 
     core.setOutput("new_version", newVersion);
     core.setOutput("new_tag", newTag);

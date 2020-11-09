@@ -23,7 +23,7 @@ inputs:
     required: false
     default: "v"
   append_to_pre_release_tag:
-    description: "A prefix to a pre-release tag name."
+    description: "A suffix to a pre-release tag name (default: `-<branch>.<git-short-commit-ref>`)."
     required: false
   custom_tag:
     description: "Custom tag name. If specified, it overrides bump settings."
