@@ -118,11 +118,9 @@ async function run() {
     }
 
     const validTags = await getValidTags(githubToken);
-    console.log(validTags);
     const tag = getLatestTag(validTags);
     const previousTag = parse(tag.name);
     const commits = await getCommits(githubToken, tag.commit.sha);
-    console.log(commits);
 
     if (!previousTag) {
       core.setFailed('Could not parse previous tag.');
@@ -136,7 +134,6 @@ async function run() {
       {},
       {commits, logger: {log: console.info.bind(console)}}
     );
-    console.log(bump);
 
     if (!bump && defaultBump === "false") {
       core.debug("No commit specifies the version bump. Skipping...");
@@ -144,7 +141,6 @@ async function run() {
     }
 
     const releaseType: ReleaseType = preReleaseBranch ? 'prerelease' : (bump || defaultBump);
-    console.log(previousTag, releaseType, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
     const incrementedVersion = inc(previousTag, releaseType, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
 
     console.log('is valid', valid(incrementedVersion));
