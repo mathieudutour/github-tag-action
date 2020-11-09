@@ -142,7 +142,6 @@ async function run() {
 
     const releaseType: ReleaseType = preReleaseBranch ? 'prerelease' : (bump || defaultBump);
     const incrementedVersion = inc(previousTag, releaseType, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
-    core.info(`Incremented version after applying conventional commits: ${incrementedVersion}.`);
 
     if (!valid(incrementedVersion)) {
       core.setFailed(`${incrementedVersion} is not a valid semver.`);
@@ -150,10 +149,11 @@ async function run() {
     }
 
     const newVersion = customTag ? customTag : incrementedVersion;
+    core.info(`New version is ${newVersion}.`);
+    core.setOutput("new_version", newVersion);
+
     const newTag = `${tagPrefix}${newVersion}`;
     core.info(`New tag after applying prefix: ${newTag}.`);
-
-    core.setOutput("new_version", newVersion);
     core.setOutput("new_tag", newTag);
 
     const changelog = await generateNotes(
@@ -168,7 +168,7 @@ async function run() {
         nextRelease: {gitTag: newTag, version: newVersion},
       }
     );
-
+    core.info(`Changelog is ${changelog}.`);
     core.setOutput("changelog", changelog);
 
     if (!releaseBranch && !preReleaseBranch) {
@@ -177,7 +177,7 @@ async function run() {
     }
 
     if (validTags.map(tag => tag.name).includes(newTag)) {
-      core.debug("This tag already exists. Skipping the tag creation.");
+      core.info("This tag already exists. Skipping the tag creation.");
       return;
     }
 
