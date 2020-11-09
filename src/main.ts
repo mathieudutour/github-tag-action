@@ -143,12 +143,19 @@ async function run() {
     const releaseType: ReleaseType = preReleaseBranch ? 'prerelease' : (bump || defaultBump);
 
     let incrementedVersion = inc(previousTag, releaseType, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
-    let validVersion = valid(incrementedVersion);
-    if (incrementedVersion && !validVersion) {
-      const cleanedVersion = clean(incrementedVersion, {includePrerelease: true});
-      if (cleanedVersion) {
-        incrementedVersion = cleanedVersion
+    if (!incrementedVersion) {
+      core.setFailed('Could not increment version.');
+      return;
+    }
+
+    const validVersion = valid(incrementedVersion);
+    if (!validVersion) {
+      const cleanedVersion = valid(clean(incrementedVersion, {includePrerelease: true}));
+      if (!cleanedVersion) {
+        core.setFailed(`${cleanedVersion} is not a valid semver.`);
+        return;
       }
+      incrementedVersion = cleanedVersion;
     }
 
     const newVersion = customTag ? customTag : incrementedVersion;
