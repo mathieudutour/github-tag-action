@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 import {context, GitHub} from "@actions/github";
-import {clean, inc, parse, ReleaseType, valid} from "semver";
+import {inc, parse, ReleaseType, valid} from "semver";
 import {analyzeCommits} from "@semantic-release/commit-analyzer";
 import {generateNotes} from "@semantic-release/release-notes-generator";
 
@@ -148,14 +148,14 @@ async function run() {
       return;
     }
 
-    const validVersion = valid(incrementedVersion);
+    let validVersion = valid(incrementedVersion);
     if (!validVersion) {
-      const cleanedVersion = valid(clean(incrementedVersion, {includePrerelease: true}));
-      if (!cleanedVersion) {
-        core.setFailed(`${cleanedVersion} is not a valid semver.`);
+      incrementedVersion = incrementedVersion.replace(/\//g, '-');
+      validVersion = valid(incrementedVersion);
+      if (!validVersion) {
+        core.setFailed(`${incrementedVersion} is not a valid semver.`);
         return;
       }
-      incrementedVersion = cleanedVersion;
     }
 
     const newVersion = customTag ? customTag : incrementedVersion;
