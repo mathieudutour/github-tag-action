@@ -144,7 +144,7 @@ async function run() {
 
     let incrementedVersion = inc(previousTag, releaseType, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
     if (!valid(incrementedVersion)) {
-      const coercedVersion = coerce(incrementedVersion);
+      const coercedVersion = coerce(incrementedVersion, {includePrerelease: true});
       if (coercedVersion) {
         incrementedVersion = coercedVersion.version;
       }
@@ -158,7 +158,7 @@ async function run() {
     core.info(`New tag after applying prefix is ${newTag}.`);
     core.setOutput("new_tag", newTag);
 
-    console.log('changelog', previousTag, newTag, newVersion);
+    console.log('changelog', tag.name, previousTag, newTag, newVersion);
     const changelog = await generateNotes(
       {},
       {
@@ -167,7 +167,7 @@ async function run() {
         options: {
           repositoryUrl: `https://github.com/${process.env.GITHUB_REPOSITORY}`,
         },
-        lastRelease: {gitTag: previousTag},
+        lastRelease: {gitTag: tag.name},
         nextRelease: {gitTag: newTag, version: newVersion},
       }
     );
