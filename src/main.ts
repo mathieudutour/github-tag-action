@@ -106,8 +106,7 @@ async function run() {
     }
 
     const currentBranch = getBranchFromRef(GITHUB_REF);
-    core.debug(`Current branch is ${currentBranch}.`);
-
+    
     const releaseBranch = releaseBranches
       .split(",")
       .some((branch) => currentBranch.match(branch));
@@ -119,8 +118,6 @@ async function run() {
     if (releaseBranch && preReleaseBranch) {
       core.setFailed("Branch cannot be both pre-release and release at the same time.");
     }
-
-    core.debug(`Branch is release branch = ${releaseBranch}, pre-release branch = ${preReleaseBranch}`);
 
     await exec(git.fetch());
     const tags = await getTags(githubToken);
