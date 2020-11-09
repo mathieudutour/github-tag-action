@@ -1,12 +1,37 @@
 import * as core from "@actions/core";
-import { exec as _exec } from "@actions/exec";
-import { context, GitHub } from "@actions/github";
-import { inc, ReleaseType } from "semver";
-import { analyzeCommits } from "@semantic-release/commit-analyzer";
-import { generateNotes } from "@semantic-release/release-notes-generator";
+import {exec as _exec} from "@actions/exec";
+import {context, GitHub} from "@actions/github";
+import {inc, ReleaseType} from "semver";
+import {analyzeCommits} from "@semantic-release/commit-analyzer";
+import {generateNotes} from "@semantic-release/release-notes-generator";
 
 const HASH_SEPARATOR = "|commit-hash:";
 const SEPARATOR = "==============================================";
+
+const git = {
+  fetch: function () {
+    return 'git fetch --tags';
+  },
+  tag: function () {
+    return 'git tag';
+  },
+  revList: function () {
+    return 'git rev-list --tags --topo-order --max-count=1';
+  },
+  describe: function (previousTagSha: string) {
+    return `git describe --tags ${previousTagSha}`;
+  },
+  log: function (tag?: string) {
+    if (!tag) {
+      return `git log --pretty=format:'%s%n%b${HASH_SEPARATOR}%h${SEPARATOR}' --abbrev-commit`
+    }
+    return `git log ${tag}..HEAD --pretty=format:'%s%n%b${HASH_SEPARATOR}%h${SEPARATOR}' --abbrev-commit`
+  }
+}
+
+function getBranchFromRef(ref: string) {
+  return ref.replace("refs/heads/", "");
+}
 
 async function exec(command: string) {
   let stdout = "";
@@ -47,10 +72,12 @@ async function run() {
     const tagPrefix = core.getInput("tag_prefix");
     const customTag = core.getInput("custom_tag")
     const releaseBranches = core.getInput("release_branches");
+    const preReleaseBranches = core.getInput("pre_release_branches");
+    const appendToPreReleaseTag = core.getInput("append_to_pre_release_tag");
     const createAnnotatedTag = core.getInput("create_annotated_tag");
     const dryRun = core.getInput("dry_run");
 
-    const { GITHUB_REF, GITHUB_SHA } = process.env;
+    const {GITHUB_REF, GITHUB_SHA} = process.env;
 
     if (!GITHUB_REF) {
       core.setFailed("Missing GITHUB_REF");
@@ -62,29 +89,30 @@ async function run() {
       return;
     }
 
-    const preRelease = releaseBranches
+    const currentBranch = getBranchFromRef(GITHUB_REF);
+
+    const releaseBranch = releaseBranches
       .split(",")
-      .every((branch) => !GITHUB_REF.replace("refs/heads/", "").match(branch));
+      .some((branch) => !currentBranch.match(branch));
 
-    await exec("git fetch --tags");
+    const preReleaseBranch = preReleaseBranches
+      .split(",")
+      .some((branch) => !currentBranch.match(branch));
 
-    const hasTag = !!(await exec("git tag")).stdout.trim();
+    if (releaseBranch && preReleaseBranch) {
+      core.setFailed("Branch cannot be both pre-release and release.");
+    }
+
+    await exec(git.fetch());
+
+    const hasTag = !!(await exec(git.tag())).stdout.trim();
     let tag = "";
     let logs = "";
 
     if (hasTag) {
-      const previousTagSha = (
-        await exec("git rev-list --tags --topo-order --max-count=1")
-      ).stdout.trim();
-      tag = (await exec(`git describe --tags ${previousTagSha}`)).stdout.trim();
-      logs = (
-        await exec(
-          `git log ${tag}..HEAD --pretty=format:'%s%n%b${HASH_SEPARATOR}%h${SEPARATOR}' --abbrev-commit`
-        )
-      ).stdout.trim();
-
-      core.debug(`Setting previous_tag to: ${tag}`);
-      core.setOutput("previous_tag", tag);
+      const previousTagSha = (await exec(git.revList())).stdout.trim();
+      tag = (await exec(git.describe(previousTagSha))).stdout.trim();
+      logs = (await exec(git.log(tag))).stdout.trim();
 
       if (previousTagSha === GITHUB_SHA) {
         core.debug("No new commits since previous tag. Skipping...");
@@ -92,13 +120,11 @@ async function run() {
       }
     } else {
       tag = "0.0.0";
-      logs = (
-        await exec(
-          `git log --pretty=format:'%s%n%b${HASH_SEPARATOR}%h${SEPARATOR}' --abbrev-commit`
-        )
-      ).stdout.trim();
-      core.setOutput("previous_tag", tag);
+      logs = (await exec(git.log())).stdout.trim();
     }
+
+    core.debug(`Setting previous_tag to: ${tag}`);
+    core.setOutput("previous_tag", tag);
 
     // for some reason the commits start and end with a `'` on the CI so we ignore it
     const commits = logs
@@ -115,9 +141,10 @@ async function run() {
         };
       })
       .filter((x) => !!x.message);
+
     const bump = await analyzeCommits(
       {},
-      { commits, logger: { log: console.info.bind(console) } }
+      {commits, logger: {log: console.info.bind(console)}}
     );
 
     if (!bump && defaultBump === "false") {
@@ -125,15 +152,11 @@ async function run() {
       return;
     }
 
-    let newVersion = "";
-    if (!customTag) {
-      newVersion = `${inc(tag, bump || defaultBump)}${
-        preRelease ? `-${GITHUB_SHA.slice(0, 7)}` : ""
-      }`;
-    } else {
-      newVersion = customTag;
-    }
-    const newTag = `${tagPrefix}${newVersion}`;
+    const releaseType: ReleaseType = preReleaseBranch ? 'prerelease' : (bump || defaultBump);
+    const incrementedVersion = inc(tag, releaseType);
+    const versionSuffix = preReleaseBranch ? `-${currentBranch}.${GITHUB_SHA.slice(0, 7)}` : "";
+    const newVersion = customTag ? customTag : `${incrementedVersion}${versionSuffix}`;
+    const newTag = appendToPreReleaseTag && preReleaseBranch ? `${appendToPreReleaseTag}${newVersion}` : `${tagPrefix}${newVersion}`
 
     core.setOutput("new_version", newVersion);
     core.setOutput("new_tag", newTag);
@@ -144,27 +167,23 @@ async function run() {
       {},
       {
         commits,
-        logger: { log: console.info.bind(console) },
+        logger: {log: console.info.bind(console)},
         options: {
           repositoryUrl: `https://github.com/${process.env.GITHUB_REPOSITORY}`,
         },
-        lastRelease: { gitTag: tag },
-        nextRelease: { gitTag: newTag, version: newVersion },
+        lastRelease: {gitTag: tag},
+        nextRelease: {gitTag: newTag, version: newVersion},
       }
     );
 
     core.setOutput("changelog", changelog);
 
-    if (preRelease) {
-      core.debug(
-        "This branch is not a release branch. Skipping the tag creation."
-      );
+    if (!releaseBranch && !preReleaseBranch) {
+      core.debug("This branch is neither a release nor a pre-release branch. Skipping the tag creation.");
       return;
     }
 
-    const tagAlreadyExists = !!(
-      await exec(`git tag -l "${newTag}"`)
-    ).stdout.trim();
+    const tagAlreadyExists = !!(await exec(`git tag -l "${newTag}"`)).stdout.trim();
 
     if (tagAlreadyExists) {
       core.debug("This tag already exists. Skipping the tag creation.");
