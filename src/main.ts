@@ -112,7 +112,7 @@ async function run() {
       core.setFailed("Branch cannot be both pre-release and release.");
     }
 
-    core.info(`Branch is release branch = ${releaseBranch}, pre-release branch = ${preReleaseBranch}`);
+    core.debug(`Branch is release branch = ${releaseBranch}, pre-release branch = ${preReleaseBranch}`);
 
     await exec(git.fetch());
 
@@ -120,24 +120,26 @@ async function run() {
     let tag = "";
     let logs = "";
 
+    core.debug(`Has tag = ${hasTag}.`);
+
     if (hasTag) {
       const previousTagSha = (await exec(git.revList())).stdout.trim();
-      core.info(`Previous tag sha: ${previousTagSha}.`);
+      core.debug(`Previous tag sha: ${previousTagSha}.`);
 
       const repoTag = (await exec(git.describe(previousTagSha))).stdout.trim();
-      core.info(`Repo tag ${repoTag}.`);
+      core.debug(`Repo tag ${repoTag}.`);
 
       if (!isValidRegex(repoTag)) {
         core.setFailed(`${repoTag} is not a valid semver.`);
       }
 
       tag = cleanRepoTag(repoTag);
-      core.info(`Cleaned repo tag ${tag}.`);
+      core.debug(`Cleaned repo tag ${tag}.`);
 
       logs = (await exec(git.log(tag))).stdout.trim();
 
       if (previousTagSha === GITHUB_SHA) {
-        core.info("No new commits since previous tag. Skipping...");
+        core.debug("No new commits since previous tag. Skipping...");
         return;
       }
     } else {
