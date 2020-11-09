@@ -167,6 +167,12 @@ async function run() {
 
     const releaseType: ReleaseType = preReleaseBranch ? 'prerelease' : (bump || defaultBump);
     const incrementedVersion = inc(tag, releaseType);
+
+    if (!incrementedVersion) {
+      core.error(`ReleaseType = ${releaseType}, tag = ${tag}.`);
+      core.setFailed("Could not increment version.");
+    }
+
     const versionSuffix = preReleaseBranch ? `-${currentBranch}.${GITHUB_SHA.slice(0, 7)}` : "";
     const newVersion = customTag ? customTag : `${incrementedVersion}${versionSuffix}`;
     const newTag = appendToPreReleaseTag && preReleaseBranch ? `${appendToPreReleaseTag}${newVersion}` : `${tagPrefix}${newVersion}`
