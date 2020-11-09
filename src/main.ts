@@ -73,8 +73,6 @@ async function createTag(githubToken: string, newTag: string, createAnnotatedTag
     });
   }
 
-  console.log(newTag, GITHUB_SHA);
-
   core.debug(`Pushing new tag to the repo.`);
   await octokit.git.createRef({
     ...context.repo,
@@ -124,6 +122,7 @@ async function run() {
     const tag = getLatestTag(validTags);
     const previousTag = parse(tag.name);
     const commits = await getCommits(githubToken, tag.commit.sha);
+    console.log(commits);
 
     if (!previousTag) {
       core.setFailed('Could not parse previous tag.');
@@ -137,6 +136,7 @@ async function run() {
       {},
       {commits, logger: {log: console.info.bind(console)}}
     );
+    console.log(bump);
 
     if (!bump && defaultBump === "false") {
       core.debug("No commit specifies the version bump. Skipping...");
@@ -144,6 +144,7 @@ async function run() {
     }
 
     const releaseType: ReleaseType = preReleaseBranch ? 'prerelease' : (bump || defaultBump);
+    console.log(previousTag, releaseType, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
     const incrementedVersion = inc(previousTag, releaseType, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
     core.info(`Incremented version after applying conventional commits: ${incrementedVersion}.`);
 
