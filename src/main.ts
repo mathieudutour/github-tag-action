@@ -142,7 +142,7 @@ async function run() {
 
     const releaseType: ReleaseType = preReleaseBranch ? 'prerelease' : (bump || defaultBump);
 
-    let incrementedVersion = inc(previousTag, releaseType, {includePrerelease: true}, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
+    let incrementedVersion = inc(previousTag, releaseType, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
     if (!incrementedVersion) {
       core.setFailed('Could not increment version.');
       return;
