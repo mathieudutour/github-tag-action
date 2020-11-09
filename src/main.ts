@@ -107,7 +107,7 @@ async function run() {
       core.setFailed("Branch cannot be both pre-release and release.");
     }
 
-    core.debug(`Branch is release branch = ${releaseBranch}, pre-release branch = ${preReleaseBranch}`);
+    core.info(`Branch is release branch = ${releaseBranch}, pre-release branch = ${preReleaseBranch}`);
 
     await exec(git.fetch());
 
@@ -117,18 +117,18 @@ async function run() {
 
     if (hasTag) {
       const previousTagSha = (await exec(git.revList())).stdout.trim();
-      core.debug(`Previous tag sha: ${previousTagSha}.`);
+      core.info(`Previous tag sha: ${previousTagSha}.`);
 
       const repoTag = (await exec(git.describe(previousTagSha))).stdout.trim();
-      core.debug(`Repo tag ${repoTag}.`);
+      core.info(`Repo tag ${repoTag}.`);
 
       tag = cleanRepoTag(repoTag);
-      core.debug(`Cleaned repo tag ${tag}.`);
+      core.info(`Cleaned repo tag ${tag}.`);
 
       logs = (await exec(git.log(tag))).stdout.trim();
 
       if (previousTagSha === GITHUB_SHA) {
-        core.debug("No new commits since previous tag. Skipping...");
+        core.info("No new commits since previous tag. Skipping...");
         return;
       }
     } else {
@@ -192,7 +192,7 @@ async function run() {
     core.setOutput("changelog", changelog);
 
     if (!releaseBranch && !preReleaseBranch) {
-      core.debug("This branch is neither a release nor a pre-release branch. Skipping the tag creation.");
+      core.info("This branch is neither a release nor a pre-release branch. Skipping the tag creation.");
       return;
     }
 
