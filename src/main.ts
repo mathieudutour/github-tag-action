@@ -113,7 +113,7 @@ async function run() {
       .some(branch => currentBranch.match(branch));
 
     if (releaseBranch && preReleaseBranch) {
-      core.setFailed("Branch cannot be both pre-release and release at the same time.");
+      core.setFailed("Branch must not be both pre-release and release at the same time.");
       return;
     }
 
@@ -136,7 +136,7 @@ async function run() {
     );
 
     if (!bump && defaultBump === "false") {
-      core.debug("No commit specifies the version bump. Skipping...");
+      core.debug("No commit specifies the version bump. Skipping the tag creation.");
       return;
     }
 
@@ -153,7 +153,7 @@ async function run() {
     core.setOutput("new_version", newVersion);
 
     const newTag = `${tagPrefix}${newVersion}`;
-    core.info(`New tag after applying prefix: ${newTag}.`);
+    core.info(`New tag after applying prefix is ${newTag}.`);
     core.setOutput("new_tag", newTag);
 
     const changelog = await generateNotes(
