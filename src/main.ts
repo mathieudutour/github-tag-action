@@ -105,6 +105,8 @@ async function run() {
       return;
     }
 
+    console.log(previousTag);
+    console.log(previousTag.version);
     core.info(`Previous tag was ${previousTag.version}.`);
     core.info(`Previous tag was ${previousTag}.`);
     core.setOutput("previous_tag", previousTag.version);
@@ -172,8 +174,8 @@ async function run() {
         object: GITHUB_SHA,
         type: "commit",
       });
-      core.info(`${tagCreateResponse}`);
-      core.info(`${tagCreateResponse.data}`);
+      console.log(tagCreateResponse);
+      console.log(tagCreateResponse.data);
 
       core.debug(`Pushing annotated tag to the repo`);
 
