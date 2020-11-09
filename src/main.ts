@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 import {context, GitHub} from "@actions/github";
-import {inc, parse, ReleaseType, valid} from "semver";
+import {inc, parse, coerce, ReleaseType, valid, SemVer} from "semver";
 import {analyzeCommits} from "@semantic-release/commit-analyzer";
 import {generateNotes} from "@semantic-release/release-notes-generator";
 
@@ -141,11 +141,13 @@ async function run() {
     }
 
     const releaseType: ReleaseType = preReleaseBranch ? 'prerelease' : (bump || defaultBump);
-    const incrementedVersion = inc(previousTag, releaseType, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
 
+    let incrementedVersion = inc(previousTag, releaseType, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
     if (!valid(incrementedVersion)) {
-      core.setFailed(`${incrementedVersion} is not a valid semver.`);
-      return;
+      const coercedVersion = coerce(incrementedVersion);
+      if (coercedVersion) {
+        incrementedVersion = coercedVersion.version;
+      }
     }
 
     const newVersion = customTag ? customTag : incrementedVersion;
@@ -156,6 +158,7 @@ async function run() {
     core.info(`New tag after applying prefix is ${newTag}.`);
     core.setOutput("new_tag", newTag);
 
+    console.log('changelog', previousTag, newTag, newVersion);
     const changelog = await generateNotes(
       {},
       {
