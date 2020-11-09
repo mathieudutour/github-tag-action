@@ -16,12 +16,12 @@ async function getValidTags(githubToken: string) {
     .map(tag => tag.name)
     .filter(name => !valid(name));
 
-  invalidTags.map(name => console.log(`Invalid: ${name}.`));
+  invalidTags.map(name => core.debug(`Invalid: ${name}.`));
 
   const validTags = tags.data
     .filter(tag => valid(tag.name));
 
-  validTags.map(tag => console.log(`Valid: ${tag.name}.`));
+  validTags.map(tag => core.debug(`Valid: ${tag.name}.`));
 
   return validTags;
 }
@@ -142,9 +142,7 @@ async function run() {
 
     const releaseType: ReleaseType = preReleaseBranch ? 'prerelease' : (bump || defaultBump);
 
-    console.log(prerelease(previousTag))
-    console.log(previousTag, releaseType, appendToPreReleaseTag, currentBranch);
-    let incrementedVersion = inc(previousTag, releaseType, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
+    let incrementedVersion = inc(previousTag, releaseType, {includePrerelease: true}, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
     if (!incrementedVersion) {
       core.setFailed('Could not increment version.');
       return;
