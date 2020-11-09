@@ -8,27 +8,6 @@ import {generateNotes} from "@semantic-release/release-notes-generator";
 const HASH_SEPARATOR = "|commit-hash:";
 const SEPARATOR = "==============================================";
 
-const git = {
-  fetch: function () {
-    return 'git fetch --tags';
-  },
-  tag: function () {
-    return 'git tag';
-  },
-  revList: function () {
-    return 'git rev-list --tags --topo-order --max-count=1';
-  },
-  describe: function (previousTagSha: string) {
-    return `git describe --tags ${previousTagSha}`;
-  },
-  log: function (tag?: string) {
-    if (!tag) {
-      return `git log --pretty=format:'%s%n%b${HASH_SEPARATOR}%h${SEPARATOR}' --abbrev-commit`
-    }
-    return `git log ${tag}..HEAD --pretty=format:'%s%n%b${HASH_SEPARATOR}%h${SEPARATOR}' --abbrev-commit`
-  }
-}
-
 async function getValidTags(githubToken: string) {
   const octokit = new GitHub(githubToken);
 
@@ -145,18 +124,18 @@ async function run() {
     const previousTag = tags[0];
 
     let previousTagName;
-    let logs;
-
+    let commits;
     if (previousTag) {
       previousTagName = parse(previousTag.name);
+      commits = await getCommits(githubToken, previousTag.commit.sha);
     } else {
       previousTagName = parse("0.0.0");
+      commits = await getCommits(githubToken, 'HEAD');
     }
 
     core.debug(`Setting previous_tag to: ${previousTagName}`);
     core.setOutput("previous_tag", previousTagName.version);
 
-    const commits = await getCommits(githubToken, previousTag.commit.sha);
     const bump = await analyzeCommits(
       {},
       {commits, logger: {log: console.info.bind(console)}}
@@ -169,21 +148,14 @@ async function run() {
 
     const releaseType: ReleaseType = preReleaseBranch ? 'prerelease' : (bump || defaultBump);
     const incrementedVersion = inc(previousTagName, releaseType, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
-
-    if (!incrementedVersion) {
-      core.error(`ReleaseType = ${releaseType}, tag = ${previousTagName}.`);
-      core.setFailed('Could not increment version.');
-    }
     core.info(`Incremented version after applying conventional commits: ${incrementedVersion}.`);
 
     const newVersion = customTag ? customTag : incrementedVersion;
-    const newTag = appendToPreReleaseTag && preReleaseBranch ? `${tagPrefix}${newVersion}` : `${tagPrefix}${newVersion}`
-    core.info(`New tag after applying suffix: ${previousTagName}.`);
+    const newTag = `${tagPrefix}${newVersion}`;
+    core.info(`New tag after applying prefix: ${newTag}.`);
 
     core.setOutput("new_version", newVersion);
     core.setOutput("new_tag", newTag);
-
-    core.debug(`New tag: ${newTag}`);
 
     const changelog = await generateNotes(
       {},
@@ -193,7 +165,7 @@ async function run() {
         options: {
           repositoryUrl: `https://github.com/${process.env.GITHUB_REPOSITORY}`,
         },
-        lastRelease: {gitTag: previousTag},
+        lastRelease: {gitTag: previousTag.name },
         nextRelease: {gitTag: newTag, version: newVersion},
       }
     );
