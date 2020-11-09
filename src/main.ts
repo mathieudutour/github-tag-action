@@ -85,10 +85,10 @@ async function run() {
     const currentBranch = getBranchFromRef(GITHUB_REF);
     const releaseBranch = releaseBranches
       .split(",")
-      .includes(currentBranch);
+      .some(branch => currentBranch.match(branch));
     const preReleaseBranch = preReleaseBranches
       .split(",")
-      .includes(currentBranch);
+      .some(branch => currentBranch.match(branch));
 
     if (releaseBranch && preReleaseBranch) {
       core.setFailed("Branch cannot be both pre-release and release at the same time.");
