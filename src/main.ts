@@ -41,12 +41,14 @@ async function getValidTags(githubToken: string) {
     .map(tag => tag.name)
     .filter(name => !valid(name));
 
-  if (invalidTags.length > 0) {
-    core.debug(`Invalid tags: ${invalidTags}.`)
-  }
+  invalidTags.map(name => core.debug(`Invalid: ${name}.`));
 
-  return tags.data
+  const validTags = tags.data
     .filter(tag => valid(tag.name));
+
+  validTags.map(tag => core.debug(`Valid: ${tag.name}.`));
+
+  return validTags;
 }
 
 function getBranchFromRef(ref: string): string {
@@ -129,7 +131,6 @@ async function run() {
     }
 
     const tags = await getValidTags(githubToken);
-    tags.map(tag => core.debug(`${tag}`));
 
     let tag = "";
     let logs = "";
