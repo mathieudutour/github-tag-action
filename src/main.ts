@@ -54,13 +54,13 @@ async function getValidTags(githubToken: string) {
 async function getCommits(githubToken: string, sha: string) {
   const octokit = new GitHub(githubToken);
 
-  const commits = await octokit.repos.listCommits({
+  const commits = await octokit.repos.compareCommits({
     ...context.repo,
-    per_page: 100,
-    sha: sha
+    base: sha,
+    head: 'HEAD'
   });
 
-  return commits.data
+  return commits.data.commits
     .filter(commit => !!commit.commit.message)
     .map(commit => ({
       message: commit.commit.message,
@@ -150,7 +150,7 @@ async function run() {
     if (previousTag) {
       previousTagName = parse(previousTag.name);
     } else {
-      previousTagName = "0.0.0";
+      previousTagName = parse("0.0.0");
     }
 
     core.debug(`Setting previous_tag to: ${previousTagName}`);
