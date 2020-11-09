@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 import {context, GitHub} from "@actions/github";
-import {inc, parse, ReleaseType, valid} from "semver";
+import {inc, parse, ReleaseType, valid, prerelease} from "semver";
 import {analyzeCommits} from "@semantic-release/commit-analyzer";
 import {generateNotes} from "@semantic-release/release-notes-generator";
 
@@ -142,6 +142,7 @@ async function run() {
 
     const releaseType: ReleaseType = preReleaseBranch ? 'prerelease' : (bump || defaultBump);
 
+    console.log(prerelease(previousTag))
     console.log(previousTag, releaseType, appendToPreReleaseTag, currentBranch);
     let incrementedVersion = inc(previousTag, releaseType, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
     if (!incrementedVersion) {
