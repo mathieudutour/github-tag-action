@@ -58,6 +58,31 @@ function getLatestTag(tags: object[]) {
   };
 }
 
+async function createTag(githubToken: string, newTag: string, createAnnotatedTag: boolean, GITHUB_SHA: string) {
+  const octokit = new GitHub(githubToken);
+
+  let createdTag;
+  if (createAnnotatedTag) {
+    core.debug(`Creating annotated tag.`);
+    createdTag = await octokit.git.createTag({
+      ...context.repo,
+      tag: newTag,
+      message: newTag,
+      object: GITHUB_SHA,
+      type: "commit",
+    });
+  }
+
+  console.log(newTag, GITHUB_SHA);
+
+  core.debug(`Pushing new tag to the repo.`);
+  await octokit.git.createRef({
+    ...context.repo,
+    ref: `refs/tags/${newTag}`,
+    sha: createAnnotatedTag ? createdTag.data.sha : GITHUB_SHA,
+  });
+}
+
 async function run() {
   try {
     const defaultBump = core.getInput("default_bump") as ReleaseType | "false";
@@ -66,7 +91,7 @@ async function run() {
     const releaseBranches = core.getInput("release_branches");
     const preReleaseBranches = core.getInput("pre_release_branches");
     const appendToPreReleaseTag = core.getInput("append_to_pre_release_tag");
-    const createAnnotatedTag = core.getInput("create_annotated_tag");
+    const createAnnotatedTag = !!core.getInput("create_annotated_tag");
     const dryRun = core.getInput("dry_run");
     const githubToken = core.getInput("github_token")
 
@@ -105,9 +130,6 @@ async function run() {
       return;
     }
 
-    console.log(previousTag);
-    console.log(previousTag.version);
-    core.info(`Previous tag was ${previousTag.version}.`);
     core.info(`Previous tag was ${previousTag}.`);
     core.setOutput("previous_tag", previousTag.version);
 
@@ -162,39 +184,7 @@ async function run() {
       return;
     }
 
-    const octokit = new GitHub(core.getInput("github_token"));
-
-    if (createAnnotatedTag === "true") {
-      core.debug(`Creating annotated tag`);
-
-      console.log(newTag, GITHUB_SHA);
-      const tagCreateResponse = await octokit.git.createTag({
-        ...context.repo,
-        tag: newTag,
-        message: newTag,
-        object: GITHUB_SHA,
-        type: "commit",
-      });
-      console.log(tagCreateResponse);
-      console.log(tagCreateResponse.data);
-
-      core.debug(`Pushing annotated tag to the repo`);
-
-      await octokit.git.createRef({
-        ...context.repo,
-        ref: `refs/tags/${newTag}`,
-        sha: tagCreateResponse.data.sha,
-      });
-      return;
-    }
-
-    core.debug(`Pushing new tag to the repo`);
-
-    await octokit.git.createRef({
-      ...context.repo,
-      ref: `refs/tags/${newTag}`,
-      sha: GITHUB_SHA,
-    });
+    await createTag(githubToken, newTag, createAnnotatedTag, GITHUB_SHA);
   } catch (error) {
     core.setFailed(error.message);
   }
