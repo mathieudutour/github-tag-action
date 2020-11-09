@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import {exec as _exec} from "@actions/exec";
 import {context, GitHub} from "@actions/github";
-import {inc, ReleaseType} from "semver";
+import {inc, rcompare, ReleaseType} from "semver";
 import {analyzeCommits} from "@semantic-release/commit-analyzer";
 import {generateNotes} from "@semantic-release/release-notes-generator";
 
@@ -33,12 +33,11 @@ async function getTags(githubToken: string) {
   const octokit = new GitHub(githubToken);
 
   const tags = await octokit.repos.listTags({
-    ...context.repo
+    ...context.repo,
+    per_page: 100
   });
 
-  return tags.data.map(function (tag) {
-    return tag.name;
-  })
+  return tags.data.map(tag => tag.name).sort(rcompare);
 }
 
 function getBranchFromRef(ref: string): string {
