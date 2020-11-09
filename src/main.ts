@@ -105,7 +105,8 @@ async function run() {
       return;
     }
 
-    core.debug(`Setting previous_tag to: ${previousTag}`);
+    core.info(`Previous tag was ${previousTag.version}.`);
+    core.info(`Previous tag was ${previousTag}.`);
     core.setOutput("previous_tag", previousTag.version);
 
     const bump = await analyzeCommits(
@@ -171,6 +172,8 @@ async function run() {
         object: GITHUB_SHA,
         type: "commit",
       });
+      core.info(`${tagCreateResponse}`);
+      core.info(`${tagCreateResponse.data}`);
 
       core.debug(`Pushing annotated tag to the repo`);
 
