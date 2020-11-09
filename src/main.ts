@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import {exec as _exec} from "@actions/exec";
 import {context, GitHub} from "@actions/github";
-import {inc, ReleaseType, valid} from "semver";
+import {inc, parse, ReleaseType, valid} from "semver";
 import {analyzeCommits} from "@semantic-release/commit-analyzer";
 import {generateNotes} from "@semantic-release/release-notes-generator";
 
@@ -70,6 +70,7 @@ function getBranchFromRef(ref: string): string {
 }
 
 function cleanRepoTag(tag: string): string {
+  core.debug(`PARSE == ${parse(tag)}.`);
   return tag.split('-')[0];
 }
 
