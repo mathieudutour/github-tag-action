@@ -16,12 +16,12 @@ async function getValidTags(githubToken: string) {
     .map(tag => tag.name)
     .filter(name => !valid(name));
 
-  invalidTags.map(name => core.debug(`Invalid: ${name}.`));
+  invalidTags.map(name => console.log(`Invalid: ${name}.`));
 
   const validTags = tags.data
     .filter(tag => valid(tag.name));
 
-  validTags.map(tag => core.debug(`Valid: ${tag.name}.`));
+  validTags.map(tag => console.log(`Valid: ${tag.name}.`));
 
   return validTags;
 }
