@@ -51,6 +51,20 @@ async function getValidTags(githubToken: string) {
   return validTags;
 }
 
+async function getCommits(githubToken: string, sha: string) {
+  const octokit = new GitHub(githubToken);
+
+  const commits = await octokit.repos.listCommits({
+    ...context.repo,
+    per_page: 100,
+    sha: sha
+  });
+
+  commits.data.map(commit => core.debug(commit.commit.message));
+
+  return commits.data;
+}
+
 function getBranchFromRef(ref: string): string {
   return ref.replace("refs/heads/", "");
 }
@@ -145,6 +159,8 @@ async function run() {
 
       tag = cleanRepoTag(repoTag);
       core.debug(`Cleaned repo tag ${tag}.`);
+
+      getCommits(githubToken, tags[0].commit.sha);
 
       logs = (await exec(git.log(tag))).stdout.trim();
 
