@@ -148,7 +148,7 @@ async function run() {
     let logs;
 
     if (previousTag) {
-      previousTagName = parse(previousTagName.name);
+      previousTagName = parse(previousTag.name);
     } else {
       previousTagName = "0.0.0";
     }
