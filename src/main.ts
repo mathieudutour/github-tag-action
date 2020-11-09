@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import {exec as _exec} from "@actions/exec";
 import {context, GitHub} from "@actions/github";
-import {inc, valid, rcompare, ReleaseType} from "semver";
+import {inc, rcompare, ReleaseType, valid} from "semver";
 import {analyzeCommits} from "@semantic-release/commit-analyzer";
 import {generateNotes} from "@semantic-release/release-notes-generator";
 
@@ -29,7 +29,7 @@ const git = {
   }
 }
 
-async function getTags(githubToken: string) {
+async function getValidTags(githubToken: string) {
   const octokit = new GitHub(githubToken);
 
   const tags = await octokit.repos.listTags({
@@ -37,10 +37,16 @@ async function getTags(githubToken: string) {
     per_page: 100
   });
 
-  return tags.data
+  const invalidTags = tags.data
     .map(tag => tag.name)
-    .filter(name => valid(name))
-    .sort(rcompare);
+    .filter(name => !valid(name));
+
+  if (invalidTags.length > 0) {
+    core.debug(`Invalid tags: ${invalidTags}.`)
+  }
+
+  return tags.data
+    .filter(tag => valid(tag.name));
 }
 
 function getBranchFromRef(ref: string): string {
@@ -122,17 +128,14 @@ async function run() {
       core.setFailed("Branch cannot be both pre-release and release at the same time.");
     }
 
-    await exec(git.fetch());
-    const tags = await getTags(githubToken);
-    tags.map(core.debug);
+    const tags = await getValidTags(githubToken);
+    tags.map(tag => core.debug(`${tag}`));
 
-    const hasTag = !!(await exec(git.tag())).stdout.trim();
     let tag = "";
     let logs = "";
+    core.debug(`Has tag = ${tags.length > 0}.`);
 
-    core.debug(`Has tag = ${hasTag}.`);
-
-    if (hasTag) {
+    if (tags.length > 0) {
       const previousTagSha = (await exec(git.revList())).stdout.trim();
       core.debug(`Previous tag sha: ${previousTagSha}.`);
 
