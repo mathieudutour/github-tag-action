@@ -1,8 +1,8 @@
 import * as core from "@actions/core";
-import {context, GitHub} from "@actions/github";
-import {inc, parse, ReleaseType, valid, gte, rcompare, prerelease} from "semver";
-import {analyzeCommits} from "@semantic-release/commit-analyzer";
-import {generateNotes} from "@semantic-release/release-notes-generator";
+import { context, GitHub } from "@actions/github";
+import { inc, parse, ReleaseType, valid, gte, rcompare, prerelease } from "semver";
+import { analyzeCommits } from "@semantic-release/commit-analyzer";
+import { generateNotes } from "@semantic-release/release-notes-generator";
 
 async function getValidTags(githubToken: string) {
 
@@ -103,7 +103,7 @@ async function run() {
     const dryRun = core.getInput("dry_run");
     const githubToken = core.getInput("github_token")
 
-    const {GITHUB_REF, GITHUB_SHA} = process.env;
+    const { GITHUB_REF, GITHUB_SHA } = process.env;
 
     if (!GITHUB_REF) {
       core.setFailed("Missing GITHUB_REF.");
@@ -146,7 +146,7 @@ async function run() {
 
     const bump = await analyzeCommits(
       {},
-      {commits, logger: {log: console.info.bind(console)}}
+      { commits, logger: { log: console.info.bind(console) } }
     );
 
     if (!bump && defaultBump === "false") {
@@ -180,12 +180,12 @@ async function run() {
       {},
       {
         commits,
-        logger: {log: console.info.bind(console)},
+        logger: { log: console.info.bind(console) },
         options: {
           repositoryUrl: `https://github.com/${process.env.GITHUB_REPOSITORY}`,
         },
-        lastRelease: {gitTag: latestTag.name},
-        nextRelease: {gitTag: newTag, version: newVersion},
+        lastRelease: { gitTag: latestTag.name },
+        nextRelease: { gitTag: newTag, version: newVersion },
       }
     );
     core.info(`Changelog is ${changelog}.`);
