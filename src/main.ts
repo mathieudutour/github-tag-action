@@ -21,10 +21,7 @@ async function getValidTags(githubToken: string) {
 
   const validTags = tags.data
     .filter(tag => valid(tag.name))
-    .filter(tag => !prerelease(tag.name))
     .sort((a, b) => rcompare(a.name, b.name));
-
-  console.log(validTags);
 
   validTags.map(tag => core.debug(`Valid: ${tag.name}.`));
 
@@ -58,7 +55,8 @@ function getLatestTag(tags: object[]) {
     commit: {
       sha: 'HEAD'
     },
-    ...tags[0]
+    // @ts-ignore
+    ...tags.find(tag => !prerelease(tag.name))
   };
 }
 
@@ -86,9 +84,6 @@ async function createTag(githubToken: string, newTag: string, createAnnotatedTag
 }
 
 function getLatestPrereleaseTag(tags: object[], identifier: string) {
-  // @ts-ignore
-  console.log(tags.filter(tag => tag.name));
-
   const prereleaseTags = tags
     // @ts-ignore
     .filter(tag => prerelease(tag.name))
