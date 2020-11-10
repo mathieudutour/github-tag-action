@@ -84,18 +84,11 @@ async function createTag(githubToken: string, newTag: string, createAnnotatedTag
 }
 
 function getLatestPrereleaseTag(tags: object[], identifier: string) {
-  return {
-    name: null,
-    commit: {
-      sha: null
-    },
+  return tags
     // @ts-ignore
-    ...tags
-      // @ts-ignore
-      .filter(tag => prerelease(tag.name))
-      // @ts-ignore
-      .find(tag => tag.name.match(identifier))
-  };
+    .filter(tag => prerelease(tag.name))
+    // @ts-ignore
+    .find(tag => tag.name.match(identifier));
 }
 
 async function run() {
@@ -139,8 +132,14 @@ async function run() {
     const latestTag = getLatestTag(validTags);
     const latestPrereleaseTag = getLatestPrereleaseTag(validTags, currentBranch);
 
-    // @ts-ignore
-    const previousTag = parse(gte(latestTag, latestPrereleaseTag) ? latestTag.name : latestPrereleaseTag.name);
+    let previousTag;
+    if (!latestPrereleaseTag) {
+      previousTag = latestTag;
+    } else {
+      // @ts-ignore
+      previousTag = parse(gte(latestTag, latestPrereleaseTag) ? latestTag : latestPrereleaseTag);
+    }
+
     const commits = await getCommits(githubToken, latestTag.commit.sha);
 
     if (!previousTag) {
