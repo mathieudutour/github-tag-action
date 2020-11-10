@@ -1,10 +1,12 @@
 import * as core from "@actions/core";
 import {context, GitHub} from "@actions/github";
-import {inc, parse, ReleaseType, valid, prerelease} from "semver";
+import {inc, parse, ReleaseType, valid, gte, rcompare, SemVer} from "semver";
 import {analyzeCommits} from "@semantic-release/commit-analyzer";
 import {generateNotes} from "@semantic-release/release-notes-generator";
+import {OctokitResponse, ReposListTagsResponseData} from "@octokit/types";
 
 async function getValidTags(githubToken: string) {
+
   const octokit = new GitHub(githubToken);
 
   const tags = await octokit.repos.listTags({
@@ -19,7 +21,8 @@ async function getValidTags(githubToken: string) {
   invalidTags.map(name => core.debug(`Invalid: ${name}.`));
 
   const validTags = tags.data
-    .filter(tag => valid(tag.name));
+    .filter(tag => valid(tag.name))
+    .sort((a, b) => rcompare(a.name, b.name));
 
   validTags.map(tag => core.debug(`Valid: ${tag.name}.`));
 
@@ -80,6 +83,13 @@ async function createTag(githubToken: string, newTag: string, createAnnotatedTag
   });
 }
 
+function getLatestPrereleaseTag(tags: object[], identifier: string) {
+  // @ts-ignore
+  const prereleaseTags = tags.filter(tag => tag.name);
+
+  return prereleaseTags[0];
+}
+
 async function run() {
   try {
     const defaultBump = core.getInput("default_bump") as ReleaseType | "false";
@@ -119,7 +129,9 @@ async function run() {
 
     const validTags = await getValidTags(githubToken);
     const tag = getLatestTag(validTags);
-    const previousTag = parse(tag.name);
+    const prereleaseTag = getLatestPrereleaseTag(validTags, currentBranch);
+    // @ts-ignore
+    const previousTag = parse(gte(tag.name, prereleaseTag.name) ? tag.name : prereleaseTag.name);
     const commits = await getCommits(githubToken, tag.commit.sha);
 
     if (!previousTag) {
