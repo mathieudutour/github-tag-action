@@ -208,6 +208,7 @@ async function run() {
 
     await createTag(githubToken, newTag, createAnnotatedTag, GITHUB_SHA);
   } catch (error) {
+    console.log(error);
     core.setFailed(error.message);
   }
 }
