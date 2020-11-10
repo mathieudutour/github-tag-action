@@ -86,6 +86,9 @@ async function createTag(githubToken: string, newTag: string, createAnnotatedTag
 }
 
 function getLatestPrereleaseTag(tags: object[], identifier: string) {
+  // @ts-ignore
+  console.log(tags.filter(tag => tag.name));
+
   const prereleaseTags = tags
     // @ts-ignore
     .filter(tag => prerelease(tag.name))
