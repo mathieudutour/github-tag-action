@@ -86,13 +86,11 @@ async function createTag(githubToken: string, newTag: string, createAnnotatedTag
 function getLatestPrereleaseTag(tags: object[], identifier: string) {
   const prereleaseTags = tags
     // @ts-ignore
-    .filter(tag => prerelease(tag.name))
-    // @ts-ignore
-    .filter(tag => tag.name.match(identifier));
+    .filter(tag => prerelease(tag.name));
 
-  console.log(prereleaseTags);
-
-  return prereleaseTags[0];
+  console.log('getLatestPrereleaseTag', prereleaseTags);
+  // @ts-ignore
+  return prereleaseTags.find(tag => tag.name.match(identifier));
 }
 
 async function run() {
@@ -133,11 +131,13 @@ async function run() {
     }
 
     const validTags = await getValidTags(githubToken);
-    const tag = getLatestTag(validTags);
-    const prereleaseTag = getLatestPrereleaseTag(validTags, currentBranch);
+    const latestTag = getLatestTag(validTags);
+    console.log('latest tag', latestTag);
+    const latestPrereleaseTag = getLatestPrereleaseTag(validTags, currentBranch);
+    console.log('latest prerelease tag', latestPrereleaseTag);
     // @ts-ignore
-    const previousTag = parse(gte(tag.name, prereleaseTag.name) ? tag.name : prereleaseTag.name);
-    const commits = await getCommits(githubToken, tag.commit.sha);
+    const previousTag = parse(gte(latestTag.name, latestPrereleaseTag.name) ? latestTag.name : latestPrereleaseTag.name);
+    const commits = await getCommits(githubToken, latestTag.commit.sha);
 
     if (!previousTag) {
       core.setFailed('Could not parse previous tag.');
@@ -187,7 +187,7 @@ async function run() {
         options: {
           repositoryUrl: `https://github.com/${process.env.GITHUB_REPOSITORY}`,
         },
-        lastRelease: {gitTag: tag.name},
+        lastRelease: {gitTag: latestTag.name},
         nextRelease: {gitTag: newTag, version: newVersion},
       }
     );
