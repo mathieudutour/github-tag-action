@@ -47,7 +47,7 @@ async function run() {
     const latestTag = getLatestTag(validTags);
     const latestPrereleaseTag = getLatestPrereleaseTag(
       validTags,
-      currentBranch
+      appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch
     );
 
     const commits = await getCommits(latestTag.commit.sha);
