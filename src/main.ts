@@ -130,16 +130,11 @@ async function run() {
 
     const validTags = await getValidTags(githubToken);
     const latestTag = getLatestTag(validTags);
+    console.log('latest tag', latestTag);
     const latestPrereleaseTag = getLatestPrereleaseTag(validTags, currentBranch);
-
-    let previousTag;
-    if (!latestPrereleaseTag) {
-      previousTag = latestTag;
-    } else {
-      // @ts-ignore
-      previousTag = parse(gte(latestTag, latestPrereleaseTag) ? latestTag : latestPrereleaseTag);
-    }
-
+    console.log('latest prerelease tag', latestPrereleaseTag);
+    // @ts-ignore
+    const previousTag = parse(gte(latestTag.name, latestPrereleaseTag.name) ? latestTag.name : latestPrereleaseTag.name);
     const commits = await getCommits(githubToken, latestTag.commit.sha);
 
     if (!previousTag) {
@@ -161,7 +156,6 @@ async function run() {
     }
 
     const releaseType: ReleaseType = preReleaseBranch ? 'prerelease' : (bump || defaultBump);
-    console.log('Increment Version', previousTag, releaseType, appendToPreReleaseTag, currentBranch);
     const incrementedVersion = inc(previousTag, releaseType, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
     if (!incrementedVersion) {
       core.setFailed('Could not increment version.');
@@ -214,7 +208,6 @@ async function run() {
 
     await createTag(githubToken, newTag, createAnnotatedTag, GITHUB_SHA);
   } catch (error) {
-    console.log(error);
     core.setFailed(error.message);
   }
 }
