@@ -89,6 +89,15 @@ function getLatestPrereleaseTag(tags: object[], identifier: string) {
     .filter(tag => prerelease(tag.name));
 
   console.log('getLatestPrereleaseTag', prereleaseTags);
+  for (const prereleaseTag of prereleaseTags) {
+    // @ts-ignore
+    console.log(prereleaseTag.name, identifier);
+    // @ts-ignore
+    console.log('matches', prereleaseTag.name.match(identifier));
+    // @ts-ignore
+    console.log('test', new RegExp(identifier).test(prereleaseTag.name));
+  }
+
   // @ts-ignore
   return prereleaseTags.find(tag => tag.name.match(identifier));
 }
