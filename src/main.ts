@@ -3,7 +3,6 @@ import {context, GitHub} from "@actions/github";
 import {inc, parse, ReleaseType, valid, gte, rcompare, SemVer} from "semver";
 import {analyzeCommits} from "@semantic-release/commit-analyzer";
 import {generateNotes} from "@semantic-release/release-notes-generator";
-import {OctokitResponse, ReposListTagsResponseData} from "@octokit/types";
 
 async function getValidTags(githubToken: string) {
 
@@ -23,6 +22,8 @@ async function getValidTags(githubToken: string) {
   const validTags = tags.data
     .filter(tag => valid(tag.name))
     .sort((a, b) => rcompare(a.name, b.name));
+
+  console.log(validTags);
 
   validTags.map(tag => core.debug(`Valid: ${tag.name}.`));
 
@@ -86,6 +87,8 @@ async function createTag(githubToken: string, newTag: string, createAnnotatedTag
 function getLatestPrereleaseTag(tags: object[], identifier: string) {
   // @ts-ignore
   const prereleaseTags = tags.filter(tag => tag.name);
+
+  console.log(prereleaseTags);
 
   return prereleaseTags[0];
 }
