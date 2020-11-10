@@ -22,6 +22,9 @@ inputs:
     description: "A prefix to the tag name (default: `v`)."
     required: false
     default: "v"
+  append_to_pre_release_tag:
+    description: "A suffix to a pre-release tag name (default: `<branch>`)."
+    required: false
   custom_tag:
     description: "Custom tag name. If specified, it overrides bump settings."
     required: false
@@ -29,14 +32,17 @@ inputs:
     description: "Comma separated list of branches (bash reg exp accepted) that will generate the release tags. Other branches and pull-requests generate versions postfixed with the commit hash and do not generate any tag. Examples: `master` or `.*` or `release.*,hotfix.*,master`..."
     required: false
     default: "master"
+  pre_release_branches:
+    description: "Comma separated list of branches (bash reg exp accepted) that will generate pre-release tags."
+    required: false
   create_annotated_tag:
     description: "Boolean to create an annotated tag rather than lightweight"
     required: false
-    default: false
+    default: "false"
   dry_run:
-    description: "Do not perform taging, just calculate next version and changelog, then exit"
+    description: "Do not perform tagging, just calculate next version and changelog, then exit"
     required: false
-    default: false
+    default: "false"
 
 runs:
   using: "node12"
