@@ -116,17 +116,13 @@ async function run() {
     }
 
     const currentBranch = getBranchFromRef(GITHUB_REF);
-    const releaseBranch = releaseBranches
+    const isReleaseBranch = releaseBranches
       .split(",")
       .some(branch => currentBranch.match(branch));
-    const preReleaseBranch = preReleaseBranches
+    const isPreReleaseBranch = preReleaseBranches
       .split(",")
       .some(branch => currentBranch.match(branch));
-
-    if (releaseBranch && preReleaseBranch) {
-      core.setFailed("Branch must not be both pre-release and release at the same time.");
-      return;
-    }
+    const isPrerelease = !isReleaseBranch && isPreReleaseBranch;
 
     const validTags = await getValidTags(githubToken);
     const latestTag = getLatestTag(validTags);
@@ -160,7 +156,7 @@ async function run() {
       return;
     }
 
-    const releaseType: ReleaseType = preReleaseBranch ? 'prerelease' : (bump || defaultBump);
+    const releaseType: ReleaseType = isPrerelease ? 'prerelease' : (bump || defaultBump);
     const incrementedVersion = inc(previousTag, releaseType, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
     if (!incrementedVersion) {
       core.setFailed('Could not increment version.');
@@ -196,7 +192,7 @@ async function run() {
     core.info(`Changelog is ${changelog}.`);
     core.setOutput("changelog", changelog);
 
-    if (!releaseBranch && !preReleaseBranch) {
+    if (!isReleaseBranch && !isPreReleaseBranch) {
       core.info("This branch is neither a release nor a pre-release branch. Skipping the tag creation.");
       return;
     }
