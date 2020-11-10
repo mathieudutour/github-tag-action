@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 import {context, GitHub} from "@actions/github";
-import {inc, parse, ReleaseType, valid, gte, rcompare, SemVer} from "semver";
+import {inc, parse, ReleaseType, valid, gte, rcompare, prerelease} from "semver";
 import {analyzeCommits} from "@semantic-release/commit-analyzer";
 import {generateNotes} from "@semantic-release/release-notes-generator";
 
@@ -21,6 +21,7 @@ async function getValidTags(githubToken: string) {
 
   const validTags = tags.data
     .filter(tag => valid(tag.name))
+    .filter(tag => !prerelease(tag.name))
     .sort((a, b) => rcompare(a.name, b.name));
 
   console.log(validTags);
@@ -85,8 +86,11 @@ async function createTag(githubToken: string, newTag: string, createAnnotatedTag
 }
 
 function getLatestPrereleaseTag(tags: object[], identifier: string) {
-  // @ts-ignore
-  const prereleaseTags = tags.filter(tag => tag.name);
+  const prereleaseTags = tags
+    // @ts-ignore
+    .filter(tag => prerelease(tag.name))
+    // @ts-ignore
+    .filter(tag => tag.name.match(identifier));
 
   console.log(prereleaseTags);
 
