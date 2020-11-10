@@ -84,22 +84,11 @@ async function createTag(githubToken: string, newTag: string, createAnnotatedTag
 }
 
 function getLatestPrereleaseTag(tags: object[], identifier: string) {
-  const prereleaseTags = tags
+  return tags
     // @ts-ignore
-    .filter(tag => prerelease(tag.name));
-
-  console.log('getLatestPrereleaseTag', prereleaseTags);
-  for (const prereleaseTag of prereleaseTags) {
+    .filter(tag => prerelease(tag.name))
     // @ts-ignore
-    console.log(prereleaseTag.name, identifier);
-    // @ts-ignore
-    console.log('matches', prereleaseTag.name.match(identifier));
-    // @ts-ignore
-    console.log('test', new RegExp(identifier).test(prereleaseTag.name));
-  }
-
-  // @ts-ignore
-  return prereleaseTags.find(tag => tag.name.match(identifier));
+    .find(tag => tag.name.match(identifier));
 }
 
 async function run() {
@@ -141,11 +130,10 @@ async function run() {
 
     const validTags = await getValidTags(githubToken);
     const latestTag = getLatestTag(validTags);
-    console.log('latest tag', latestTag);
     const latestPrereleaseTag = getLatestPrereleaseTag(validTags, currentBranch);
-    console.log('latest prerelease tag', latestPrereleaseTag);
+
     // @ts-ignore
-    const previousTag = parse(gte(latestTag.name, latestPrereleaseTag.name) ? latestTag.name : latestPrereleaseTag.name);
+    const previousTag = parse(gte(latestTag, latestPrereleaseTag) ? latestTag.name : latestPrereleaseTag.name);
     const commits = await getCommits(githubToken, latestTag.commit.sha);
 
     if (!previousTag) {
