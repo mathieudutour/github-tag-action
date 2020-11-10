@@ -130,11 +130,16 @@ async function run() {
 
     const validTags = await getValidTags(githubToken);
     const latestTag = getLatestTag(validTags);
-    console.log('latest tag', latestTag);
     const latestPrereleaseTag = getLatestPrereleaseTag(validTags, currentBranch);
-    console.log('latest prerelease tag', latestPrereleaseTag);
-    // @ts-ignore
-    const previousTag = parse(gte(latestTag.name, latestPrereleaseTag.name) ? latestTag.name : latestPrereleaseTag.name);
+
+    let previousTag;
+    if (!latestPrereleaseTag) {
+      previousTag = latestTag;
+    } else {
+      // @ts-ignore
+      previousTag = parse(gte(latestTag.name, latestPrereleaseTag.name) ? latestTag.name : latestPrereleaseTag.name);
+    }
+
     const commits = await getCommits(githubToken, latestTag.commit.sha);
 
     if (!previousTag) {
