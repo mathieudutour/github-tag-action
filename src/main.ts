@@ -134,7 +134,7 @@ async function run() {
 
     let previousTag;
     if (!latestPrereleaseTag) {
-      previousTag = latestTag;
+      previousTag = parse(latestTag.name);
     } else {
       // @ts-ignore
       previousTag = parse(gte(latestTag.name, latestPrereleaseTag.name) ? latestTag.name : latestPrereleaseTag.name);
