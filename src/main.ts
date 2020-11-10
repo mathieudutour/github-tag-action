@@ -131,6 +131,7 @@ async function run() {
     const validTags = await getValidTags(githubToken);
     const latestTag = getLatestTag(validTags);
     const latestPrereleaseTag = getLatestPrereleaseTag(validTags, currentBranch);
+    console.log('latest vs latest pre-release', latestTag, latestPrereleaseTag);
 
     // @ts-ignore
     const previousTag = parse(gte(latestTag, latestPrereleaseTag) ? latestTag.name : latestPrereleaseTag.name);
@@ -155,7 +156,7 @@ async function run() {
     }
 
     const releaseType: ReleaseType = preReleaseBranch ? 'prerelease' : (bump || defaultBump);
-
+    console.log('Increment Version', previousTag, releaseType, appendToPreReleaseTag, currentBranch);
     const incrementedVersion = inc(previousTag, releaseType, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
     if (!incrementedVersion) {
       core.setFailed('Could not increment version.');
