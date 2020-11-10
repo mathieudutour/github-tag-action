@@ -1,107 +1,26 @@
 import * as core from "@actions/core";
-import { context, GitHub } from "@actions/github";
-import { inc, parse, ReleaseType, valid, gte, rcompare, prerelease } from "semver";
+import { inc, parse, ReleaseType, valid, gte, SemVer } from "semver";
 import { analyzeCommits } from "@semantic-release/commit-analyzer";
 import { generateNotes } from "@semantic-release/release-notes-generator";
-
-async function getValidTags(githubToken: string) {
-
-  const octokit = new GitHub(githubToken);
-
-  const tags = await octokit.repos.listTags({
-    ...context.repo,
-    per_page: 100
-  });
-
-  const invalidTags = tags.data
-    .map(tag => tag.name)
-    .filter(name => !valid(name));
-
-  invalidTags.map(name => core.debug(`Invalid: ${name}.`));
-
-  const validTags = tags.data
-    .filter(tag => valid(tag.name))
-    .sort((a, b) => rcompare(a.name, b.name));
-
-  validTags.map(tag => core.debug(`Valid: ${tag.name}.`));
-
-  return validTags;
-}
-
-async function getCommits(githubToken: string, sha: string) {
-  const octokit = new GitHub(githubToken);
-
-  const commits = await octokit.repos.compareCommits({
-    ...context.repo,
-    base: sha,
-    head: 'HEAD'
-  });
-
-  return commits.data.commits
-    .filter(commit => !!commit.commit.message)
-    .map(commit => ({
-      message: commit.commit.message,
-      hash: commit.sha
-    }));
-}
-
-function getBranchFromRef(ref: string): string {
-  return ref.replace("refs/heads/", "");
-}
-
-function getLatestTag(tags: object[]) {
-  return {
-    name: '0.0.0',
-    commit: {
-      sha: 'HEAD'
-    },
-    // @ts-ignore
-    ...tags.find(tag => !prerelease(tag.name))
-  };
-}
-
-async function createTag(githubToken: string, newTag: string, createAnnotatedTag: boolean, GITHUB_SHA: string) {
-  const octokit = new GitHub(githubToken);
-
-  let createdTag;
-  if (createAnnotatedTag) {
-    core.debug(`Creating annotated tag.`);
-    createdTag = await octokit.git.createTag({
-      ...context.repo,
-      tag: newTag,
-      message: newTag,
-      object: GITHUB_SHA,
-      type: "commit",
-    });
-  }
-
-  core.debug(`Pushing new tag to the repo.`);
-  await octokit.git.createRef({
-    ...context.repo,
-    ref: `refs/tags/${newTag}`,
-    sha: createAnnotatedTag ? createdTag.data.sha : GITHUB_SHA,
-  });
-}
-
-function getLatestPrereleaseTag(tags: object[], identifier: string) {
-  return tags
-    // @ts-ignore
-    .filter(tag => prerelease(tag.name))
-    // @ts-ignore
-    .find(tag => tag.name.match(identifier));
-}
+import {
+  getValidTags,
+  getCommits,
+  getBranchFromRef,
+  getLatestTag,
+  createTag,
+  getLatestPrereleaseTag,
+} from "./utils";
 
 async function run() {
   try {
     const defaultBump = core.getInput("default_bump") as ReleaseType | "false";
     const tagPrefix = core.getInput("tag_prefix");
-    const customTag = core.getInput("custom_tag")
+    const customTag = core.getInput("custom_tag");
     const releaseBranches = core.getInput("release_branches");
     const preReleaseBranches = core.getInput("pre_release_branches");
     const appendToPreReleaseTag = core.getInput("append_to_pre_release_tag");
     const createAnnotatedTag = !!core.getInput("create_annotated_tag");
     const dryRun = core.getInput("dry_run");
-    const githubToken = core.getInput("github_token")
 
     const { GITHUB_REF, GITHUB_SHA } = process.env;
 
@@ -118,58 +37,79 @@ async function run() {
     const currentBranch = getBranchFromRef(GITHUB_REF);
     const isReleaseBranch = releaseBranches
       .split(",")
-      .some(branch => currentBranch.match(branch));
+      .some((branch) => currentBranch.match(branch));
     const isPreReleaseBranch = preReleaseBranches
       .split(",")
-      .some(branch => currentBranch.match(branch));
+      .some((branch) => currentBranch.match(branch));
     const isPrerelease = !isReleaseBranch && isPreReleaseBranch;
 
-    const validTags = await getValidTags(githubToken);
+    const validTags = await getValidTags();
     const latestTag = getLatestTag(validTags);
-    const latestPrereleaseTag = getLatestPrereleaseTag(validTags, currentBranch);
-
-    let previousTag;
-    if (!latestPrereleaseTag) {
-      previousTag = parse(latestTag.name);
-    } else {
-      // @ts-ignore
-      previousTag = parse(gte(latestTag.name, latestPrereleaseTag.name) ? latestTag.name : latestPrereleaseTag.name);
-    }
-
-    const commits = await getCommits(githubToken, latestTag.commit.sha);
-
-    if (!previousTag) {
-      core.setFailed('Could not parse previous tag.');
-      return;
-    }
-
-    core.info(`Previous tag was ${previousTag}.`);
-    core.setOutput("previous_tag", previousTag.version);
-
-    const bump = await analyzeCommits(
-      {},
-      { commits, logger: { log: console.info.bind(console) } }
+    const latestPrereleaseTag = getLatestPrereleaseTag(
+      validTags,
+      currentBranch
     );
 
-    if (!bump && defaultBump === "false") {
-      core.debug("No commit specifies the version bump. Skipping the tag creation.");
-      return;
+    const commits = await getCommits(latestTag.commit.sha);
+
+    let newVersion: string;
+
+    if (customTag) {
+      newVersion = customTag;
+    } else {
+      let previousTag: SemVer | null;
+      if (!latestPrereleaseTag) {
+        previousTag = parse(latestTag.name);
+      } else {
+        previousTag = parse(
+          gte(latestTag.name, latestPrereleaseTag.name)
+            ? latestTag.name
+            : latestPrereleaseTag.name
+        );
+      }
+
+      if (!previousTag) {
+        core.setFailed("Could not parse previous tag.");
+        return;
+      }
+
+      core.info(`Previous tag was ${previousTag}.`);
+      core.setOutput("previous_tag", previousTag.version);
+
+      const bump = await analyzeCommits(
+        {},
+        { commits, logger: { log: console.info.bind(console) } }
+      );
+
+      if (!bump && defaultBump === "false") {
+        core.debug(
+          "No commit specifies the version bump. Skipping the tag creation."
+        );
+        return;
+      }
+
+      const releaseType: ReleaseType = isPrerelease
+        ? "prerelease"
+        : bump || defaultBump;
+      const incrementedVersion = inc(
+        previousTag,
+        releaseType,
+        appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch
+      );
+
+      if (!incrementedVersion) {
+        core.setFailed("Could not increment version.");
+        return;
+      }
+
+      if (!valid(incrementedVersion)) {
+        core.setFailed(`${incrementedVersion} is not a valid semver.`);
+        return;
+      }
+
+      newVersion = incrementedVersion;
     }
 
-    const releaseType: ReleaseType = isPrerelease ? 'prerelease' : (bump || defaultBump);
-    const incrementedVersion = inc(previousTag, releaseType, appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch);
-    if (!incrementedVersion) {
-      core.setFailed('Could not increment version.');
-      return;
-    }
-
-    const validVersion = valid(incrementedVersion);
-    if (!validVersion) {
-      core.setFailed(`${incrementedVersion} is not a valid semver.`);
-      return;
-    }
-
-    const newVersion = customTag ? customTag : incrementedVersion;
     core.info(`New version is ${newVersion}.`);
     core.setOutput("new_version", newVersion);
 
@@ -193,11 +133,13 @@ async function run() {
     core.setOutput("changelog", changelog);
 
     if (!isReleaseBranch && !isPreReleaseBranch) {
-      core.info("This branch is neither a release nor a pre-release branch. Skipping the tag creation.");
+      core.info(
+        "This branch is neither a release nor a pre-release branch. Skipping the tag creation."
+      );
       return;
     }
 
-    if (validTags.map(tag => tag.name).includes(newTag)) {
+    if (validTags.map((tag) => tag.name).includes(newTag)) {
       core.info("This tag already exists. Skipping the tag creation.");
       return;
     }
@@ -207,7 +149,7 @@ async function run() {
       return;
     }
 
-    await createTag(githubToken, newTag, createAnnotatedTag, GITHUB_SHA);
+    await createTag(newTag, createAnnotatedTag, GITHUB_SHA);
   } catch (error) {
     core.setFailed(error.message);
   }
