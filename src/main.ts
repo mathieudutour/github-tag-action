@@ -43,11 +43,12 @@ async function run() {
       .some((branch) => currentBranch.match(branch));
     const isPrerelease = !isReleaseBranch && isPreReleaseBranch;
 
+    const identifier = appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch;
     const validTags = await getValidTags();
     const latestTag = getLatestTag(validTags);
     const latestPrereleaseTag = getLatestPrereleaseTag(
       validTags,
-      currentBranch
+      identifier
     );
 
     const commits = await getCommits(latestTag.commit.sha);
@@ -94,7 +95,7 @@ async function run() {
       const incrementedVersion = inc(
         previousTag,
         releaseType,
-        appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch
+        identifier
       );
 
       if (!incrementedVersion) {
