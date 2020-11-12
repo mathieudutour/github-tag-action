@@ -1,6 +1,9 @@
 import * as utils from '../src/utils';
+import * as core from '@actions/core';
 import { getValidTags } from '../src/utils';
 import * as github from '../src/github';
+
+jest.spyOn(core, 'debug').mockImplementation(() => {});
 
 describe('utils', () => {
   it('maps custom release types', () => {
