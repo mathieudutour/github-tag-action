@@ -1,24 +1,19 @@
 import * as core from "@actions/core";
 import { Octokit } from "@octokit/rest";
-import { context, GitHub } from "@actions/github";
-import { valid, rcompare, prerelease } from "semver";
-
-const githubToken = core.getInput("github_token");
-const octokit = new GitHub(githubToken);
+import { prerelease, rcompare, valid } from "semver";
+import DEFAULT_RELEASE_TYPES from "@semantic-release/commit-analyzer/lib/default-release-types.js";
+import { compareCommits, listTags } from "./github";
 
 export async function getValidTags() {
-  const tags = await octokit.repos.listTags({
-    ...context.repo,
-    per_page: 100,
-  });
+  const tags = await listTags();
 
-  const invalidTags = tags.data
+  const invalidTags = tags
     .map((tag) => tag.name)
     .filter((name) => !valid(name));
 
   invalidTags.forEach((name) => core.debug(`Found Invalid Tag: ${name}.`));
 
-  const validTags = tags.data
+  const validTags = tags
     .filter((tag) => valid(tag.name))
     .sort((a, b) => rcompare(a.name, b.name));
 
@@ -28,13 +23,9 @@ export async function getValidTags() {
 }
 
 export async function getCommits(sha: string) {
-  const commits = await octokit.repos.compareCommits({
-    ...context.repo,
-    base: sha,
-    head: "HEAD",
-  });
+  const commits = await compareCommits(sha);
 
-  return commits.data.commits
+  return commits
     .filter((commit) => !!commit.commit.message)
     .map((commit) => ({
       message: commit.commit.message,
@@ -44,33 +35,6 @@ export async function getCommits(sha: string) {
 
 export function getBranchFromRef(ref: string) {
   return ref.replace("refs/heads/", "");
-}
-
-export async function createTag(
-  newTag: string,
-  createAnnotatedTag: boolean,
-  GITHUB_SHA: string
-) {
-  let annotatedTag:
-    | Octokit.Response<Octokit.GitCreateTagResponse>
-    | undefined = undefined;
-  if (createAnnotatedTag) {
-    core.debug(`Creating annotated tag.`);
-    annotatedTag = await octokit.git.createTag({
-      ...context.repo,
-      tag: newTag,
-      message: newTag,
-      object: GITHUB_SHA,
-      type: "commit",
-    });
-  }
-
-  core.debug(`Pushing new tag to the repo.`);
-  await octokit.git.createRef({
-    ...context.repo,
-    ref: `refs/tags/${newTag}`,
-    sha: annotatedTag ? annotatedTag.data.sha : GITHUB_SHA,
-  });
 }
 
 export function getLatestTag(tags: Octokit.ReposListTagsResponseItem[]) {
@@ -91,4 +55,24 @@ export function getLatestPrereleaseTag(
   return tags
     .filter((tag) => prerelease(tag.name))
     .find((tag) => tag.name.match(identifier));
+}
+
+export function mapCustomReleaseTypes(
+  customReleaseTypes: string
+) {
+  return customReleaseTypes
+    .split(';')
+    .map(part => {
+      const custom = part.split(':');
+      if (custom.length !== 2) {
+        core.warning(`${part} is not a valid custom release definition.`);
+        return null;
+      }
+      const [keyword, release] = custom;
+      return {
+        type: keyword,
+        release
+      };
+    })
+    .filter(customRelease => DEFAULT_RELEASE_TYPES.includes(customRelease?.release));
 }
