@@ -126,6 +126,33 @@ describe('github-tag-action', () => {
       expect(mockCreateTag).toHaveBeenCalledWith('v2.0.0', expect.any(Boolean), expect.any(String));
       expect(mockSetFailed).not.toBeCalled();
     });
+
+    it('does create tag using custom release types but non-custom commit message', async () => {
+      /*
+       * Given
+       */
+      setInput('custom_release_rules', 'james:patch,bond:major');
+      const commits = [{ message: 'fix: is the new cool guy' }, { message: 'feat: is his last name' }];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
+
+      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await main();
+
+      /*
+       * Then
+       */
+      expect(mockCreateTag).toHaveBeenCalledWith('v1.3.0', expect.any(Boolean), expect.any(String));
+      expect(mockSetFailed).not.toBeCalled();
+    });
   });
 
   describe('release branches', () => {
@@ -212,6 +239,66 @@ describe('github-tag-action', () => {
       expect(mockCreateTag).toHaveBeenCalledWith('v2.0.0', expect.any(Boolean), expect.any(String));
       expect(mockSetFailed).not.toBeCalled();
     });
+
+    it('does create tag when pre-release tag is newer', async () => {
+      /*
+       * Given
+       */
+      const commits = [{ message: 'feat: some new feature on a release branch' }];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
+
+      const validTags = [
+        { name: 'v1.2.3', commit: { sha: '012345' } },
+        { name: 'v2.1.3-prerelease.0', commit: { sha: '678901' } },
+        { name: 'v2.1.3-prerelease.1', commit: { sha: '234567' } },
+      ];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await main();
+
+      /*
+       * Then
+       */
+      expect(mockCreateTag).toHaveBeenCalledWith('v2.2.0', expect.any(Boolean), expect.any(String));
+      expect(mockSetFailed).not.toBeCalled();
+    });
+
+    it('does create tag with custom release rules', async () => {
+      /*
+       * Given
+       */
+      setInput('custom_release_rules', 'james:preminor')
+      const commits = [
+        { message: 'feat: some new feature on a pre-release branch' },
+        { message: 'james: this should make a preminor' },
+      ];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
+
+      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await main();
+
+      /*
+       * Then
+       */
+      expect(mockCreateTag).toHaveBeenCalledWith('v1.3.0', expect.any(Boolean), expect.any(String));
+      expect(mockSetFailed).not.toBeCalled();
+    });
   });
 
   describe('pre-release branches', () => {
@@ -296,6 +383,66 @@ describe('github-tag-action', () => {
        * Then
        */
       expect(mockCreateTag).toHaveBeenCalledWith('v2.0.0-prerelease.0', expect.any(Boolean), expect.any(String));
+      expect(mockSetFailed).not.toBeCalled();
+    });
+
+    it('does create tag when release tag is newer', async () => {
+      /*
+       * Given
+       */
+      const commits = [{ message: 'feat: some new feature on a pre-release branch' }];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
+
+      const validTags = [
+        { name: 'v1.2.3-prerelease.0', commit: { sha: '012345' } },
+        { name: 'v3.1.2-feature.0', commit: { sha: '012345' } },
+        { name: 'v2.1.4', commit: { sha: '234567' } },
+      ];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await main();
+
+      /*
+       * Then
+       */
+      expect(mockCreateTag).toHaveBeenCalledWith('v2.2.0-prerelease.0', expect.any(Boolean), expect.any(String));
+      expect(mockSetFailed).not.toBeCalled();
+    });
+
+    it('does create tag with custom release rules', async () => {
+      /*
+       * Given
+       */
+      setInput('custom_release_rules', 'james:preminor')
+      const commits = [
+        { message: 'feat: some new feature on a pre-release branch' },
+        { message: 'james: this should make a preminor' },
+      ];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
+
+      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await main();
+
+      /*
+       * Then
+       */
+      expect(mockCreateTag).toHaveBeenCalledWith('v1.3.0-prerelease.0', expect.any(Boolean), expect.any(String));
       expect(mockSetFailed).not.toBeCalled();
     });
   });
