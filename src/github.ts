@@ -4,7 +4,7 @@ import { Octokit } from "@octokit/rest";
 
 let octokitSingleton;
 
-function getOctokitSingleton() {
+export function getOctokitSingleton() {
   if (octokitSingleton) {
     return octokitSingleton;
   }

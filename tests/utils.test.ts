@@ -1,52 +1,11 @@
 import * as utils from '../src/utils';
-import * as core from '@actions/core';
 import { getValidTags } from '../src/utils';
+import * as core from '@actions/core';
 import * as github from '../src/github';
 
 jest.spyOn(core, 'debug').mockImplementation(() => {});
 
 describe('utils', () => {
-  it('maps custom release types', () => {
-    /*
-     * Given
-     */
-    const customReleasesString = 'james:preminor;bond:premajor';
-
-    /*
-     * When
-     */
-    const mappedReleases = utils.mapCustomReleaseTypes(customReleasesString);
-
-    /*
-     * Then
-     */
-    expect(mappedReleases)
-      .toEqual([
-        { type: 'james', release: 'preminor' },
-        { type: 'bond', release: 'premajor' }
-      ]);
-  });
-
-  it('filters out invalid custom release types', () => {
-    /*
-     * Given
-     */
-    const customReleasesString = 'james:pre-release;bond:premajor';
-
-    /*
-     * When
-     */
-    const mappedReleases = utils.mapCustomReleaseTypes(customReleasesString);
-
-    /*
-     * Then
-     */
-    expect(mappedReleases)
-      .toEqual([
-        { type: 'bond', release: 'premajor' }
-      ]);
-  });
-
   it('extracts branch from ref', () => {
     /*
      * Given
@@ -108,5 +67,48 @@ describe('utils', () => {
      */
     expect(mockListTags).toHaveBeenCalled();
     expect(validTags[0]).toEqual({ name: '1.2.4-prerelease.2' });
+  });
+
+  describe('custom release types', () => {
+    it('maps custom release types', () => {
+      /*
+       * Given
+       */
+      const customReleasesString = 'james:preminor,bond:premajor';
+
+      /*
+       * When
+       */
+      const mappedReleases = utils.mapCustomReleaseRules(customReleasesString);
+
+      /*
+       * Then
+       */
+      expect(mappedReleases)
+        .toEqual([
+          { type: 'james', release: 'preminor' },
+          { type: 'bond', release: 'premajor' },
+        ]);
+    });
+
+    it('filters out invalid custom release types', () => {
+      /*
+       * Given
+       */
+      const customReleasesString = 'james:pre-release,bond:premajor';
+
+      /*
+       * When
+       */
+      const mappedReleases = utils.mapCustomReleaseRules(customReleasesString);
+
+      /*
+       * Then
+       */
+      expect(mappedReleases)
+        .toEqual([
+          { type: 'bond', release: 'premajor' },
+        ]);
+    });
   });
 });

@@ -2,91 +2,391 @@ import main from '../src/main';
 import * as utils from '../src/utils';
 import * as github from '../src/github';
 import * as core from '@actions/core';
-import { setInputs, parseDefaultInputs, setInput } from "./helper.test";
+import { loadDefaultInputs, setBranch, setCommitSha, setInput } from './helper.test';
 
-const mockCreateTag = jest.spyOn(github, 'createTag').mockImplementation(async () => {
-});
+jest.spyOn(core, 'debug').mockImplementation(() => {});
+jest.spyOn(core, 'info').mockImplementation(() => {});
+jest.spyOn(console, 'info').mockImplementation(() => {});
+
+const mockCreateTag = jest.spyOn(github, 'createTag').mockResolvedValue(undefined);
 const mockSetFailed = jest.spyOn(core, 'setFailed');
+const mockSetOutput = jest.spyOn(core, 'setOutput').mockImplementation(() => {});
 
-describe('main tests', () => {
-  const mockGetCommits = (commits) => jest.spyOn(utils, 'getCommits').mockImplementation(async (sha) => {
-    return commits;
-  });
-  const mockGetValidTags = (validTags) => jest.spyOn(utils, 'getValidTags').mockImplementation(async () => {
-    return validTags;
-  });
-
+describe('github-tag-action', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env['GITHUB_REF'] = 'refs/heads/master';
-    process.env['GITHUB_SHA'] = 'GITHUB_SHA';
-    setInputs(parseDefaultInputs());
+    setBranch('master');
+    setCommitSha('79e0ea271c26aa152beef77c3275ff7b8f8d8274');
+    loadDefaultInputs();
   });
 
-  it('does create initial tag', async () => {
-    /*
-     * Given
-     */
-    const mockValidTags = mockGetValidTags([]);
-    const commits = [
-      { message: 'fix: this is my first fix' },
-    ]
-    const mockCommits = mockGetCommits(commits);
+  describe('special cases', () => {
+    it('does create initial tag', async () => {
+      /*
+       * Given
+       */
+      const commits = [{ message: 'fix: this is my first fix' }];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
 
-    /*
-     * When
-     */
-    await main();
+      const validTags = [];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
 
-    /*
-     * Then
-     */
-    expect(mockValidTags).toHaveBeenCalled();
-    expect(mockCommits).toHaveBeenCalledWith('HEAD');
-    expect(mockCreateTag).toHaveBeenCalledWith('v0.0.1', expect.any(Boolean), expect.any(String));
-    expect(mockSetFailed).not.toBeCalled();
+      /*
+       * When
+       */
+      await main();
+
+      /*
+       * Then
+       */
+      expect(mockCreateTag).toHaveBeenCalledWith('v0.0.1', expect.any(Boolean), expect.any(String));
+      expect(mockSetFailed).not.toBeCalled();
+    });
+
+    it('does create patch tag without commits', async () => {
+      /*
+       * Given
+       */
+      const commits = [];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
+
+      const validTags = [];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await main();
+
+      /*
+       * Then
+       */
+      expect(mockCreateTag).toHaveBeenCalledWith('v0.0.1', expect.any(Boolean), expect.any(String));
+      expect(mockSetFailed).not.toBeCalled();
+    });
+
+    it('does not create tag without commits and default_bump set to false', async () => {
+      /*
+       * Given
+       */
+      setInput('default_bump', 'false');
+      const commits = [];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
+
+      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await main();
+
+      /*
+       * Then
+       */
+      expect(mockCreateTag).not.toBeCalled();
+      expect(mockSetFailed).not.toBeCalled();
+    });
+
+    it('does create tag using custom release types', async () => {
+      /*
+       * Given
+       */
+      setInput('custom_release_rules', 'james:patch,bond:major');
+      const commits = [{ message: 'james: is the new cool guy' }, { message: 'bond: is his last name' }];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
+
+      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await main();
+
+      /*
+       * Then
+       */
+      expect(mockCreateTag).toHaveBeenCalledWith('v2.0.0', expect.any(Boolean), expect.any(String));
+      expect(mockSetFailed).not.toBeCalled();
+    });
   });
 
-  it('does create patch tag without commits', async () => {
-    /*
-     * Given
-     */
-    const mockValidTags = mockGetValidTags([{ name: 'v1.2.3', commit: { sha: '012345' } }]);
-    const mockCommits = mockGetCommits([]);
+  describe('release branches', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      setBranch('release');
+      setInput('release_branches', 'release');
+    });
 
-    /*
-     * When
-     */
-    await main();
+    it('does create patch tag', async () => {
+      /*
+       * Given
+       */
+      const commits = [{ message: 'fix: this is my first fix' }];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
 
-    /*
-     * Then
-     */
-    expect(mockValidTags).toHaveBeenCalled();
-    expect(mockCommits).toHaveBeenCalledWith('012345');
-    expect(mockCreateTag).toHaveBeenCalledWith('v1.2.4', expect.any(Boolean), expect.any(String));
-    expect(mockSetFailed).not.toBeCalled();
+      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await main();
+
+      /*
+       * Then
+       */
+      expect(mockCreateTag).toHaveBeenCalledWith('v1.2.4', expect.any(Boolean), expect.any(String));
+      expect(mockSetFailed).not.toBeCalled();
+    });
+
+    it('does create minor tag', async () => {
+      /*
+       * Given
+       */
+      const commits = [{ message: 'feat: this is my first feature' }];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
+
+      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await main();
+
+      /*
+       * Then
+       */
+      expect(mockCreateTag).toHaveBeenCalledWith('v1.3.0', expect.any(Boolean), expect.any(String));
+      expect(mockSetFailed).not.toBeCalled();
+    });
+
+    it('does create major tag', async () => {
+      /*
+       * Given
+       */
+      const commits = [{ message: 'my commit message\nBREAKING CHANGE:\nthis is a breaking change' }];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
+
+      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await main();
+
+      /*
+       * Then
+       */
+      expect(mockCreateTag).toHaveBeenCalledWith('v2.0.0', expect.any(Boolean), expect.any(String));
+      expect(mockSetFailed).not.toBeCalled();
+    });
   });
 
-  it('does not create tag without commits and default_bump set to false', async () => {
-    /*
-     * Given
-     */
-    setInput('default_bump', 'false');
-    const mockValidTags = mockGetValidTags([{ name: 'v1.2.3', commit: { sha: '012345' } }]);
-    const mockCommits = mockGetCommits([]);
+  describe('pre-release branches', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      setBranch('prerelease');
+      setInput('pre_release_branches', 'prerelease');
+    });
 
-    /*
-     * When
-     */
-    await main();
+    it('does create prepatch tag', async () => {
+      /*
+       * Given
+       */
+      const commits = [{ message: 'fix: this is my first fix' }];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
 
-    /*
-     * Then
-     */
-    expect(mockValidTags).toHaveBeenCalled();
-    expect(mockCommits).toHaveBeenCalledWith('012345');
-    expect(mockCreateTag).not.toBeCalled();
-    expect(mockSetFailed).not.toBeCalled();
+      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await main();
+
+      /*
+       * Then
+       */
+      expect(mockCreateTag).toHaveBeenCalledWith('v1.2.4-prerelease.0', expect.any(Boolean), expect.any(String));
+      expect(mockSetFailed).not.toBeCalled();
+    });
+
+    it('does create preminor tag', async () => {
+      /*
+       * Given
+       */
+      const commits = [{ message: 'feat: this is my first feature' }];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
+
+      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await main();
+
+      /*
+       * Then
+       */
+      expect(mockCreateTag).toHaveBeenCalledWith('v1.3.0-prerelease.0', expect.any(Boolean), expect.any(String));
+      expect(mockSetFailed).not.toBeCalled();
+    });
+
+    it('does create premajor tag', async () => {
+      /*
+       * Given
+       */
+      const commits = [{ message: 'my commit message\nBREAKING CHANGE:\nthis is a breaking change' }];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
+
+      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await main();
+
+      /*
+       * Then
+       */
+      expect(mockCreateTag).toHaveBeenCalledWith('v2.0.0-prerelease.0', expect.any(Boolean), expect.any(String));
+      expect(mockSetFailed).not.toBeCalled();
+    });
+  });
+
+  describe('other branches', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      setBranch('development');
+      setInput('pre_release_branches', 'prerelease');
+      setInput('release_branches', 'release');
+    });
+
+    it('does output patch tag', async () => {
+      /*
+       * Given
+       */
+      const commits = [{ message: 'fix: this is my first fix' }];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
+
+      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await main();
+
+      /*
+       * Then
+       */
+      expect(mockSetOutput).toHaveBeenCalledWith('new_version', '1.2.4');
+      expect(mockCreateTag).not.toBeCalled();
+      expect(mockSetFailed).not.toBeCalled();
+    });
+
+    it('does output minor tag', async () => {
+      /*
+       * Given
+       */
+      const commits = [{ message: 'feat: this is my first feature' }];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
+
+      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await main();
+
+      /*
+       * Then
+       */
+      expect(mockSetOutput).toHaveBeenCalledWith('new_version', '1.3.0');
+      expect(mockCreateTag).not.toBeCalled();
+      expect(mockSetFailed).not.toBeCalled();
+    });
+
+    it('does output major tag', async () => {
+      /*
+       * Given
+       */
+      const commits = [{ message: 'my commit message\nBREAKING CHANGE:\nthis is a breaking change' }];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
+
+      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await main();
+
+      /*
+       * Then
+       */
+      expect(mockSetOutput).toHaveBeenCalledWith('new_version', '2.0.0');
+      expect(mockCreateTag).not.toBeCalled();
+      expect(mockSetFailed).not.toBeCalled();
+    });
   });
 });

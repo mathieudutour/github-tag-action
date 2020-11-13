@@ -57,11 +57,11 @@ export function getLatestPrereleaseTag(
     .find((tag) => tag.name.match(identifier));
 }
 
-export function mapCustomReleaseTypes(
+export function mapCustomReleaseRules(
   customReleaseTypes: string
 ) {
   return customReleaseTypes
-    .split(';')
+    .split(',')
     .map(part => {
       const custom = part.split(':');
       if (custom.length !== 2) {

@@ -8,7 +8,7 @@ import {
   getLatestPrereleaseTag,
   getLatestTag,
   getValidTags,
-  mapCustomReleaseTypes,
+  mapCustomReleaseRules,
 } from "./utils";
 import { createTag } from "./github";
 
@@ -22,11 +22,11 @@ export default async () => {
     const appendToPreReleaseTag = core.getInput("append_to_pre_release_tag");
     const createAnnotatedTag = !!core.getInput("create_annotated_tag");
     const dryRun = core.getInput("dry_run");
-    const customReleaseTypes = core.getInput("custom_release_types");
+    const customReleaseRules = core.getInput("custom_release_rules");
 
-    let mappedReleaseTypes;
-    if (customReleaseTypes) {
-      mappedReleaseTypes = mapCustomReleaseTypes(customReleaseTypes);
+    let mappedReleaseRules;
+    if (customReleaseRules) {
+      mappedReleaseRules = mapCustomReleaseRules(customReleaseRules);
     }
 
     const { GITHUB_REF, GITHUB_SHA } = process.env;
@@ -85,7 +85,7 @@ export default async () => {
       core.setOutput("previous_tag", previousTag.version);
 
       const bump = await analyzeCommits(
-        { releaseTypes: mappedReleaseTypes },
+        { releaseRules: mappedReleaseRules },
         { commits, logger: { log: console.info.bind(console) } }
       );
 
