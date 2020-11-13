@@ -47,6 +47,10 @@ jobs:
 - **tag_prefix** _(optional)_ - A prefix to the tag name (default: `v`).
 - **append_to_pre_release_tag** _(optional)_ - A suffix to the pre-release tag name (default: `<branch>`).
 
+#### Customize the conventional commit messages
+
+- **custom_release_rules** _(optional)_ - Comma separated list of release rules. Format: `<keyword>:<release_type>`. Example: `hotfix:patch,pre-feat:preminor`.
+
 #### Debugging
 
 - **dry_run** _(optional)_ - Do not perform tagging, just calculate next version and changelog, then exit
