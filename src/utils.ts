@@ -58,19 +58,25 @@ export function getLatestPrereleaseTag(
 }
 
 export function mapCustomReleaseRules(customReleaseTypes: string) {
+  const releaseRuleSeparator = ',';
+  const releaseTypeSeparator = ':';
+
   return customReleaseTypes
-    .split(',')
-    .filter((part) => {
-      const custom = part.split(':');
-      if (custom.length !== 2) {
-        core.warning(`${part} is not a valid custom release definition.`);
+    .split(releaseRuleSeparator)
+    .map((customReleaseRule) => customReleaseRule.split(releaseTypeSeparator))
+    .filter((customReleaseRule) => {
+      if (customReleaseRule.length !== 2) {
+        core.warning(
+          `${customReleaseRule.join(
+            releaseTypeSeparator
+          )} is not a valid custom release definition.`
+        );
         return false;
       }
       return true;
     })
-    .map((part) => {
-      const custom = part.split(':');
-      const [keyword, release] = custom;
+    .map((customReleaseRule) => {
+      const [keyword, release] = customReleaseRule;
       return {
         type: keyword,
         release,
