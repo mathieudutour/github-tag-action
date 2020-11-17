@@ -36,8 +36,8 @@ jobs:
 
 #### Filter branches
 
-- **release_branches** _(optional)_ - Comma separated list of branches (JavaScript regular expression accepted) that will generate the release tags. Other branches and pull-requests generate versions postfixed with the commit hash and do not generate any tag. Examples: `master` or `.*` or `release.*,hotfix.*,master`... (default: `master`).
-- **pre_release_branches** _(optional)_ - Comma separated list of branches (JavaScript regular expression accepted) that will generate pre-release tags.
+- **release_branches** _(optional)_ - Comma separated list of branches (JavaScript regular expression accepted) that will generate the release tags. Other branches and pull-requests generate versions postfixed with the commit hash and do not generate any repository tag. Examples: `master` or `.*` or `release.*,hotfix.*,master`... (default: `master`).
+- **pre_release_branches** _(optional)_ - Comma separated list of branches (JavaScript regular expression accepted) that will generate the pre-release tags.
 
 #### Customize the tag
 
@@ -57,7 +57,7 @@ jobs:
 
 ### 📤 Outputs
 
-- **new_tag** - The value of the newly created tag. Note that if there hasn't been any new commit, this will be `undefined`.
+- **new_tag** - The value of the newly calculated tag. Note that if there hasn't been any new commit, this will be `undefined`.
 - **new_version** - The value of the newly created tag without the prefix. Note that if there hasn't been any new commit, this will be `undefined`.
 - **previous_tag** - The value of the previous tag (or `0.0.0` if none). Note that if `custom_tag` is set, this will be `undefined`.
 - **changelog** - The [conventional changelog](https://github.com/conventional-changelog/conventional-changelog) since the previous tag.
