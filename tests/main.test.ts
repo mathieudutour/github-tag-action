@@ -2,15 +2,26 @@ import main from '../src/main';
 import * as utils from '../src/utils';
 import * as github from '../src/github';
 import * as core from '@actions/core';
-import { loadDefaultInputs, setBranch, setCommitSha, setInput } from './helper.test';
+import {
+  loadDefaultInputs,
+  setBranch,
+  setCommitSha,
+  setInput,
+} from './helper.test';
 
 jest.spyOn(core, 'debug').mockImplementation(() => {});
 jest.spyOn(core, 'info').mockImplementation(() => {});
 jest.spyOn(console, 'info').mockImplementation(() => {});
 
-const mockCreateTag = jest.spyOn(github, 'createTag').mockResolvedValue(undefined);
+const mockCreateTag = jest
+  .spyOn(github, 'createTag')
+  .mockResolvedValue(undefined);
+
+const mockSetOutput = jest
+  .spyOn(core, 'setOutput')
+  .mockImplementation(() => {});
+
 const mockSetFailed = jest.spyOn(core, 'setFailed');
-const mockSetOutput = jest.spyOn(core, 'setOutput').mockImplementation(() => {});
 
 describe('github-tag-action', () => {
   beforeEach(() => {
@@ -43,7 +54,11 @@ describe('github-tag-action', () => {
       /*
        * Then
        */
-      expect(mockCreateTag).toHaveBeenCalledWith('v0.0.1', expect.any(Boolean), expect.any(String));
+      expect(mockCreateTag).toHaveBeenCalledWith(
+        'v0.0.1',
+        expect.any(Boolean),
+        expect.any(String)
+      );
       expect(mockSetFailed).not.toBeCalled();
     });
 
@@ -69,7 +84,11 @@ describe('github-tag-action', () => {
       /*
        * Then
        */
-      expect(mockCreateTag).toHaveBeenCalledWith('v0.0.1', expect.any(Boolean), expect.any(String));
+      expect(mockCreateTag).toHaveBeenCalledWith(
+        'v0.0.1',
+        expect.any(Boolean),
+        expect.any(String)
+      );
       expect(mockSetFailed).not.toBeCalled();
     });
 
@@ -105,7 +124,10 @@ describe('github-tag-action', () => {
        * Given
        */
       setInput('custom_release_rules', 'james:patch,bond:major');
-      const commits = [{ message: 'james: is the new cool guy' }, { message: 'bond: is his last name' }];
+      const commits = [
+        { message: 'james: is the new cool guy' },
+        { message: 'bond: is his last name' },
+      ];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
@@ -123,7 +145,11 @@ describe('github-tag-action', () => {
       /*
        * Then
        */
-      expect(mockCreateTag).toHaveBeenCalledWith('v2.0.0', expect.any(Boolean), expect.any(String));
+      expect(mockCreateTag).toHaveBeenCalledWith(
+        'v2.0.0',
+        expect.any(Boolean),
+        expect.any(String)
+      );
       expect(mockSetFailed).not.toBeCalled();
     });
 
@@ -132,7 +158,10 @@ describe('github-tag-action', () => {
        * Given
        */
       setInput('custom_release_rules', 'james:patch,bond:major');
-      const commits = [{ message: 'fix: is the new cool guy' }, { message: 'feat: is his last name' }];
+      const commits = [
+        { message: 'fix: is the new cool guy' },
+        { message: 'feat: is his last name' },
+      ];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
@@ -150,7 +179,11 @@ describe('github-tag-action', () => {
       /*
        * Then
        */
-      expect(mockCreateTag).toHaveBeenCalledWith('v1.3.0', expect.any(Boolean), expect.any(String));
+      expect(mockCreateTag).toHaveBeenCalledWith(
+        'v1.3.0',
+        expect.any(Boolean),
+        expect.any(String)
+      );
       expect(mockSetFailed).not.toBeCalled();
     });
   });
@@ -184,7 +217,11 @@ describe('github-tag-action', () => {
       /*
        * Then
        */
-      expect(mockCreateTag).toHaveBeenCalledWith('v1.2.4', expect.any(Boolean), expect.any(String));
+      expect(mockCreateTag).toHaveBeenCalledWith(
+        'v1.2.4',
+        expect.any(Boolean),
+        expect.any(String)
+      );
       expect(mockSetFailed).not.toBeCalled();
     });
 
@@ -210,7 +247,11 @@ describe('github-tag-action', () => {
       /*
        * Then
        */
-      expect(mockCreateTag).toHaveBeenCalledWith('v1.3.0', expect.any(Boolean), expect.any(String));
+      expect(mockCreateTag).toHaveBeenCalledWith(
+        'v1.3.0',
+        expect.any(Boolean),
+        expect.any(String)
+      );
       expect(mockSetFailed).not.toBeCalled();
     });
 
@@ -218,7 +259,12 @@ describe('github-tag-action', () => {
       /*
        * Given
        */
-      const commits = [{ message: 'my commit message\nBREAKING CHANGE:\nthis is a breaking change' }];
+      const commits = [
+        {
+          message:
+            'my commit message\nBREAKING CHANGE:\nthis is a breaking change',
+        },
+      ];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
@@ -236,7 +282,11 @@ describe('github-tag-action', () => {
       /*
        * Then
        */
-      expect(mockCreateTag).toHaveBeenCalledWith('v2.0.0', expect.any(Boolean), expect.any(String));
+      expect(mockCreateTag).toHaveBeenCalledWith(
+        'v2.0.0',
+        expect.any(Boolean),
+        expect.any(String)
+      );
       expect(mockSetFailed).not.toBeCalled();
     });
 
@@ -244,7 +294,9 @@ describe('github-tag-action', () => {
       /*
        * Given
        */
-      const commits = [{ message: 'feat: some new feature on a release branch' }];
+      const commits = [
+        { message: 'feat: some new feature on a release branch' },
+      ];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
@@ -266,7 +318,11 @@ describe('github-tag-action', () => {
       /*
        * Then
        */
-      expect(mockCreateTag).toHaveBeenCalledWith('v2.2.0', expect.any(Boolean), expect.any(String));
+      expect(mockCreateTag).toHaveBeenCalledWith(
+        'v2.2.0',
+        expect.any(Boolean),
+        expect.any(String)
+      );
       expect(mockSetFailed).not.toBeCalled();
     });
 
@@ -274,7 +330,7 @@ describe('github-tag-action', () => {
       /*
        * Given
        */
-      setInput('custom_release_rules', 'james:preminor')
+      setInput('custom_release_rules', 'james:preminor');
       const commits = [
         { message: 'feat: some new feature on a pre-release branch' },
         { message: 'james: this should make a preminor' },
@@ -296,7 +352,11 @@ describe('github-tag-action', () => {
       /*
        * Then
        */
-      expect(mockCreateTag).toHaveBeenCalledWith('v1.3.0', expect.any(Boolean), expect.any(String));
+      expect(mockCreateTag).toHaveBeenCalledWith(
+        'v1.3.0',
+        expect.any(Boolean),
+        expect.any(String)
+      );
       expect(mockSetFailed).not.toBeCalled();
     });
   });
@@ -330,7 +390,11 @@ describe('github-tag-action', () => {
       /*
        * Then
        */
-      expect(mockCreateTag).toHaveBeenCalledWith('v1.2.4-prerelease.0', expect.any(Boolean), expect.any(String));
+      expect(mockCreateTag).toHaveBeenCalledWith(
+        'v1.2.4-prerelease.0',
+        expect.any(Boolean),
+        expect.any(String)
+      );
       expect(mockSetFailed).not.toBeCalled();
     });
 
@@ -356,7 +420,11 @@ describe('github-tag-action', () => {
       /*
        * Then
        */
-      expect(mockCreateTag).toHaveBeenCalledWith('v1.3.0-prerelease.0', expect.any(Boolean), expect.any(String));
+      expect(mockCreateTag).toHaveBeenCalledWith(
+        'v1.3.0-prerelease.0',
+        expect.any(Boolean),
+        expect.any(String)
+      );
       expect(mockSetFailed).not.toBeCalled();
     });
 
@@ -364,7 +432,12 @@ describe('github-tag-action', () => {
       /*
        * Given
        */
-      const commits = [{ message: 'my commit message\nBREAKING CHANGE:\nthis is a breaking change' }];
+      const commits = [
+        {
+          message:
+            'my commit message\nBREAKING CHANGE:\nthis is a breaking change',
+        },
+      ];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
@@ -382,7 +455,11 @@ describe('github-tag-action', () => {
       /*
        * Then
        */
-      expect(mockCreateTag).toHaveBeenCalledWith('v2.0.0-prerelease.0', expect.any(Boolean), expect.any(String));
+      expect(mockCreateTag).toHaveBeenCalledWith(
+        'v2.0.0-prerelease.0',
+        expect.any(Boolean),
+        expect.any(String)
+      );
       expect(mockSetFailed).not.toBeCalled();
     });
 
@@ -390,7 +467,9 @@ describe('github-tag-action', () => {
       /*
        * Given
        */
-      const commits = [{ message: 'feat: some new feature on a pre-release branch' }];
+      const commits = [
+        { message: 'feat: some new feature on a pre-release branch' },
+      ];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
@@ -412,7 +491,11 @@ describe('github-tag-action', () => {
       /*
        * Then
        */
-      expect(mockCreateTag).toHaveBeenCalledWith('v2.2.0-prerelease.0', expect.any(Boolean), expect.any(String));
+      expect(mockCreateTag).toHaveBeenCalledWith(
+        'v2.2.0-prerelease.0',
+        expect.any(Boolean),
+        expect.any(String)
+      );
       expect(mockSetFailed).not.toBeCalled();
     });
 
@@ -420,7 +503,7 @@ describe('github-tag-action', () => {
       /*
        * Given
        */
-      setInput('custom_release_rules', 'james:preminor')
+      setInput('custom_release_rules', 'james:preminor');
       const commits = [
         { message: 'feat: some new feature on a pre-release branch' },
         { message: 'james: this should make a preminor' },
@@ -442,7 +525,11 @@ describe('github-tag-action', () => {
       /*
        * Then
        */
-      expect(mockCreateTag).toHaveBeenCalledWith('v1.3.0-prerelease.0', expect.any(Boolean), expect.any(String));
+      expect(mockCreateTag).toHaveBeenCalledWith(
+        'v1.3.0-prerelease.0',
+        expect.any(Boolean),
+        expect.any(String)
+      );
       expect(mockSetFailed).not.toBeCalled();
     });
   });
@@ -513,7 +600,12 @@ describe('github-tag-action', () => {
       /*
        * Given
        */
-      const commits = [{ message: 'my commit message\nBREAKING CHANGE:\nthis is a breaking change' }];
+      const commits = [
+        {
+          message:
+            'my commit message\nBREAKING CHANGE:\nthis is a breaking change',
+        },
+      ];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);

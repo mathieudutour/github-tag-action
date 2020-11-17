@@ -1,6 +1,6 @@
-import { context, GitHub } from "@actions/github";
-import * as core from "@actions/core";
-import { Octokit } from "@octokit/rest";
+import { context, GitHub } from '@actions/github';
+import * as core from '@actions/core';
+import { Octokit } from '@octokit/rest';
 
 let octokitSingleton;
 
@@ -8,7 +8,7 @@ export function getOctokitSingleton() {
   if (octokitSingleton) {
     return octokitSingleton;
   }
-  const githubToken = core.getInput("github_token");
+  const githubToken = core.getInput('github_token');
   octokitSingleton = new GitHub(githubToken);
   return octokitSingleton;
 }
@@ -30,7 +30,7 @@ export async function compareCommits(sha: string) {
   const commits = await octokit.repos.compareCommits({
     ...context.repo,
     base: sha,
-    head: "HEAD",
+    head: 'HEAD',
   });
 
   return commits.data.commits;
@@ -52,7 +52,7 @@ export async function createTag(
       tag: newTag,
       message: newTag,
       object: GITHUB_SHA,
-      type: "commit",
+      type: 'commit',
     });
   }
 

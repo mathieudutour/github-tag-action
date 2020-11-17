@@ -50,13 +50,13 @@ export default async () => {
       .some((branch) => currentBranch.match(branch));
     const isPrerelease = !isReleaseBranch && isPreReleaseBranch;
 
-    const identifier = appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch;
+    const identifier = appendToPreReleaseTag
+      ? appendToPreReleaseTag
+      : currentBranch;
+
     const validTags = await getValidTags();
     const latestTag = getLatestTag(validTags);
-    const latestPrereleaseTag = getLatestPrereleaseTag(
-      validTags,
-      identifier,
-    );
+    const latestPrereleaseTag = getLatestPrereleaseTag(validTags, identifier);
 
     const commits = await getCommits(latestTag.commit.sha);
 
@@ -72,7 +72,7 @@ export default async () => {
         previousTag = parse(
           gte(latestTag.name, latestPrereleaseTag.name)
             ? latestTag.name
-            : latestPrereleaseTag.name,
+            : latestPrereleaseTag.name
         );
       }
 
@@ -86,29 +86,27 @@ export default async () => {
 
       let bump = await analyzeCommits(
         { releaseRules: mappedReleaseRules },
-        { commits, logger: { log: console.info.bind(console) } },
+        { commits, logger: { log: console.info.bind(console) } }
       );
 
       if (!bump && defaultBump === 'false') {
-        core.debug('No commit specifies the version bump. Skipping the tag creation.');
+        core.debug(
+          'No commit specifies the version bump. Skipping the tag creation.'
+        );
         return;
       }
 
       // If somebody uses custom release rules on a prerelease branch they might create a 'preprepatch' bump.
       const preReg = /^pre/;
       if (isPrerelease && preReg.test(bump)) {
-        bump = bump.replace(preReg,'');
+        bump = bump.replace(preReg, '');
       }
 
       const releaseType: ReleaseType = isPrerelease
         ? `pre${bump || defaultBump}`
         : bump || defaultBump;
 
-      const incrementedVersion = inc(
-        previousTag,
-        releaseType,
-        identifier,
-      );
+      const incrementedVersion = inc(previousTag, releaseType, identifier);
 
       if (!incrementedVersion) {
         core.setFailed('Could not increment version.');
@@ -140,14 +138,14 @@ export default async () => {
         },
         lastRelease: { gitTag: latestTag.name },
         nextRelease: { gitTag: newTag, version: newVersion },
-      },
+      }
     );
     core.info(`Changelog is ${changelog}.`);
     core.setOutput('changelog', changelog);
 
     if (!isReleaseBranch && !isPreReleaseBranch) {
       core.info(
-        'This branch is neither a release nor a pre-release branch. Skipping the tag creation.',
+        'This branch is neither a release nor a pre-release branch. Skipping the tag creation.'
       );
       return;
     }
@@ -166,4 +164,4 @@ export default async () => {
   } catch (error) {
     core.setFailed(error.message);
   }
-}
+};

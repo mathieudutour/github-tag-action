@@ -1,0 +1,7 @@
+/.github/
+/.vscode/
+/docs/
+/*.json
+/*.js
+/*.yml
+/*.md

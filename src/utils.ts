@@ -1,8 +1,8 @@
-import * as core from "@actions/core";
-import { Octokit } from "@octokit/rest";
-import { prerelease, rcompare, valid } from "semver";
-import DEFAULT_RELEASE_TYPES from "@semantic-release/commit-analyzer/lib/default-release-types.js";
-import { compareCommits, listTags } from "./github";
+import * as core from '@actions/core';
+import { Octokit } from '@octokit/rest';
+import { prerelease, rcompare, valid } from 'semver';
+import DEFAULT_RELEASE_TYPES from '@semantic-release/commit-analyzer/lib/default-release-types.js';
+import { compareCommits, listTags } from './github';
 
 export async function getValidTags() {
   const tags = await listTags();
@@ -34,15 +34,15 @@ export async function getCommits(sha: string) {
 }
 
 export function getBranchFromRef(ref: string) {
-  return ref.replace("refs/heads/", "");
+  return ref.replace('refs/heads/', '');
 }
 
 export function getLatestTag(tags: Octokit.ReposListTagsResponseItem[]) {
   return (
     tags.find((tag) => !prerelease(tag.name)) || {
-      name: "0.0.0",
+      name: '0.0.0',
       commit: {
-        sha: "HEAD",
+        sha: 'HEAD',
       },
     }
   );
@@ -57,12 +57,10 @@ export function getLatestPrereleaseTag(
     .find((tag) => tag.name.match(identifier));
 }
 
-export function mapCustomReleaseRules(
-  customReleaseTypes: string
-) {
+export function mapCustomReleaseRules(customReleaseTypes: string) {
   return customReleaseTypes
     .split(',')
-    .map(part => {
+    .map((part) => {
       const custom = part.split(':');
       if (custom.length !== 2) {
         core.warning(`${part} is not a valid custom release definition.`);
@@ -71,8 +69,14 @@ export function mapCustomReleaseRules(
       const [keyword, release] = custom;
       return {
         type: keyword,
-        release
+        release,
       };
     })
-    .filter(customRelease => DEFAULT_RELEASE_TYPES.includes(customRelease?.release));
+    .filter((customRelease) => {
+      if (DEFAULT_RELEASE_TYPES.includes(customRelease?.release)) {
+        return true;
+      }
+      core.warning(`${customRelease} is not a valid release type.`);
+      return false;
+    });
 }

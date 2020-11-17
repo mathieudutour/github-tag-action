@@ -15,16 +15,18 @@ export function setInput(key: string, value: string) {
 }
 
 export function setInputs(map: Object) {
-  Object.keys(map).forEach(key => setInput(key, map[key]));
+  Object.keys(map).forEach((key) => setInput(key, map[key]));
 }
 
 export function loadDefaultInputs() {
   const actionYaml = fs.readFileSync(path.join(process.cwd(), 'action.yml'));
   const actionJson = yaml.safeLoad(actionYaml);
-  const defaultInputs = Object
-    .keys(actionJson.inputs)
-    .filter(key => actionJson.inputs[key].default)
-    .reduce((obj, key) => ({ ...obj, [key]: actionJson.inputs[key].default }), {});
+  const defaultInputs = Object.keys(actionJson.inputs)
+    .filter((key) => actionJson.inputs[key].default)
+    .reduce(
+      (obj, key) => ({ ...obj, [key]: actionJson.inputs[key].default }),
+      {}
+    );
   setInputs(defaultInputs);
 }
 

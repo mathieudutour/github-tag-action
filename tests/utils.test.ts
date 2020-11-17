@@ -27,11 +27,10 @@ describe('utils', () => {
     /*
      * Given
      */
-    const testTags = [
-      { name: 'release-1.2.3' },
-      { name: '1.2.3' },
-    ]
-    const mockListTags = jest.spyOn(github, 'listTags').mockImplementation(async () => testTags);
+    const testTags = [{ name: 'release-1.2.3' }, { name: '1.2.3' }];
+    const mockListTags = jest
+      .spyOn(github, 'listTags')
+      .mockImplementation(async () => testTags);
 
     /*
      * When
@@ -54,8 +53,10 @@ describe('utils', () => {
       { name: '1.2.4-prerelease.2' },
       { name: '1.2.4-prerelease.0' },
       { name: '1.2.3' },
-    ]
-    const mockListTags = jest.spyOn(github, 'listTags').mockImplementation(async () => testTags);
+    ];
+    const mockListTags = jest
+      .spyOn(github, 'listTags')
+      .mockImplementation(async () => testTags);
 
     /*
      * When
@@ -84,11 +85,10 @@ describe('utils', () => {
       /*
        * Then
        */
-      expect(mappedReleases)
-        .toEqual([
-          { type: 'james', release: 'preminor' },
-          { type: 'bond', release: 'premajor' },
-        ]);
+      expect(mappedReleases).toEqual([
+        { type: 'james', release: 'preminor' },
+        { type: 'bond', release: 'premajor' },
+      ]);
     });
 
     it('filters out invalid custom release types', () => {
@@ -105,10 +105,7 @@ describe('utils', () => {
       /*
        * Then
        */
-      expect(mappedReleases)
-        .toEqual([
-          { type: 'bond', release: 'premajor' },
-        ]);
+      expect(mappedReleases).toEqual([{ type: 'bond', release: 'premajor' }]);
     });
   });
 });
