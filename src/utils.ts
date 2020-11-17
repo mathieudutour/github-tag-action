@@ -77,10 +77,10 @@ export function mapCustomReleaseRules(customReleaseTypes: string) {
       };
     })
     .filter((customRelease) => {
-      if (DEFAULT_RELEASE_TYPES.includes(customRelease.release)) {
-        return true;
+      if (!DEFAULT_RELEASE_TYPES.includes(customRelease.release)) {
+        core.warning(`${customRelease.release} is not a valid release type.`);
+        return false;
       }
-      core.warning(`${customRelease.release} is not a valid release type.`);
-      return false;
+      return true;
     });
 }
