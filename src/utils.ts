@@ -60,12 +60,16 @@ export function getLatestPrereleaseTag(
 export function mapCustomReleaseRules(customReleaseTypes: string) {
   return customReleaseTypes
     .split(',')
-    .map((part) => {
+    .filter((part) => {
       const custom = part.split(':');
       if (custom.length !== 2) {
         core.warning(`${part} is not a valid custom release definition.`);
-        return null;
+        return false;
       }
+      return true;
+    })
+    .map((part) => {
+      const custom = part.split(':');
       const [keyword, release] = custom;
       return {
         type: keyword,
@@ -73,10 +77,10 @@ export function mapCustomReleaseRules(customReleaseTypes: string) {
       };
     })
     .filter((customRelease) => {
-      if (DEFAULT_RELEASE_TYPES.includes(customRelease?.release)) {
+      if (DEFAULT_RELEASE_TYPES.includes(customRelease.release)) {
         return true;
       }
-      core.warning(`${customRelease} is not a valid release type.`);
+      core.warning(`${customRelease.release} is not a valid release type.`);
       return false;
     });
 }

@@ -4,6 +4,7 @@ import * as core from '@actions/core';
 import * as github from '../src/github';
 
 jest.spyOn(core, 'debug').mockImplementation(() => {});
+jest.spyOn(core, 'warning').mockImplementation(() => {});
 
 describe('utils', () => {
   it('extracts branch from ref', () => {
