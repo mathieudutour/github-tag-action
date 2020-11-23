@@ -3,9 +3,11 @@
   "version": "5.0.0",
   "private": true,
   "description": "A GitHub Action to automatically bump and tag master, on merge, with the latest SemVer formatted version.",
-  "main": "lib/main.js",
+  "main": "lib/index.js",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "jest --testTimeout 10000",
+    "check": "prettier --check ."
   },
   "repository": {
     "type": "git",
@@ -29,6 +31,11 @@
   "devDependencies": {
     "@types/node": "^13.13.5",
     "@types/semver": "^7.1.0",
+    "jest": "^26.6.3",
+    "jest-circus": "^26.6.3",
+    "js-yaml": "^3.14.0",
+    "prettier": "2.1.2",
+    "ts-jest": "^26.4.4",
     "typescript": "^3.8.3"
   }
 }
