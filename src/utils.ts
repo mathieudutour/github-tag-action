@@ -1,8 +1,9 @@
 import * as core from '@actions/core';
-import { Octokit } from '@octokit/rest';
 import { prerelease, rcompare, valid } from 'semver';
-import DEFAULT_RELEASE_TYPES from '@semantic-release/commit-analyzer/lib/default-release-types.js';
+// @ts-ignore
+import DEFAULT_RELEASE_TYPES from '@semantic-release/commit-analyzer/lib/default-release-types';
 import { compareCommits, listTags } from './github';
+import { Await } from './ts';
 
 export async function getValidTags() {
   const tags = await listTags();
@@ -37,7 +38,7 @@ export function getBranchFromRef(ref: string) {
   return ref.replace('refs/heads/', '');
 }
 
-export function getLatestTag(tags: Octokit.ReposListTagsResponseItem[]) {
+export function getLatestTag(tags: Await<ReturnType<typeof listTags>>) {
   return (
     tags.find((tag) => !prerelease(tag.name)) || {
       name: '0.0.0',
@@ -49,7 +50,7 @@ export function getLatestTag(tags: Octokit.ReposListTagsResponseItem[]) {
 }
 
 export function getLatestPrereleaseTag(
-  tags: Octokit.ReposListTagsResponseItem[],
+  tags: Await<ReturnType<typeof listTags>>,
   identifier: string
 ) {
   return tags

@@ -1,15 +1,15 @@
-import { context, GitHub } from '@actions/github';
+import { context, getOctokit } from '@actions/github';
 import * as core from '@actions/core';
-import { Octokit } from '@octokit/rest';
+import { Await } from './ts';
 
-let octokitSingleton;
+let octokitSingleton: ReturnType<typeof getOctokit>;
 
 export function getOctokitSingleton() {
   if (octokitSingleton) {
     return octokitSingleton;
   }
   const githubToken = core.getInput('github_token');
-  octokitSingleton = new GitHub(githubToken);
+  octokitSingleton = getOctokit(githubToken);
   return octokitSingleton;
 }
 
@@ -43,7 +43,7 @@ export async function createTag(
 ) {
   const octokit = getOctokitSingleton();
   let annotatedTag:
-    | Octokit.Response<Octokit.GitCreateTagResponse>
+    | Await<ReturnType<typeof octokit.git.createTag>>
     | undefined = undefined;
   if (createAnnotatedTag) {
     core.debug(`Creating annotated tag.`);
