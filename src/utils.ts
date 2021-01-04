@@ -5,18 +5,20 @@ import DEFAULT_RELEASE_TYPES from '@semantic-release/commit-analyzer/lib/default
 import { compareCommits, listTags } from './github';
 import { Await } from './ts';
 
-export async function getValidTags() {
+export async function getValidTags(prefixRegex: RegExp) {
   const tags = await listTags();
 
-  const invalidTags = tags
-    .map((tag) => tag.name)
-    .filter((name) => !valid(name));
+  const invalidTags = tags.filter(
+    (tag) => !valid(tag.name.replace(prefixRegex, ''))
+  );
 
   invalidTags.forEach((name) => core.debug(`Found Invalid Tag: ${name}.`));
 
   const validTags = tags
-    .filter((tag) => valid(tag.name))
-    .sort((a, b) => rcompare(a.name, b.name));
+    .filter((tag) => valid(tag.name.replace(prefixRegex, '')))
+    .sort((a, b) =>
+      rcompare(a.name.replace(prefixRegex, ''), b.name.replace(prefixRegex, ''))
+    );
 
   validTags.forEach((tag) => core.debug(`Found Valid Tag: ${tag.name}.`));
 
@@ -38,9 +40,12 @@ export function getBranchFromRef(ref: string) {
   return ref.replace('refs/heads/', '');
 }
 
-export function getLatestTag(tags: Await<ReturnType<typeof listTags>>) {
+export function getLatestTag(
+  tags: Await<ReturnType<typeof listTags>>,
+  prefixRegex: RegExp
+) {
   return (
-    tags.find((tag) => !prerelease(tag.name)) || {
+    tags.find((tag) => !prerelease(tag.name.replace(prefixRegex, ''))) || {
       name: '0.0.0',
       commit: {
         sha: 'HEAD',
@@ -51,11 +56,12 @@ export function getLatestTag(tags: Await<ReturnType<typeof listTags>>) {
 
 export function getLatestPrereleaseTag(
   tags: Await<ReturnType<typeof listTags>>,
-  identifier: string
+  identifier: string,
+  prefixRegex: RegExp
 ) {
   return tags
-    .filter((tag) => prerelease(tag.name))
-    .find((tag) => tag.name.match(identifier));
+    .filter((tag) => prerelease(tag.name.replace(prefixRegex, '')))
+    .find((tag) => tag.name.replace(prefixRegex, '').match(identifier));
 }
 
 export function mapCustomReleaseRules(customReleaseTypes: string) {

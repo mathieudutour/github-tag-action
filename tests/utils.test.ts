@@ -6,6 +6,8 @@ import * as github from '../src/github';
 jest.spyOn(core, 'debug').mockImplementation(() => {});
 jest.spyOn(core, 'warning').mockImplementation(() => {});
 
+const regex = /^v/;
+
 describe('utils', () => {
   it('extracts branch from ref', () => {
     /*
@@ -51,7 +53,7 @@ describe('utils', () => {
     /*
      * When
      */
-    const validTags = await getValidTags();
+    const validTags = await getValidTags(regex);
 
     /*
      * Then
@@ -101,7 +103,7 @@ describe('utils', () => {
     /*
      * When
      */
-    const validTags = await getValidTags();
+    const validTags = await getValidTags(regex);
 
     /*
      * Then

@@ -53,9 +53,15 @@ export default async function main() {
     ? appendToPreReleaseTag
     : currentBranch;
 
-  const validTags = await getValidTags();
-  const latestTag = getLatestTag(validTags);
-  const latestPrereleaseTag = getLatestPrereleaseTag(validTags, identifier);
+  const prefixRegex = new RegExp(`^${tagPrefix}`);
+
+  const validTags = await getValidTags(prefixRegex);
+  const latestTag = getLatestTag(validTags, prefixRegex);
+  const latestPrereleaseTag = getLatestPrereleaseTag(
+    validTags,
+    identifier,
+    prefixRegex
+  );
 
   const commits = await getCommits(latestTag.commit.sha);
 
@@ -66,12 +72,15 @@ export default async function main() {
   } else {
     let previousTag: SemVer | null;
     if (!latestPrereleaseTag) {
-      previousTag = parse(latestTag.name);
+      previousTag = parse(latestTag.name.replace(prefixRegex, ''));
     } else {
       previousTag = parse(
-        gte(latestTag.name, latestPrereleaseTag.name)
-          ? latestTag.name
-          : latestPrereleaseTag.name
+        gte(
+          latestTag.name.replace(prefixRegex, ''),
+          latestPrereleaseTag.name.replace(prefixRegex, '')
+        )
+          ? latestTag.name.replace(prefixRegex, '')
+          : latestPrereleaseTag.name.replace(prefixRegex, '')
       );
     }
 
