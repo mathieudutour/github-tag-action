@@ -1,4 +1,4 @@
-import main from '../src/main';
+import action from '../src/action';
 import * as utils from '../src/utils';
 import * as github from '../src/github';
 import * as core from '@actions/core';
@@ -49,7 +49,7 @@ describe('github-tag-action', () => {
       /*
        * When
        */
-      await main();
+      await action();
 
       /*
        * Then
@@ -79,7 +79,7 @@ describe('github-tag-action', () => {
       /*
        * When
        */
-      await main();
+      await action();
 
       /*
        * Then
@@ -118,7 +118,7 @@ describe('github-tag-action', () => {
       /*
        * When
        */
-      await main();
+      await action();
 
       /*
        * Then
@@ -156,7 +156,7 @@ describe('github-tag-action', () => {
       /*
        * When
        */
-      await main();
+      await action();
 
       /*
        * Then
@@ -198,7 +198,7 @@ describe('github-tag-action', () => {
       /*
        * When
        */
-      await main();
+      await action();
 
       /*
        * Then
@@ -244,7 +244,7 @@ describe('github-tag-action', () => {
       /*
        * When
        */
-      await main();
+      await action();
 
       /*
        * Then
@@ -284,7 +284,7 @@ describe('github-tag-action', () => {
       /*
        * When
        */
-      await main();
+      await action();
 
       /*
        * Then
@@ -328,7 +328,7 @@ describe('github-tag-action', () => {
       /*
        * When
        */
-      await main();
+      await action();
 
       /*
        * Then
@@ -382,7 +382,7 @@ describe('github-tag-action', () => {
       /*
        * When
        */
-      await main();
+      await action();
 
       /*
        * Then
@@ -427,7 +427,7 @@ describe('github-tag-action', () => {
       /*
        * When
        */
-      await main();
+      await action();
 
       /*
        * Then
@@ -473,7 +473,7 @@ describe('github-tag-action', () => {
       /*
        * When
        */
-      await main();
+      await action();
 
       /*
        * Then
@@ -513,7 +513,7 @@ describe('github-tag-action', () => {
       /*
        * When
        */
-      await main();
+      await action();
 
       /*
        * Then
@@ -557,7 +557,7 @@ describe('github-tag-action', () => {
       /*
        * When
        */
-      await main();
+      await action();
 
       /*
        * Then
@@ -614,7 +614,7 @@ describe('github-tag-action', () => {
       /*
        * When
        */
-      await main();
+      await action();
 
       /*
        * Then
@@ -659,7 +659,7 @@ describe('github-tag-action', () => {
       /*
        * When
        */
-      await main();
+      await action();
 
       /*
        * Then
@@ -706,7 +706,7 @@ describe('github-tag-action', () => {
       /*
        * When
        */
-      await main();
+      await action();
 
       /*
        * Then
@@ -743,7 +743,7 @@ describe('github-tag-action', () => {
       /*
        * When
        */
-      await main();
+      await action();
 
       /*
        * Then
@@ -784,7 +784,7 @@ describe('github-tag-action', () => {
       /*
        * When
        */
-      await main();
+      await action();
 
       /*
        * Then
