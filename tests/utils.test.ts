@@ -107,7 +107,13 @@ describe('utils', () => {
      * Then
      */
     expect(mockListTags).toHaveBeenCalled();
-    expect(validTags[0]).toEqual({ name: '1.2.4-prerelease.2' });
+    expect(validTags[0]).toEqual({
+      name: '1.2.4-prerelease.2',
+      commit: { sha: 'string', url: 'string' },
+      zipball_url: 'string',
+      tarball_url: 'string',
+      node_id: 'string',
+    });
   });
 
   describe('custom release types', () => {

@@ -14,17 +14,22 @@ export function setInput(key: string, value: string) {
   process.env[`INPUT_${key.toUpperCase()}`] = value;
 }
 
-export function setInputs(map: Object) {
+export function setInputs(map: { [key: string]: string }) {
   Object.keys(map).forEach((key) => setInput(key, map[key]));
 }
 
 export function loadDefaultInputs() {
-  const actionYaml = fs.readFileSync(path.join(process.cwd(), 'action.yml'));
-  const actionJson = yaml.safeLoad(actionYaml);
-  const defaultInputs = Object.keys(actionJson.inputs)
-    .filter((key) => actionJson.inputs[key].default)
+  const actionYaml = fs.readFileSync(
+    path.join(process.cwd(), 'action.yml'),
+    'utf-8'
+  );
+  const actionJson = yaml.safeLoad(actionYaml) as {
+    inputs: { [key: string]: { default?: string } };
+  };
+  const defaultInputs = Object.keys(actionJson['inputs'])
+    .filter((key) => actionJson['inputs'][key].default)
     .reduce(
-      (obj, key) => ({ ...obj, [key]: actionJson.inputs[key].default }),
+      (obj, key) => ({ ...obj, [key]: actionJson['inputs'][key].default }),
       {}
     );
   setInputs(defaultInputs);

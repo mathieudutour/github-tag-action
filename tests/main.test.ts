@@ -41,7 +41,7 @@ describe('github-tag-action', () => {
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
 
-      const validTags = [];
+      const validTags: any[] = [];
       jest
         .spyOn(utils, 'getValidTags')
         .mockImplementation(async () => validTags);
@@ -66,12 +66,12 @@ describe('github-tag-action', () => {
       /*
        * Given
        */
-      const commits = [];
+      const commits: any[] = [];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
 
-      const validTags = [];
+      const validTags: any[] = [];
       jest
         .spyOn(utils, 'getValidTags')
         .mockImplementation(async () => validTags);
@@ -97,7 +97,7 @@ describe('github-tag-action', () => {
        * Given
        */
       setInput('default_bump', 'false');
-      const commits = [];
+      const commits: any[] = [];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
