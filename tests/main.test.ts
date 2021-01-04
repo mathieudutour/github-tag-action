@@ -36,7 +36,7 @@ describe('github-tag-action', () => {
       /*
        * Given
        */
-      const commits = [{ message: 'fix: this is my first fix' }];
+      const commits = [{ message: 'fix: this is my first fix', hash: null }];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
@@ -102,7 +102,15 @@ describe('github-tag-action', () => {
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
 
-      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      const validTags = [
+        {
+          name: 'v1.2.3',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+      ];
       jest
         .spyOn(utils, 'getValidTags')
         .mockImplementation(async () => validTags);
@@ -125,14 +133,22 @@ describe('github-tag-action', () => {
        */
       setInput('custom_release_rules', 'james:patch,bond:major');
       const commits = [
-        { message: 'james: is the new cool guy' },
-        { message: 'bond: is his last name' },
+        { message: 'james: is the new cool guy', hash: null },
+        { message: 'bond: is his last name', hash: null },
       ];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
 
-      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      const validTags = [
+        {
+          name: 'v1.2.3',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+      ];
       jest
         .spyOn(utils, 'getValidTags')
         .mockImplementation(async () => validTags);
@@ -159,14 +175,22 @@ describe('github-tag-action', () => {
        */
       setInput('custom_release_rules', 'james:patch,bond:major');
       const commits = [
-        { message: 'fix: is the new cool guy' },
-        { message: 'feat: is his last name' },
+        { message: 'fix: is the new cool guy', hash: null },
+        { message: 'feat: is his last name', hash: null },
       ];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
 
-      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      const validTags = [
+        {
+          name: 'v1.2.3',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+      ];
       jest
         .spyOn(utils, 'getValidTags')
         .mockImplementation(async () => validTags);
@@ -199,12 +223,20 @@ describe('github-tag-action', () => {
       /*
        * Given
        */
-      const commits = [{ message: 'fix: this is my first fix' }];
+      const commits = [{ message: 'fix: this is my first fix', hash: null }];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
 
-      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      const validTags = [
+        {
+          name: 'v1.2.3',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+      ];
       jest
         .spyOn(utils, 'getValidTags')
         .mockImplementation(async () => validTags);
@@ -229,12 +261,22 @@ describe('github-tag-action', () => {
       /*
        * Given
        */
-      const commits = [{ message: 'feat: this is my first feature' }];
+      const commits = [
+        { message: 'feat: this is my first feature', hash: null },
+      ];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
 
-      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      const validTags = [
+        {
+          name: 'v1.2.3',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+      ];
       jest
         .spyOn(utils, 'getValidTags')
         .mockImplementation(async () => validTags);
@@ -263,13 +305,22 @@ describe('github-tag-action', () => {
         {
           message:
             'my commit message\nBREAKING CHANGE:\nthis is a breaking change',
+          hash: null,
         },
       ];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
 
-      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      const validTags = [
+        {
+          name: 'v1.2.3',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+      ];
       jest
         .spyOn(utils, 'getValidTags')
         .mockImplementation(async () => validTags);
@@ -295,16 +346,34 @@ describe('github-tag-action', () => {
        * Given
        */
       const commits = [
-        { message: 'feat: some new feature on a release branch' },
+        { message: 'feat: some new feature on a release branch', hash: null },
       ];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
 
       const validTags = [
-        { name: 'v1.2.3', commit: { sha: '012345' } },
-        { name: 'v2.1.3-prerelease.0', commit: { sha: '678901' } },
-        { name: 'v2.1.3-prerelease.1', commit: { sha: '234567' } },
+        {
+          name: 'v1.2.3',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+        {
+          name: 'v2.1.3-prerelease.0',
+          commit: { sha: '678901', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+        {
+          name: 'v2.1.3-prerelease.1',
+          commit: { sha: '234567', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
       ];
       jest
         .spyOn(utils, 'getValidTags')
@@ -332,14 +401,25 @@ describe('github-tag-action', () => {
        */
       setInput('custom_release_rules', 'james:preminor');
       const commits = [
-        { message: 'feat: some new feature on a pre-release branch' },
-        { message: 'james: this should make a preminor' },
+        {
+          message: 'feat: some new feature on a pre-release branch',
+          hash: null,
+        },
+        { message: 'james: this should make a preminor', hash: null },
       ];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
 
-      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      const validTags = [
+        {
+          name: 'v1.2.3',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+      ];
       jest
         .spyOn(utils, 'getValidTags')
         .mockImplementation(async () => validTags);
@@ -372,12 +452,20 @@ describe('github-tag-action', () => {
       /*
        * Given
        */
-      const commits = [{ message: 'fix: this is my first fix' }];
+      const commits = [{ message: 'fix: this is my first fix', hash: null }];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
 
-      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      const validTags = [
+        {
+          name: 'v1.2.3',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+      ];
       jest
         .spyOn(utils, 'getValidTags')
         .mockImplementation(async () => validTags);
@@ -402,12 +490,22 @@ describe('github-tag-action', () => {
       /*
        * Given
        */
-      const commits = [{ message: 'feat: this is my first feature' }];
+      const commits = [
+        { message: 'feat: this is my first feature', hash: null },
+      ];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
 
-      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      const validTags = [
+        {
+          name: 'v1.2.3',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+      ];
       jest
         .spyOn(utils, 'getValidTags')
         .mockImplementation(async () => validTags);
@@ -436,13 +534,22 @@ describe('github-tag-action', () => {
         {
           message:
             'my commit message\nBREAKING CHANGE:\nthis is a breaking change',
+          hash: null,
         },
       ];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
 
-      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      const validTags = [
+        {
+          name: 'v1.2.3',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+      ];
       jest
         .spyOn(utils, 'getValidTags')
         .mockImplementation(async () => validTags);
@@ -468,16 +575,37 @@ describe('github-tag-action', () => {
        * Given
        */
       const commits = [
-        { message: 'feat: some new feature on a pre-release branch' },
+        {
+          message: 'feat: some new feature on a pre-release branch',
+          hash: null,
+        },
       ];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
 
       const validTags = [
-        { name: 'v1.2.3-prerelease.0', commit: { sha: '012345' } },
-        { name: 'v3.1.2-feature.0', commit: { sha: '012345' } },
-        { name: 'v2.1.4', commit: { sha: '234567' } },
+        {
+          name: 'v1.2.3-prerelease.0',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+        {
+          name: 'v3.1.2-feature.0',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+        {
+          name: 'v2.1.4',
+          commit: { sha: '234567', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
       ];
       jest
         .spyOn(utils, 'getValidTags')
@@ -505,14 +633,25 @@ describe('github-tag-action', () => {
        */
       setInput('custom_release_rules', 'james:preminor');
       const commits = [
-        { message: 'feat: some new feature on a pre-release branch' },
-        { message: 'james: this should make a preminor' },
+        {
+          message: 'feat: some new feature on a pre-release branch',
+          hash: null,
+        },
+        { message: 'james: this should make a preminor', hash: null },
       ];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
 
-      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      const validTags = [
+        {
+          name: 'v1.2.3',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+      ];
       jest
         .spyOn(utils, 'getValidTags')
         .mockImplementation(async () => validTags);
@@ -546,12 +685,20 @@ describe('github-tag-action', () => {
       /*
        * Given
        */
-      const commits = [{ message: 'fix: this is my first fix' }];
+      const commits = [{ message: 'fix: this is my first fix', hash: null }];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
 
-      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      const validTags = [
+        {
+          name: 'v1.2.3',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+      ];
       jest
         .spyOn(utils, 'getValidTags')
         .mockImplementation(async () => validTags);
@@ -573,12 +720,22 @@ describe('github-tag-action', () => {
       /*
        * Given
        */
-      const commits = [{ message: 'feat: this is my first feature' }];
+      const commits = [
+        { message: 'feat: this is my first feature', hash: null },
+      ];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
 
-      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      const validTags = [
+        {
+          name: 'v1.2.3',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+      ];
       jest
         .spyOn(utils, 'getValidTags')
         .mockImplementation(async () => validTags);
@@ -604,13 +761,22 @@ describe('github-tag-action', () => {
         {
           message:
             'my commit message\nBREAKING CHANGE:\nthis is a breaking change',
+          hash: null,
         },
       ];
       jest
         .spyOn(utils, 'getCommits')
         .mockImplementation(async (sha) => commits);
 
-      const validTags = [{ name: 'v1.2.3', commit: { sha: '012345' } }];
+      const validTags = [
+        {
+          name: 'v1.2.3',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+      ];
       jest
         .spyOn(utils, 'getValidTags')
         .mockImplementation(async () => validTags);

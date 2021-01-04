@@ -28,7 +28,22 @@ describe('utils', () => {
     /*
      * Given
      */
-    const testTags = [{ name: 'release-1.2.3' }, { name: '1.2.3' }];
+    const testTags = [
+      {
+        name: 'release-1.2.3',
+        commit: { sha: 'string', url: 'string' },
+        zipball_url: 'string',
+        tarball_url: 'string',
+        node_id: 'string',
+      },
+      {
+        name: '1.2.3',
+        commit: { sha: 'string', url: 'string' },
+        zipball_url: 'string',
+        tarball_url: 'string',
+        node_id: 'string',
+      },
+    ];
     const mockListTags = jest
       .spyOn(github, 'listTags')
       .mockImplementation(async () => testTags);
@@ -50,10 +65,34 @@ describe('utils', () => {
      * Given
      */
     const testTags = [
-      { name: '1.2.4-prerelease.1' },
-      { name: '1.2.4-prerelease.2' },
-      { name: '1.2.4-prerelease.0' },
-      { name: '1.2.3' },
+      {
+        name: '1.2.4-prerelease.1',
+        commit: { sha: 'string', url: 'string' },
+        zipball_url: 'string',
+        tarball_url: 'string',
+        node_id: 'string',
+      },
+      {
+        name: '1.2.4-prerelease.2',
+        commit: { sha: 'string', url: 'string' },
+        zipball_url: 'string',
+        tarball_url: 'string',
+        node_id: 'string',
+      },
+      {
+        name: '1.2.4-prerelease.0',
+        commit: { sha: 'string', url: 'string' },
+        zipball_url: 'string',
+        tarball_url: 'string',
+        node_id: 'string',
+      },
+      {
+        name: '1.2.3',
+        commit: { sha: 'string', url: 'string' },
+        zipball_url: 'string',
+        tarball_url: 'string',
+        node_id: 'string',
+      },
     ];
     const mockListTags = jest
       .spyOn(github, 'listTags')
