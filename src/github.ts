@@ -31,7 +31,7 @@ export async function listTags() {
  */
 export async function compareCommits(baseRef: string, headRef: string) {
   const octokit = getOctokitSingleton();
-  core.debug(`Comparing commits (${baseRef}...${headRef})`)
+  core.debug(`Comparing commits (${baseRef}...${headRef})`);
 
   const commits = await octokit.repos.compareCommits({
     ...context.repo,
