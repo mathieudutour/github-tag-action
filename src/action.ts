@@ -63,7 +63,7 @@ export default async function main() {
     prefixRegex
   );
 
-  const commits = await getCommits(latestTag.commit.sha);
+  const commits = await getCommits(latestTag.commit.sha, GITHUB_SHA);
 
   let newVersion: string;
 

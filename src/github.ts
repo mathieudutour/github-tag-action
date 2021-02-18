@@ -24,13 +24,19 @@ export async function listTags() {
   return tags.data;
 }
 
-export async function compareCommits(sha: string) {
+/**
+ * Compare `headRef` to `baseRef` (i.e. baseRef...headRef)
+ * @param baseRef - old commit
+ * @param headRef - new commit
+ */
+export async function compareCommits(baseRef: string, headRef: string) {
   const octokit = getOctokitSingleton();
+  core.debug(`Comparing commits (${baseRef}...${headRef})`);
 
   const commits = await octokit.repos.compareCommits({
     ...context.repo,
-    base: sha,
-    head: 'HEAD',
+    base: baseRef,
+    head: headRef,
   });
 
   return commits.data.commits;
