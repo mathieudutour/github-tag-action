@@ -5,6 +5,8 @@ import DEFAULT_RELEASE_TYPES from '@semantic-release/commit-analyzer/lib/default
 import { compareCommits, listTags } from './github';
 import { Await } from './ts';
 
+type Tags = Await<ReturnType<typeof listTags>>;
+
 export async function getValidTags(prefixRegex: RegExp) {
   const tags = await listTags();
 
@@ -40,13 +42,10 @@ export function getBranchFromRef(ref: string) {
   return ref.replace('refs/heads/', '');
 }
 
-export function getLatestTag(
-  tags: Await<ReturnType<typeof listTags>>,
-  prefixRegex: RegExp
-) {
+export function getLatestTag(tags: Tags, prefixRegex: RegExp) {
   return (
     tags.find((tag) => !prerelease(tag.name.replace(prefixRegex, ''))) || {
-      name: '0.0.0',
+      name: `${prefixRegex}0.0.0`,
       commit: {
         sha: 'HEAD',
       },
@@ -55,7 +54,7 @@ export function getLatestTag(
 }
 
 export function getLatestPrereleaseTag(
-  tags: Await<ReturnType<typeof listTags>>,
+  tags: Tags,
   identifier: string,
   prefixRegex: RegExp
 ) {

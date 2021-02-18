@@ -70,27 +70,36 @@ export default async function main() {
   if (customTag) {
     newVersion = customTag;
   } else {
-    let previousTag: SemVer | null;
+    let previousTag: ReturnType<typeof getLatestTag> | null;
+    let previousVersion: SemVer | null;
     if (!latestPrereleaseTag) {
-      previousTag = parse(latestTag.name.replace(prefixRegex, ''));
+      previousTag = latestTag;
     } else {
-      previousTag = parse(
-        gte(
-          latestTag.name.replace(prefixRegex, ''),
-          latestPrereleaseTag.name.replace(prefixRegex, '')
-        )
-          ? latestTag.name.replace(prefixRegex, '')
-          : latestPrereleaseTag.name.replace(prefixRegex, '')
-      );
+      previousTag = gte(
+        latestTag.name.replace(prefixRegex, ''),
+        latestPrereleaseTag.name.replace(prefixRegex, '')
+      )
+        ? latestTag
+        : latestPrereleaseTag;
     }
 
     if (!previousTag) {
+      core.setFailed('Could not find previous tag.');
+      return;
+    }
+
+    previousVersion = parse(previousTag.name.replace(prefixRegex, ''));
+
+    if (!previousVersion) {
       core.setFailed('Could not parse previous tag.');
       return;
     }
 
-    core.info(`Previous tag was ${previousTag}.`);
-    core.setOutput('previous_tag', previousTag.version);
+    core.info(
+      `Previous tag was ${previousTag.name}, previous version was ${previousVersion.version}.`
+    );
+    core.setOutput('previous_version', previousVersion.version);
+    core.setOutput('previous_tag', previousTag.name);
 
     let bump = await analyzeCommits(
       { releaseRules: mappedReleaseRules },
@@ -114,7 +123,7 @@ export default async function main() {
       ? `pre${bump || defaultBump}`
       : bump || defaultBump;
 
-    const incrementedVersion = inc(previousTag, releaseType, identifier);
+    const incrementedVersion = inc(previousVersion, releaseType, identifier);
 
     if (!incrementedVersion) {
       core.setFailed('Could not increment version.');

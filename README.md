@@ -59,7 +59,8 @@ jobs:
 
 - **new_tag** - The value of the newly calculated tag. Note that if there hasn't been any new commit, this will be `undefined`.
 - **new_version** - The value of the newly created tag without the prefix. Note that if there hasn't been any new commit, this will be `undefined`.
-- **previous_tag** - The value of the previous tag (or `0.0.0` if none). Note that if `custom_tag` is set, this will be `undefined`.
+- **previous_tag** - The value of the previous tag (or `v0.0.0` if none). Note that if `custom_tag` is set, this will be `undefined`.
+- **previous_version** - The value of the previous tag (or `0.0.0` if none) without the prefix. Note that if `custom_tag` is set, this will be `undefined`.
 - **changelog** - The [conventional changelog](https://github.com/conventional-changelog/conventional-changelog) since the previous tag.
 
 > **_Note:_** This action creates a [lightweight tag](https://developer.github.com/v3/git/refs/#create-a-reference) by default.
@@ -74,11 +75,44 @@ By default semantic-release uses [Angular Commit Message Conventions](https://gi
 
 Here is an example of the release type that will be done based on a commit messages:
 
-| Commit message                                                                                                                                                                                   | Release type  |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------- |
-| `fix(pencil): stop graphite breaking when too much pressure applied`                                                                                                                             | Patch Release |
-| `feat(pencil): add 'graphiteWidth' option`                                                                                                                                                       | Minor Release |
-| `perf(pencil): remove graphiteWidth option`<br><br>`BREAKING CHANGE: The graphiteWidth option has been removed.`<br>`The default graphite width of 10mm is always used for performance reasons.` | Major Release |
+<table>
+<tr>
+<td> Commit message </td> <td> Release type </td>
+</tr>
+<tr>
+<td>
+
+```
+fix(pencil): stop graphite breaking when too much pressure applied
+```
+
+</td>
+<td>Patch Release</td>
+</tr>
+<tr>
+<td>
+
+```
+feat(pencil): add 'graphiteWidth' option
+```
+
+</td>
+<td>Minor Release</td>
+</tr>
+<tr>
+<td>
+
+```
+perf(pencil): remove graphiteWidth option
+
+BREAKING CHANGE: The graphiteWidth option has been removed.
+The default graphite width of 10mm is always used for performance reasons.
+```
+
+</td>
+<td>Major Release</td>
+</tr>
+</table>
 
 If no commit message contains any information, then **default_bump** will be used.
 
