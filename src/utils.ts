@@ -25,8 +25,8 @@ export async function getValidTags(prefixRegex: RegExp) {
   return validTags;
 }
 
-export async function getCommits(sha: string) {
-  const commits = await compareCommits(sha);
+export async function getCommits(baseRef: string, headRef: string) {
+  const commits = await compareCommits(baseRef, headRef);
 
   return commits
     .filter((commit) => !!commit.commit.message)
