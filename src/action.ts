@@ -56,7 +56,7 @@ export default async function main() {
   const prefixRegex = new RegExp(`^${tagPrefix}`);
 
   const validTags = await getValidTags(prefixRegex);
-  const latestTag = getLatestTag(validTags, prefixRegex);
+  const latestTag = getLatestTag(validTags, prefixRegex, tagPrefix);
   const latestPrereleaseTag = getLatestPrereleaseTag(
     validTags,
     identifier,

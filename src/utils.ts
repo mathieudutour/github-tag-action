@@ -42,10 +42,14 @@ export function getBranchFromRef(ref: string) {
   return ref.replace('refs/heads/', '');
 }
 
-export function getLatestTag(tags: Tags, prefixRegex: RegExp) {
+export function getLatestTag(
+  tags: Tags,
+  prefixRegex: RegExp,
+  tagPrefix: string
+) {
   return (
     tags.find((tag) => !prerelease(tag.name.replace(prefixRegex, ''))) || {
-      name: `${prefixRegex}0.0.0`,
+      name: `${tagPrefix}0.0.0`,
       commit: {
         sha: 'HEAD',
       },
