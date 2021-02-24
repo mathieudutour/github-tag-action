@@ -11,6 +11,7 @@ import {
   mapCustomReleaseRules,
 } from './utils';
 import { createTag } from './github';
+import { Await } from './ts';
 
 export default async function main() {
   const defaultBump = core.getInput('default_bump') as ReleaseType | 'false';
@@ -63,11 +64,13 @@ export default async function main() {
     prefixRegex
   );
 
-  const commits = await getCommits(latestTag.commit.sha, GITHUB_SHA);
+  let commits: Await<ReturnType<typeof getCommits>>;
 
   let newVersion: string;
 
   if (customTag) {
+    commits = await getCommits(latestTag.commit.sha, GITHUB_SHA);
+
     newVersion = customTag;
   } else {
     let previousTag: ReturnType<typeof getLatestTag> | null;
@@ -100,6 +103,8 @@ export default async function main() {
     );
     core.setOutput('previous_version', previousVersion.version);
     core.setOutput('previous_tag', previousTag.name);
+
+    commits = await getCommits(previousTag.commit.sha, GITHUB_SHA);
 
     let bump = await analyzeCommits(
       { releaseRules: mappedReleaseRules },
