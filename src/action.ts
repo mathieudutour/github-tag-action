@@ -4,6 +4,7 @@ import { analyzeCommits } from '@semantic-release/commit-analyzer';
 import { generateNotes } from '@semantic-release/release-notes-generator';
 import {
   getBranchFromRef,
+  isPr,
   getCommits,
   getLatestPrereleaseTag,
   getLatestTag,
@@ -48,7 +49,8 @@ export default async function main() {
   const isPreReleaseBranch = preReleaseBranches
     .split(',')
     .some((branch) => currentBranch.match(branch));
-  const isPrerelease = !isReleaseBranch && isPreReleaseBranch;
+  const isPullRequest = isPr(GITHUB_REF);
+  const isPrerelease = !isReleaseBranch && !isPullRequest && isPreReleaseBranch;
 
   const identifier = appendToPreReleaseTag
     ? appendToPreReleaseTag
@@ -128,7 +130,13 @@ export default async function main() {
       ? `pre${bump || defaultBump}`
       : bump || defaultBump;
 
-    const incrementedVersion = inc(previousVersion, releaseType, identifier);
+    let incrementedVersion: string | null;
+
+    if (isPullRequest) {
+      incrementedVersion = inc(previousVersion, releaseType);
+    } else {
+      incrementedVersion = inc(previousVersion, releaseType, identifier);
+    }
 
     if (!incrementedVersion) {
       core.setFailed('Could not increment version.');

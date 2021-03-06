@@ -26,6 +26,23 @@ describe('utils', () => {
     expect(branch).toEqual('master');
   });
 
+  it('test if ref is PR', () => {
+    /*
+     * Given
+     */
+    const remoteRef = 'refs/pull/123/merge';
+
+    /*
+     * When
+     */
+    const isPullRequest = utils.isPr(remoteRef);
+
+    /*
+     * Then
+     */
+    expect(isPullRequest).toEqual(true);
+  });
+
   it('returns valid tags', async () => {
     /*
      * Given
