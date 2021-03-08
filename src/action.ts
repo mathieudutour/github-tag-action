@@ -130,13 +130,7 @@ export default async function main() {
       ? `pre${bump || defaultBump}`
       : bump || defaultBump;
 
-    let incrementedVersion: string | null;
-
-    if (isPullRequest) {
-      incrementedVersion = inc(previousVersion, releaseType);
-    } else {
-      incrementedVersion = inc(previousVersion, releaseType, identifier);
-    }
+    const incrementedVersion = inc(previousVersion, releaseType, identifier);
 
     if (!incrementedVersion) {
       core.setFailed('Could not increment version.');
