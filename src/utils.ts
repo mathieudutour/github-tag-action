@@ -3,6 +3,7 @@ import { prerelease, rcompare, valid } from 'semver';
 // @ts-ignore
 import DEFAULT_RELEASE_TYPES from '@semantic-release/commit-analyzer/lib/default-release-types';
 import { compareCommits, listTags } from './github';
+import { defaultChangelogRules } from './defaults';
 import { Await } from './ts';
 
 type Tags = Await<ReturnType<typeof listTags>>;
@@ -79,21 +80,33 @@ export function mapCustomReleaseRules(customReleaseTypes: string) {
     .split(releaseRuleSeparator)
     .map((customReleaseRule) => customReleaseRule.split(releaseTypeSeparator))
     .filter((customReleaseRule) => {
-      if (customReleaseRule.length !== 2) {
+      const releaseRule = customReleaseRule.join(releaseTypeSeparator);
+
+      if (customReleaseRule.length < 2) {
         core.warning(
-          `${customReleaseRule.join(
-            releaseTypeSeparator
-          )} is not a valid custom release definition.`
+          `${releaseRule} is not a valid custom release definition.`
         );
         return false;
       }
+
+      const defaultRule = defaultChangelogRules[customReleaseRule[0].toLowerCase()];
+      if (customReleaseRule.length !== 3) {
+        core.warning(
+          `${releaseRule} doesn't mention the section for changelog. ${ defaultRule ? `Default section (${defaultRule.section}) will be used` : '' }`
+        );
+      }
+
       return true;
     })
     .map((customReleaseRule) => {
-      const [keyword, release] = customReleaseRule;
+      const [keyword, release, section] = customReleaseRule;
+      const defaultRule = defaultChangelogRules[keyword.toLowerCase()];
+
       return {
+        ...defaultRule,
         type: keyword,
         release,
+        section: section || defaultRule.section,
       };
     })
     .filter((customRelease) => {
@@ -103,4 +116,13 @@ export function mapCustomReleaseRules(customReleaseTypes: string) {
       }
       return true;
     });
+}
+
+export function mergeWithDefaultChangelogRules(mappedReleaseRules: ReturnType<typeof mapCustomReleaseRules> = []) {
+  const mergedRules = mappedReleaseRules.reduce((acc, curr) => ({
+    ...acc,
+    [curr.type]: curr,
+  }), { ...defaultChangelogRules });
+
+  return Object.values(mergedRules);
 }

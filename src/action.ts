@@ -10,6 +10,7 @@ import {
   getLatestTag,
   getValidTags,
   mapCustomReleaseRules,
+  mergeWithDefaultChangelogRules,
 } from './utils';
 import { createTag } from './github';
 import { Await } from './ts';
@@ -153,7 +154,12 @@ export default async function main() {
   core.setOutput('new_tag', newTag);
 
   const changelog = await generateNotes(
-    {},
+    {
+      preset: 'conventionalcommits',
+      presetConfig: {
+        types: mergeWithDefaultChangelogRules(mappedReleaseRules),
+      },
+    },
     {
       commits,
       logger: { log: console.info.bind(console) },
