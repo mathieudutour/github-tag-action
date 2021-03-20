@@ -14,15 +14,15 @@ export type ConventionalCommit = {
   subject: string;
   body: Nullable<string>;
   footer: string;
-  notes: Array<{ title: string, text: string }>;
+  notes: Array<{ title: string; text: string }>;
   version: string;
   title: string;
   references: Array<{
-      action: string;
-      owner: Nullable<string>;
-      repository: Nullable<string>;
-      issue: string;
-      raw: string;
+    action: string;
+    owner: Nullable<string>;
+    repository: Nullable<string>;
+    issue: string;
+    raw: string;
   }>;
   revert: boolean;
   shortHash?: string;

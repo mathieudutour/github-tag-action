@@ -89,10 +89,15 @@ export function mapCustomReleaseRules(customReleaseTypes: string) {
         return false;
       }
 
-      const defaultRule = defaultChangelogRules[customReleaseRule[0].toLowerCase()];
+      const defaultRule =
+        defaultChangelogRules[customReleaseRule[0].toLowerCase()];
       if (customReleaseRule.length !== 3) {
         core.warning(
-          `${releaseRule} doesn't mention the section for changelog. ${ defaultRule ? `Default section (${defaultRule.section}) will be used` : '' }`
+          `${releaseRule} doesn't mention the section for changelog. ${
+            defaultRule
+              ? `Default section (${defaultRule.section}) will be used`
+              : ''
+          }`
         );
       }
 
@@ -118,11 +123,16 @@ export function mapCustomReleaseRules(customReleaseTypes: string) {
     });
 }
 
-export function mergeWithDefaultChangelogRules(mappedReleaseRules: ReturnType<typeof mapCustomReleaseRules> = []) {
-  const mergedRules = mappedReleaseRules.reduce((acc, curr) => ({
-    ...acc,
-    [curr.type]: curr,
-  }), { ...defaultChangelogRules });
+export function mergeWithDefaultChangelogRules(
+  mappedReleaseRules: ReturnType<typeof mapCustomReleaseRules> = []
+) {
+  const mergedRules = mappedReleaseRules.reduce(
+    (acc, curr) => ({
+      ...acc,
+      [curr.type]: curr,
+    }),
+    { ...defaultChangelogRules }
+  );
 
   return Object.values(mergedRules);
 }
