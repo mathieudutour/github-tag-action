@@ -1,6 +1,4 @@
-import { CustomReleaseRule } from './ts';
-
-type ChangelogRule = Partial<CustomReleaseRule>;
+import { ChangelogRule } from './ts';
 
 /**
  * Default sections & changelog rules mentioned in `conventional-changelog-angular` & `conventional-changelog-conventionalcommits`.

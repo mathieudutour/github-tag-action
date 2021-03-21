@@ -6,48 +6,21 @@ export type Await<T> = T extends {
 
 export type Nullable<T> = null | T;
 
-export type ConventionalCommit = {
-  hash: string;
-  header: string;
+export type ReleaseRule = {
+  /**
+   * Commit type.
+   * Eg: feat, fix etc.
+   */
   type: string;
-  scope: string;
-  subject: string;
-  body: Nullable<string>;
-  footer: string;
-  notes: Array<{ title: string; text: string }>;
-  version: string;
-  title: string;
-  references: Array<{
-    action: string;
-    owner: Nullable<string>;
-    repository: Nullable<string>;
-    issue: string;
-    raw: string;
-  }>;
-  revert: boolean;
-  shortHash?: string;
-};
-
-export type ConventionalChangelogContext = {
-  version: string;
-  title: string;
-  isPatch: boolean;
-  host: string;
-  owner: string;
-  repository: string;
-  repoUrl: string;
-};
-
-export type ConventionalCommitPresetConfig = {
-  types: CustomReleaseRule[];
-};
-
-export type CustomReleaseRule = {
   /**
    * Release types.
    * Eg: major, minor, patch etc.
    */
   release: string;
+  scope?: string;
+};
+
+export type ChangelogRule = {
   /**
    * Commit type.
    * Eg: feat, fix etc.
@@ -58,8 +31,4 @@ export type CustomReleaseRule = {
    * Eg: 'Bug Fix', 'Features' etc.
    */
   section: string;
-  /**
-   * Hide a section in the changelog.
-   */
-  hidden?: boolean;
 };

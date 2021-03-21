@@ -92,13 +92,16 @@ export function mapCustomReleaseRules(customReleaseTypes: string) {
       const defaultRule =
         defaultChangelogRules[customReleaseRule[0].toLowerCase()];
       if (customReleaseRule.length !== 3) {
-        core.warning(
-          `${releaseRule} doesn't mention the section for changelog. ${
-            defaultRule
-              ? `Default section (${defaultRule.section}) will be used`
-              : ''
-          }`
+        core.debug(
+          `${releaseRule} doesn't mention the section for the changelog.`
         );
+        defaultRule
+          ? core.debug(
+              `Default section (${defaultRule.section}) will be used instead.`
+            )
+          : core.debug(
+              "The commits matching this rule won't be included in the changelog."
+            );
       }
 
       return true;
@@ -111,7 +114,7 @@ export function mapCustomReleaseRules(customReleaseTypes: string) {
         ...defaultRule,
         type: keyword,
         release,
-        section: section || defaultRule.section,
+        section: section || defaultRule?.section,
       };
     })
     .filter((customRelease) => {
@@ -121,6 +124,21 @@ export function mapCustomReleaseRules(customReleaseTypes: string) {
       }
       return true;
     });
+}
+
+export function objectWithoutKeys<T extends Record<string, any>>(
+  obj: T,
+  keys: string[]
+): Partial<T> {
+  return Object.keys(obj)
+    .filter((key) => !keys.includes(key))
+    .reduce(
+      (acc, curr) => ({
+        ...acc,
+        [curr]: obj[curr],
+      }),
+      {}
+    );
 }
 
 export function mergeWithDefaultChangelogRules(
@@ -134,5 +152,5 @@ export function mergeWithDefaultChangelogRules(
     { ...defaultChangelogRules }
   );
 
-  return Object.values(mergedRules);
+  return Object.values(mergedRules).filter((rule) => !!rule.section);
 }

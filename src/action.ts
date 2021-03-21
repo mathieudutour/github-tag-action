@@ -10,10 +10,11 @@ import {
   getLatestTag,
   getValidTags,
   mapCustomReleaseRules,
+  objectWithoutKeys,
   mergeWithDefaultChangelogRules,
 } from './utils';
 import { createTag } from './github';
-import { Await } from './ts';
+import { Await, ReleaseRule } from './ts';
 
 export default async function main() {
   const defaultBump = core.getInput('default_bump') as ReleaseType | 'false';
@@ -109,8 +110,13 @@ export default async function main() {
 
     commits = await getCommits(previousTag.commit.sha, GITHUB_SHA);
 
+    const releaseRules =
+      mappedReleaseRules &&
+      mappedReleaseRules.map(
+        (rule) => objectWithoutKeys(rule, ['section']) as ReleaseRule
+      );
     let bump = await analyzeCommits(
-      { releaseRules: mappedReleaseRules },
+      { releaseRules },
       { commits, logger: { log: console.info.bind(console) } }
     );
 
