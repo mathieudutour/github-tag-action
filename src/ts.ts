@@ -30,5 +30,5 @@ export type ChangelogRule = {
    * Section in changelog to group commits by type.
    * Eg: 'Bug Fix', 'Features' etc.
    */
-  section: string;
+  section?: string;
 };

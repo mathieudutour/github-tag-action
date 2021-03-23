@@ -110,11 +110,9 @@ export default async function main() {
 
     commits = await getCommits(previousTag.commit.sha, GITHUB_SHA);
 
-    const releaseRules =
-      mappedReleaseRules &&
-      mappedReleaseRules.map(
-        (rule) => objectWithoutKeys(rule, ['section']) as ReleaseRule
-      );
+    const releaseRules = mappedReleaseRules?.map(
+      (rule) => objectWithoutKeys(rule, ['section']) as ReleaseRule
+    );
     let bump = await analyzeCommits(
       { releaseRules },
       { commits, logger: { log: console.info.bind(console) } }

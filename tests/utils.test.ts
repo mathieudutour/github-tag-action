@@ -2,6 +2,7 @@ import * as utils from '../src/utils';
 import { getValidTags } from '../src/utils';
 import * as core from '@actions/core';
 import * as github from '../src/github';
+import { defaultChangelogRules } from '../src/defaults';
 
 jest.spyOn(core, 'debug').mockImplementation(() => {});
 jest.spyOn(core, 'warning').mockImplementation(() => {});
@@ -140,7 +141,8 @@ describe('utils', () => {
       /*
        * Given
        */
-      const customReleasesString = 'james:preminor,bond:premajor';
+      const customReleasesString =
+        'james:preminor,bond:premajor,007:major:Breaking Changes,feat:minor';
 
       /*
        * When
@@ -153,6 +155,12 @@ describe('utils', () => {
       expect(mappedReleases).toEqual([
         { type: 'james', release: 'preminor' },
         { type: 'bond', release: 'premajor' },
+        { type: '007', release: 'major', section: 'Breaking Changes' },
+        {
+          type: 'feat',
+          release: 'minor',
+          section: defaultChangelogRules['feat'].section,
+        },
       ]);
     });
 
@@ -171,6 +179,75 @@ describe('utils', () => {
        * Then
        */
       expect(mappedReleases).toEqual([{ type: 'bond', release: 'premajor' }]);
+    });
+  });
+
+  describe('method: mergeWithDefaultChangelogRules', () => {
+    it('combines non-existing type rules with default rules', () => {
+      /**
+       * Given
+       */
+      const newRule = {
+        type: 'james',
+        release: 'major',
+        section: '007 Changes',
+      };
+
+      /**
+       * When
+       */
+      const result = utils.mergeWithDefaultChangelogRules([newRule]);
+
+      /**
+       * Then
+       */
+      expect(result).toEqual([
+        ...Object.values(defaultChangelogRules),
+        newRule,
+      ]);
+    });
+
+    it('overwrites existing default type rules with provided rules', () => {
+      /**
+       * Given
+       */
+      const newRule = {
+        type: 'feat',
+        release: 'minor',
+        section: '007 Changes',
+      };
+
+      /**
+       * When
+       */
+      const result = utils.mergeWithDefaultChangelogRules([newRule]);
+      const overWrittenRule = result.find((rule) => rule.type === 'feat');
+
+      /**
+       * Then
+       */
+      expect(overWrittenRule?.section).toBe(newRule.section);
+    });
+
+    it('returns only the rules having changelog section', () => {
+      /**
+       * Given
+       */
+      const mappedReleaseRules = [
+        { type: 'james', release: 'major', section: '007 Changes' },
+        { type: 'bond', release: 'minor', section: undefined },
+      ];
+
+      /**
+       * When
+       */
+      const result = utils.mergeWithDefaultChangelogRules(mappedReleaseRules);
+
+      /**
+       * Then
+       */
+      expect(result).toContainEqual(mappedReleaseRules[0]);
+      expect(result).not.toContainEqual(mappedReleaseRules[1]);
     });
   });
 });
