@@ -77,23 +77,29 @@ export default async function main() {
   } else {
     let previousTag: ReturnType<typeof getLatestTag> | null;
     let previousVersion: SemVer | null;
-    if (!latestPrereleaseTag) {
+    const latestVersion = core.getInput('latest_ver');
+    if (latestVersion) {
+      previousVersion = parse(latestVersion);
       previousTag = latestTag;
     } else {
-      previousTag = gte(
-        latestTag.name.replace(prefixRegex, ''),
-        latestPrereleaseTag.name.replace(prefixRegex, '')
-      )
-        ? latestTag
-        : latestPrereleaseTag;
+      if (!latestPrereleaseTag) {
+        previousTag = latestTag;
+      } else {
+        previousTag = gte(
+          latestTag.name.replace(prefixRegex, ''),
+          latestPrereleaseTag.name.replace(prefixRegex, '')
+        )
+          ? latestTag
+          : latestPrereleaseTag;
+      }
+  
+      if (!previousTag) {
+        core.setFailed('Could not find previous tag.');
+        return;
+      }
+  
+      previousVersion = parse(previousTag.name.replace(prefixRegex, ''));
     }
-
-    if (!previousTag) {
-      core.setFailed('Could not find previous tag.');
-      return;
-    }
-
-    previousVersion = parse(previousTag.name.replace(prefixRegex, ''));
 
     if (!previousVersion) {
       core.setFailed('Could not parse previous tag.');
