@@ -92,12 +92,12 @@ export default async function main() {
           ? latestTag
           : latestPrereleaseTag;
       }
-  
+
       if (!previousTag) {
         core.setFailed('Could not find previous tag.');
         return;
       }
-  
+
       previousVersion = parse(previousTag.name.replace(prefixRegex, ''));
     }
 
