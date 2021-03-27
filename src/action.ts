@@ -6,12 +6,13 @@ import {
   getBranchFromRef,
   isPr,
   getCommits,
+  getPreviousTag,
   getLatestPrereleaseTag,
   getLatestTag,
   getValidTags,
   mapCustomReleaseRules,
 } from './utils';
-import { createTag } from './github';
+import { createTag, listTags } from './github';
 import { Await } from './ts';
 
 export default async function main() {
@@ -58,7 +59,8 @@ export default async function main() {
 
   const prefixRegex = new RegExp(`^${tagPrefix}`);
 
-  const validTags = await getValidTags(prefixRegex);
+  let validTags: Await<ReturnType<typeof listTags>> | null;
+  validTags = await getValidTags(prefixRegex);
   const latestTag = getLatestTag(validTags, prefixRegex, tagPrefix);
   const latestPrereleaseTag = getLatestPrereleaseTag(
     validTags,
@@ -79,8 +81,10 @@ export default async function main() {
     let previousVersion: SemVer | null;
     const latestVersion = core.getInput('latest_ver');
     if (latestVersion) {
+      core.debug('Using explicit versioning instead of tag check.');
       previousVersion = parse(latestVersion);
-      previousTag = latestTag;
+      validTags = await listTags();
+      previousTag = await getPreviousTag(tagPrefix);
     } else {
       if (!latestPrereleaseTag) {
         previousTag = latestTag;

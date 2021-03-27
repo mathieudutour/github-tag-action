@@ -43,7 +43,7 @@ inputs:
     required: false
     default: "false"
   latest_ver:
-    description: "Semver formatted version that will be used instead of previous tag"
+    description: "Semver formatted version that will be used instead of previous tag, previous tag is only used for generating changelog"
     required: false
   dry_run:
     description: "Do not perform tagging, just calculate next version and changelog, then exit."
