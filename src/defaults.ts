@@ -1,4 +1,15 @@
-import { ChangelogRule } from './ts';
+type ChangelogRule = {
+  /**
+   * Commit type.
+   * Eg: feat, fix etc.
+   */
+  type: string;
+  /**
+   * Section in changelog to group commits by type.
+   * Eg: 'Bug Fix', 'Features' etc.
+   */
+  section: string;
+};
 
 /**
  * Default sections & changelog rules mentioned in `conventional-changelog-angular` & `conventional-changelog-conventionalcommits`.
