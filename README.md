@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Bump version and push tag
         id: tag_version
-        uses: mathieudutour/github-tag-action@v5.3
+        uses: mathieudutour/github-tag-action@v5.4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Create a GitHub release
@@ -52,7 +52,7 @@ jobs:
 - **custom_release_rules** _(optional)_ - Comma separated list of release rules.
 
   __Format__: `<keyword>:<release_type>:<changelog_section>` where `<changelog_section>` is optional and will default to [Angular's conventions](https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog-angular).
-  
+
   __Examples__:
     1. `hotfix:patch,pre-feat:preminor`,
     2. `bug:patch:Bug Fixes,chore:patch:Chores`

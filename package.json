@@ -1,6 +1,6 @@
 {
   "name": "github-tag-action",
-  "version": "5.3.0",
+  "version": "5.4.0",
   "private": true,
   "description": "A GitHub Action to automatically bump and tag master, on merge, with the latest SemVer formatted version.",
   "main": "lib/main.js",
