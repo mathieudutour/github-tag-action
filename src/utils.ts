@@ -3,6 +3,7 @@ import { prerelease, rcompare, valid } from 'semver';
 // @ts-ignore
 import DEFAULT_RELEASE_TYPES from '@semantic-release/commit-analyzer/lib/default-release-types';
 import { compareCommits, listTags } from './github';
+import { defaultChangelogRules } from './defaults';
 import { Await } from './ts';
 
 type Tags = Await<ReturnType<typeof listTags>>;
@@ -77,30 +78,59 @@ export function mapCustomReleaseRules(customReleaseTypes: string) {
 
   return customReleaseTypes
     .split(releaseRuleSeparator)
-    .map((customReleaseRule) => customReleaseRule.split(releaseTypeSeparator))
     .filter((customReleaseRule) => {
-      if (customReleaseRule.length !== 2) {
+      const parts = customReleaseRule.split(releaseTypeSeparator);
+
+      if (parts.length < 2) {
         core.warning(
-          `${customReleaseRule.join(
-            releaseTypeSeparator
-          )} is not a valid custom release definition.`
+          `${customReleaseRule} is not a valid custom release definition.`
         );
         return false;
       }
+
+      const defaultRule = defaultChangelogRules[parts[0].toLowerCase()];
+      if (customReleaseRule.length !== 3) {
+        core.debug(
+          `${customReleaseRule} doesn't mention the section for the changelog.`
+        );
+        core.debug(
+          defaultRule
+            ? `Default section (${defaultRule.section}) will be used instead.`
+            : "The commits matching this rule won't be included in the changelog."
+        );
+      }
+
+      if (!DEFAULT_RELEASE_TYPES.includes(parts[1])) {
+        core.warning(`${parts[1]} is not a valid release type.`);
+        return false;
+      }
+
       return true;
     })
     .map((customReleaseRule) => {
-      const [keyword, release] = customReleaseRule;
+      const [type, release, section] = customReleaseRule.split(
+        releaseTypeSeparator
+      );
+      const defaultRule = defaultChangelogRules[type.toLowerCase()];
+
       return {
-        type: keyword,
+        type,
         release,
+        section: section || defaultRule?.section,
       };
-    })
-    .filter((customRelease) => {
-      if (!DEFAULT_RELEASE_TYPES.includes(customRelease.release)) {
-        core.warning(`${customRelease.release} is not a valid release type.`);
-        return false;
-      }
-      return true;
     });
+}
+
+export function mergeWithDefaultChangelogRules(
+  mappedReleaseRules: ReturnType<typeof mapCustomReleaseRules> = []
+) {
+  const mergedRules = mappedReleaseRules.reduce(
+    (acc, curr) => ({
+      ...acc,
+      [curr.type]: curr,
+    }),
+    { ...defaultChangelogRules }
+  );
+
+  return Object.values(mergedRules).filter((rule) => !!rule.section);
 }

@@ -28,6 +28,7 @@ declare module '@semantic-release/release-notes-generator' {
       preset?: string;
       config?: string;
       parserOpts?: any;
+      writerOpts?: any;
       releaseRules?:
         | string
         | {
@@ -35,7 +36,7 @@ declare module '@semantic-release/release-notes-generator' {
             release: string;
             scope?: string;
           }[];
-      presetConfig?: string;
+      presetConfig?: any; // Depends on used preset
     },
     args: {
       commits: { message: string; hash: string | null }[];

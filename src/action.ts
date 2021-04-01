@@ -10,6 +10,7 @@ import {
   getLatestTag,
   getValidTags,
   mapCustomReleaseRules,
+  mergeWithDefaultChangelogRules,
 } from './utils';
 import { createTag } from './github';
 import { Await } from './ts';
@@ -109,7 +110,12 @@ export default async function main() {
     commits = await getCommits(previousTag.commit.sha, GITHUB_SHA);
 
     let bump = await analyzeCommits(
-      { releaseRules: mappedReleaseRules },
+      {
+        releaseRules: mappedReleaseRules
+          ? // analyzeCommits doesn't appreciate rules with a section /shrug
+            mappedReleaseRules.map(({ section, ...rest }) => ({ ...rest }))
+          : undefined,
+      },
       { commits, logger: { log: console.info.bind(console) } }
     );
 
@@ -153,7 +159,12 @@ export default async function main() {
   core.setOutput('new_tag', newTag);
 
   const changelog = await generateNotes(
-    {},
+    {
+      preset: 'conventionalcommits',
+      presetConfig: {
+        types: mergeWithDefaultChangelogRules(mappedReleaseRules),
+      },
+    },
     {
       commits,
       logger: { log: console.info.bind(console) },
