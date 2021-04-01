@@ -51,7 +51,7 @@ jobs:
 
 - **custom_release_rules** _(optional)_ - Comma separated list of release rules.
 
-  __Format__: `<keyword>:<release_type>:<changelog_section>`. Where, `<changelog_section>` is optional, which if not provided will be defaulted to Angular's conventions.
+  __Format__: `<keyword>:<release_type>:<changelog_section>` where `<changelog_section>` is optional and will default to [Angular's conventions](https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog-angular).
   
   __Examples__:
     1. `hotfix:patch,pre-feat:preminor`,
