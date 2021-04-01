@@ -78,67 +78,47 @@ export function mapCustomReleaseRules(customReleaseTypes: string) {
 
   return customReleaseTypes
     .split(releaseRuleSeparator)
-    .map((customReleaseRule) => customReleaseRule.split(releaseTypeSeparator))
     .filter((customReleaseRule) => {
-      const releaseRule = customReleaseRule.join(releaseTypeSeparator);
+      const parts = customReleaseRule.split(releaseTypeSeparator);
 
-      if (customReleaseRule.length < 2) {
+      if (parts.length < 2) {
         core.warning(
-          `${releaseRule} is not a valid custom release definition.`
+          `${customReleaseRule} is not a valid custom release definition.`
         );
         return false;
       }
 
-      const defaultRule =
-        defaultChangelogRules[customReleaseRule[0].toLowerCase()];
+      const defaultRule = defaultChangelogRules[parts[0].toLowerCase()];
       if (customReleaseRule.length !== 3) {
         core.debug(
-          `${releaseRule} doesn't mention the section for the changelog.`
+          `${customReleaseRule} doesn't mention the section for the changelog.`
         );
-        defaultRule
-          ? core.debug(
-              `Default section (${defaultRule.section}) will be used instead.`
-            )
-          : core.debug(
-              "The commits matching this rule won't be included in the changelog."
-            );
+        core.debug(
+          defaultRule
+            ? `Default section (${defaultRule.section}) will be used instead.`
+            : "The commits matching this rule won't be included in the changelog."
+        );
+      }
+
+      if (!DEFAULT_RELEASE_TYPES.includes(parts[1])) {
+        core.warning(`${parts[1]} is not a valid release type.`);
+        return false;
       }
 
       return true;
     })
     .map((customReleaseRule) => {
-      const [keyword, release, section] = customReleaseRule;
-      const defaultRule = defaultChangelogRules[keyword.toLowerCase()];
+      const [type, release, section] = customReleaseRule.split(
+        releaseTypeSeparator
+      );
+      const defaultRule = defaultChangelogRules[type.toLowerCase()];
 
       return {
-        ...defaultRule,
-        type: keyword,
+        type,
         release,
         section: section || defaultRule?.section,
       };
-    })
-    .filter((customRelease) => {
-      if (!DEFAULT_RELEASE_TYPES.includes(customRelease.release)) {
-        core.warning(`${customRelease.release} is not a valid release type.`);
-        return false;
-      }
-      return true;
     });
-}
-
-export function objectWithoutKeys<T extends Record<string, any>>(
-  obj: T,
-  keys: string[]
-): Partial<T> {
-  return Object.keys(obj)
-    .filter((key) => !keys.includes(key))
-    .reduce(
-      (acc, curr) => ({
-        ...acc,
-        [curr]: obj[curr],
-      }),
-      {}
-    );
 }
 
 export function mergeWithDefaultChangelogRules(
