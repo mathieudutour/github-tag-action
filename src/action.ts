@@ -110,7 +110,12 @@ export default async function main() {
     commits = await getCommits(previousTag.commit.sha, GITHUB_SHA);
 
     let bump = await analyzeCommits(
-      { releaseRules: mappedReleaseRules },
+      {
+        releaseRules: mappedReleaseRules
+          ? // analyzeCommits doesn't appreciate rules with a section /shrug
+            mappedReleaseRules.map(({ section, ...rest }) => ({ ...rest }))
+          : undefined,
+      },
       { commits, logger: { log: console.info.bind(console) } }
     );
 
