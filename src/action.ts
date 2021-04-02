@@ -61,7 +61,7 @@ export default async function main() {
 
   let validTags: Await<ReturnType<typeof listTags>> | null;
   validTags = await getValidTags(prefixRegex);
-  const latestTag = getLatestTag(validTags, prefixRegex, tagPrefix);
+  let latestTag = getLatestTag(validTags, prefixRegex, tagPrefix);
   const latestPrereleaseTag = getLatestPrereleaseTag(
     validTags,
     identifier,
@@ -85,6 +85,7 @@ export default async function main() {
       previousVersion = parse(latestVersion);
       validTags = await listTags();
       previousTag = await getPreviousTag(tagPrefix);
+      latestTag = previousTag;
     } else {
       if (!latestPrereleaseTag) {
         previousTag = latestTag;
