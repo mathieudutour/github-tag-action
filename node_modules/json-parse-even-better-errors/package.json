@@ -1,0 +1,37 @@
+{
+  "name": "json-parse-even-better-errors",
+  "version": "2.3.1",
+  "description": "JSON.parse with context information on error",
+  "main": "index.js",
+  "files": [
+    "*.js"
+  ],
+  "scripts": {
+    "preversion": "npm t",
+    "postversion": "npm publish",
+    "prepublishOnly": "git push --follow-tags",
+    "test": "tap",
+    "snap": "tap"
+  },
+  "repository": "https://github.com/npm/json-parse-even-better-errors",
+  "keywords": [
+    "JSON",
+    "parser"
+  ],
+  "author": {
+    "name": "Kat Marchán",
+    "email": "kzm@zkat.tech",
+    "twitter": "maybekatz"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "tap": "^14.6.5"
+  },
+  "tap": {
+    "check-coverage": true
+  }
+
+,"_resolved": "https://registry.npmjs.org/json-parse-even-better-errors/-/json-parse-even-better-errors-2.3.1.tgz"
+,"_integrity": "sha512-xyFwyhro/JEof6Ghe2iz2NcXoj2sloNsWr/XsERDK/oiPCfaNhl5ONfp+jQdAZRQQ0IJWNzH9zIZF7li91kh2w=="
+,"_from": "json-parse-even-better-errors@2.3.1"
+}
