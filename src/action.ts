@@ -74,6 +74,7 @@ export default async function main() {
   if (customTag) {
     commits = await getCommits(latestTag.commit.sha, GITHUB_SHA);
 
+    core.setOutput('release_type', 'custom');
     newVersion = customTag;
   } else {
     let previousTag: ReturnType<typeof getLatestTag> | null;
@@ -135,6 +136,7 @@ export default async function main() {
     const releaseType: ReleaseType = isPrerelease
       ? `pre${bump || defaultBump}`
       : bump || defaultBump;
+    core.setOutput('release_type', releaseType);
 
     const incrementedVersion = inc(previousVersion, releaseType, identifier);
 
