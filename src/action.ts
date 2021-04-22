@@ -6,13 +6,14 @@ import {
   getBranchFromRef,
   isPr,
   getCommits,
+  getPreviousTag,
   getLatestPrereleaseTag,
   getLatestTag,
   getValidTags,
   mapCustomReleaseRules,
   mergeWithDefaultChangelogRules,
 } from './utils';
-import { createTag } from './github';
+import { createTag, listTags } from './github';
 import { Await } from './ts';
 
 export default async function main() {
@@ -59,8 +60,9 @@ export default async function main() {
 
   const prefixRegex = new RegExp(`^${tagPrefix}`);
 
-  const validTags = await getValidTags(prefixRegex);
-  const latestTag = getLatestTag(validTags, prefixRegex, tagPrefix);
+  let validTags: Await<ReturnType<typeof listTags>> | null;
+  validTags = await getValidTags(prefixRegex);
+  let latestTag = getLatestTag(validTags, prefixRegex, tagPrefix);
   const latestPrereleaseTag = getLatestPrereleaseTag(
     validTags,
     identifier,
@@ -79,23 +81,32 @@ export default async function main() {
   } else {
     let previousTag: ReturnType<typeof getLatestTag> | null;
     let previousVersion: SemVer | null;
-    if (!latestPrereleaseTag) {
-      previousTag = latestTag;
+    const latestVersion = core.getInput('latest_ver');
+    if (latestVersion) {
+      core.debug('Using explicit versioning instead of tag check.');
+      previousVersion = parse(latestVersion);
+      validTags = await listTags();
+      previousTag = await getPreviousTag(tagPrefix);
+      latestTag = previousTag;
     } else {
-      previousTag = gte(
-        latestTag.name.replace(prefixRegex, ''),
-        latestPrereleaseTag.name.replace(prefixRegex, '')
-      )
-        ? latestTag
-        : latestPrereleaseTag;
-    }
+      if (!latestPrereleaseTag) {
+        previousTag = latestTag;
+      } else {
+        previousTag = gte(
+          latestTag.name.replace(prefixRegex, ''),
+          latestPrereleaseTag.name.replace(prefixRegex, '')
+        )
+          ? latestTag
+          : latestPrereleaseTag;
+      }
 
-    if (!previousTag) {
-      core.setFailed('Could not find previous tag.');
-      return;
-    }
+      if (!previousTag) {
+        core.setFailed('Could not find previous tag.');
+        return;
+      }
 
-    previousVersion = parse(previousTag.name.replace(prefixRegex, ''));
+      previousVersion = parse(previousTag.name.replace(prefixRegex, ''));
+    }
 
     if (!previousVersion) {
       core.setFailed('Could not parse previous tag.');
