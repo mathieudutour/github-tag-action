@@ -9,7 +9,7 @@ on:
 
 jobs:
   release:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: Check out Source Code
         uses: actions/checkout@v2
