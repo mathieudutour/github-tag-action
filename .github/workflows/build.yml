@@ -16,7 +16,7 @@ jobs:
 
       - name: Output roughly what version on merge will look like
         id: versioner
-        uses: mathieudutour/github-tag-action@v5.3
+        uses: jimrazmus/github-tag-action
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           custom_release_rules: "MAJOR:major,MINOR:minor,PATCH:patch"
