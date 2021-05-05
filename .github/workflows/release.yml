@@ -1,0 +1,30 @@
+name: Create Release
+
+on:
+  push:
+    branches:
+      - 'master'
+    paths-ignore:
+      - '.github/**'
+
+jobs:
+  release:
+    runs-on: self-hosted
+    steps:
+      - name: Check out Source Code
+        uses: actions/checkout@v2
+
+      - name: Bump version and push tag
+        id: versioner
+        uses: jimrazmus/github-tag-action
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create a GitHub release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.versioner.outputs.new_tag }}
+          release_name: Release ${{ steps.versioner.outputs.new_tag }}
+          body: ${{ steps.versioner.outputs.changelog }}
