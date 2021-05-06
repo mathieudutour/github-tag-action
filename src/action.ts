@@ -57,6 +57,12 @@ export default async function main() {
     ? appendToPreReleaseTag
     : currentBranch;
 
+  // Sanitize indentifier if it contains a semver
+  if (!!valid(identifier)) {
+    let ver = String(valid(identifier));
+    identifier.replace(ver, ver.replace('.', '_'));
+  }
+
   const prefixRegex = new RegExp(`^${tagPrefix}`);
 
   const validTags = await getValidTags(prefixRegex);
