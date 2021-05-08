@@ -13,15 +13,15 @@ export function getOctokitSingleton() {
   return octokitSingleton;
 }
 
-export async function listTags() {
+export async function listTags(): Promise<any> {
   const octokit = getOctokitSingleton();
 
-  const tags = await octokit.repos.listTags({
+  const tags = await octokit.paginate("GET /repos/{owner}/{repo}/tags", {
     ...context.repo,
     per_page: 100,
   });
 
-  return tags.data;
+  return tags;
 }
 
 /**

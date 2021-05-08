@@ -187,7 +187,7 @@ export default async function main() {
     return;
   }
 
-  if (validTags.map((tag) => tag.name).includes(newTag)) {
+  if (validTags.map((tag: any) => tag.name).includes(newTag)) {
     core.info('This tag already exists. Skipping the tag creation.');
     return;
   }
