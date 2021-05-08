@@ -12,18 +12,18 @@ export async function getValidTags(prefixRegex: RegExp) {
   const tags = await listTags();
 
   const invalidTags = tags.filter(
-    (tag) => !valid(tag.name.replace(prefixRegex, ''))
+    (tag: { name: string; }) => !valid(tag.name.replace(prefixRegex, ''))
   );
 
-  invalidTags.forEach((name) => core.debug(`Found Invalid Tag: ${name}.`));
+  invalidTags.forEach((name: any) => core.debug(`Found Invalid Tag: ${name}.`));
 
   const validTags = tags
-    .filter((tag) => valid(tag.name.replace(prefixRegex, '')))
-    .sort((a, b) =>
+    .filter((tag: { name: string; }) => valid(tag.name.replace(prefixRegex, '')))
+    .sort((a: { name: string; }, b: { name: string; }) =>
       rcompare(a.name.replace(prefixRegex, ''), b.name.replace(prefixRegex, ''))
     );
 
-  validTags.forEach((tag) => core.debug(`Found Valid Tag: ${tag.name}.`));
+  validTags.forEach((tag: { name: any; }) => core.debug(`Found Valid Tag: ${tag.name}.`));
 
   return validTags;
 }
@@ -53,7 +53,7 @@ export function getLatestTag(
   tagPrefix: string
 ) {
   return (
-    tags.find((tag) => !prerelease(tag.name.replace(prefixRegex, ''))) || {
+    tags.find((tag: { name: string; }) => !prerelease(tag.name.replace(prefixRegex, ''))) || {
       name: `${tagPrefix}0.0.0`,
       commit: {
         sha: 'HEAD',
@@ -68,8 +68,8 @@ export function getLatestPrereleaseTag(
   prefixRegex: RegExp
 ) {
   return tags
-    .filter((tag) => prerelease(tag.name.replace(prefixRegex, '')))
-    .find((tag) => tag.name.replace(prefixRegex, '').match(identifier));
+    .filter((tag: { name: string; }) => prerelease(tag.name.replace(prefixRegex, '')))
+    .find((tag: { name: string; }) => tag.name.replace(prefixRegex, '').match(identifier));
 }
 
 export function mapCustomReleaseRules(customReleaseTypes: string) {
