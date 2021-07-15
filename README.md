@@ -33,6 +33,7 @@ jobs:
 ### 📥 Inputs
 
 - **github_token** _(required)_ - Required for permission to tag the repo. Usually `${{ secrets.GITHUB_TOKEN }}`.
+- **commit_sha** _(optional)_ - Use this commit SHA instead GITHUB_SHA.
 
 #### Filter branches
 
