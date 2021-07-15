@@ -40,6 +40,9 @@ inputs:
   pre_release_branches:
     description: "Comma separated list of branches (bash reg exp accepted) that will generate pre-release tags."
     required: false
+  commit_sha:
+    description: "Use this commit SHA instead GITHUB_SHA."
+    required: false
   create_annotated_tag:
     description: "Boolean to create an annotated tag rather than lightweight."
     required: false
