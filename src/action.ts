@@ -25,6 +25,7 @@ export default async function main() {
   const createAnnotatedTag = !!core.getInput('create_annotated_tag');
   const dryRun = core.getInput('dry_run');
   const customReleaseRules = core.getInput('custom_release_rules');
+  const shouldFetchAllTags = core.getInput('fetch_all_tags');
 
   let mappedReleaseRules;
   if (customReleaseRules) {
@@ -59,7 +60,10 @@ export default async function main() {
 
   const prefixRegex = new RegExp(`^${tagPrefix}`);
 
-  const validTags = await getValidTags(prefixRegex);
+  const validTags = await getValidTags(
+    prefixRegex,
+    /true/i.test(shouldFetchAllTags)
+  );
   const latestTag = getLatestTag(validTags, prefixRegex, tagPrefix);
   const latestPrereleaseTag = getLatestPrereleaseTag(
     validTags,
