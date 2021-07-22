@@ -4,6 +4,17 @@ import { Await } from './ts';
 
 let octokitSingleton: ReturnType<typeof getOctokit>;
 
+type Tag = {
+  name: string;
+  commit: {
+    sha: string;
+    url: string;
+  };
+  zipball_url: string;
+  tarball_url: string;
+  node_id: string;
+};
+
 export function getOctokitSingleton() {
   if (octokitSingleton) {
     return octokitSingleton;
@@ -13,15 +24,27 @@ export function getOctokitSingleton() {
   return octokitSingleton;
 }
 
-export async function listTags() {
+/**
+ * Fetch all tags for a given repository recursively
+ */
+export async function listTags(
+  shouldFetchAllTags = false,
+  fetchedTags: Tag[] = [],
+  page = 1
+): Promise<Tag[]> {
   const octokit = getOctokitSingleton();
 
   const tags = await octokit.repos.listTags({
     ...context.repo,
     per_page: 100,
+    page,
   });
 
-  return tags.data;
+  if (tags.data.length < 100 || shouldFetchAllTags === false) {
+    return [...fetchedTags, ...tags.data];
+  }
+
+  return listTags(shouldFetchAllTags, [...fetchedTags, ...tags.data], page + 1);
 }
 
 /**
