@@ -57,11 +57,8 @@ export default async function main() {
     ? appendToPreReleaseTag
     : currentBranch;
 
-  // Sanitize indentifier if it contains a semver
-  if (!!valid(identifier)) {
-    let ver = String(valid(identifier));
-    identifier.replace(ver, ver.replace('.', '_'));
-  }
+// Sanitize identifier according to https://semver.org/#backusnaur-form-grammar-for-valid-semver-versions
+let sanitized = identifier.replace(/[^a-zA-Z0-9-]/g, '-');
 
   const prefixRegex = new RegExp(`^${tagPrefix}`);
 
