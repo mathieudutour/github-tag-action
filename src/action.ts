@@ -57,8 +57,8 @@ export default async function main() {
     ? appendToPreReleaseTag
     : currentBranch;
 
-// Sanitize identifier according to https://semver.org/#backusnaur-form-grammar-for-valid-semver-versions
-let sanitized = identifier.replace(/[^a-zA-Z0-9-]/g, '-');
+  // Sanitize identifier according to https://semver.org/#backusnaur-form-grammar-for-valid-semver-versions
+  let sanitized = identifier.replace(/[^a-zA-Z0-9-]/g, '-');
 
   const prefixRegex = new RegExp(`^${tagPrefix}`);
 
