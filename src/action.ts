@@ -26,10 +26,21 @@ export default async function main() {
   const dryRun = core.getInput('dry_run');
   const customReleaseRules = core.getInput('custom_release_rules');
   const shouldFetchAllTags = core.getInput('fetch_all_tags');
+  const repoPath = core.getInput('repo_path');
 
   let mappedReleaseRules;
   if (customReleaseRules) {
     mappedReleaseRules = mapCustomReleaseRules(customReleaseRules);
+  }
+
+  if (repoPath) {
+    try {
+      const originDirectory = process.cwd();
+      process.chdir(repoPath);
+      console.log('Changed directory from ' + originDirectory + ' to ' + process.cwd());
+    } catch (err) {
+      console.log('Error encountered when changing directory: ' + err);
+    }
   }
 
   const { GITHUB_REF, GITHUB_SHA } = process.env;
