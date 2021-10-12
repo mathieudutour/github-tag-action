@@ -59,6 +59,9 @@ inputs:
     description: "Do not perform tagging, just calculate next version and changelog, then exit."
     required: false
     default: "false"
+  scopes:
+    description: "Comma separated list of commit scopes that will be used to filter commits when determining the new version. If left blank, will consider all commits."
+    required: false
 
 runs:
   using: "node12"

@@ -45,6 +45,23 @@ export async function getCommits(
     }));
 }
 
+export async function getScopedCommits(
+  commits: Await<ReturnType<typeof getCommits>>,
+  scopes: string[]
+) {
+  return commits.filter((commit) => {
+    return scopes.some((scope) => {
+      let re = new RegExp(
+        '^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)\\(' +
+          scope +
+          '\\)\\: [\\w ]+',
+        'g'
+      );
+      return commit.message.match(re);
+    });
+  });
+}
+
 export function getBranchFromRef(ref: string) {
   return ref.replace('refs/heads/', '');
 }
