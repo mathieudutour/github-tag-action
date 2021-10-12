@@ -63,6 +63,10 @@ jobs:
 
 - **dry_run** _(optional)_ - Do not perform tagging, just calculate next version and changelog, then exit
 
+#### Commit Scope Filtering
+
+- **scopes** _(optional)_ - Comma separated list of commit scopes that will be used to filter commits when determining the new version. If left blank, will consider all commits.
+
 ### 📤 Outputs
 
 - **new_tag** - The value of the newly calculated tag. Note that if there hasn't been any new commit, this will be `undefined`.
@@ -124,6 +128,9 @@ The default graphite width of 10mm is always used for performance reasons.
 </table>
 
 If no commit message contains any information, then **default_bump** will be used.
+
+## Tests
+To run tests locally you need to set the environment variables `GITHUB_SERVER_URL` and `GITHUB_REPOSITORY` - e.g. `https://github.com` and `repoOwner/repoName` respectively.
 
 ## Credits
 
