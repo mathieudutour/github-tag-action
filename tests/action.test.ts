@@ -448,6 +448,45 @@ describe('github-tag-action', () => {
       setInput('pre_release_branches', 'prerelease');
     });
 
+    it('does create prerelease tag', async () => {
+      /*
+       * Given
+       */
+      setInput('default_bump', 'prerelease');
+      const commits = [{ message: 'this is my first fix', hash: null }];
+      jest
+          .spyOn(utils, 'getCommits')
+          .mockImplementation(async (sha) => commits);
+
+      const validTags = [
+        {
+          name: 'v1.2.4-prerelease.0',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+      ];
+      jest
+          .spyOn(utils, 'getValidTags')
+          .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await action();
+
+      /*
+       * Then
+       */
+      expect(mockCreateTag).toHaveBeenCalledWith(
+          'v1.2.4-prerelease.1',
+          expect.any(Boolean),
+          expect.any(String)
+      );
+      expect(mockSetFailed).not.toBeCalled();
+    });
+
     it('does create prepatch tag', async () => {
       /*
        * Given
