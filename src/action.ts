@@ -137,6 +137,11 @@ export default async function main() {
       bump = bump.replace(preReg, '');
     }
 
+    // If we have no bump, but want to support incrementing the prerelease number
+    if (!bump && defaultBump === 'prerelease') {
+      bump = 'release';
+    }
+
     const releaseType: ReleaseType = isPrerelease
       ? `pre${bump || defaultBump}`
       : bump || defaultBump;
