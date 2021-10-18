@@ -138,7 +138,7 @@ export default async function main() {
     }
 
     // If we have no bump, but want to support incrementing the prerelease number
-    if (!bump && defaultBump === 'prerelease') {
+    if (isPrerelease && !bump && defaultBump === 'prerelease') {
       bump = 'release';
     }
 
