@@ -25,6 +25,7 @@ export default async function main() {
   const createAnnotatedTag = !!core.getInput('create_annotated_tag');
   const dryRun = core.getInput('dry_run');
   const customReleaseRules = core.getInput('custom_release_rules');
+  const shouldFetchAllTags = core.getInput('fetch_all_tags');
   const commit_sha = core.getInput('commit_sha');
 
   let mappedReleaseRules;
@@ -61,7 +62,10 @@ export default async function main() {
 
   const prefixRegex = new RegExp(`^${tagPrefix}`);
 
-  const validTags = await getValidTags(prefixRegex);
+  const validTags = await getValidTags(
+    prefixRegex,
+    /true/i.test(shouldFetchAllTags)
+  );
   const latestTag = getLatestTag(validTags, prefixRegex, tagPrefix);
   const latestPrereleaseTag = getLatestPrereleaseTag(
     validTags,
@@ -173,7 +177,7 @@ export default async function main() {
       commits,
       logger: { log: console.info.bind(console) },
       options: {
-        repositoryUrl: `https://github.com/${process.env.GITHUB_REPOSITORY}`,
+        repositoryUrl: `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}`,
       },
       lastRelease: { gitTag: latestTag.name },
       nextRelease: { gitTag: newTag, version: newVersion },

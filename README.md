@@ -17,16 +17,14 @@ jobs:
       - uses: actions/checkout@v2
       - name: Bump version and push tag
         id: tag_version
-        uses: mathieudutour/github-tag-action@v5.5
+        uses: mathieudutour/github-tag-action@v5.6
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Create a GitHub release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: ncipollo/release-action@v1
         with:
-          tag_name: ${{ steps.tag_version.outputs.new_tag }}
-          release_name: Release ${{ steps.tag_version.outputs.new_tag }}
+          tag: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
           body: ${{ steps.tag_version.outputs.changelog }}
 ```
 
@@ -34,6 +32,10 @@ jobs:
 
 - **github_token** _(required)_ - Required for permission to tag the repo. Usually `${{ secrets.GITHUB_TOKEN }}`.
 - **commit_sha** _(optional)_ - Use this commit SHA instead GITHUB_SHA.
+
+#### Fetch all tags
+
+- **fetch_all_tags** _(optional)_ - By default, this action fetch the last 100 tags from Github. Sometimes, this is not enough and using this action will fetch all tags recursively (default: `false`).
 
 #### Filter branches
 

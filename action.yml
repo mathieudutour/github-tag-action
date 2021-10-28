@@ -47,6 +47,10 @@ inputs:
     description: "Boolean to create an annotated tag rather than lightweight."
     required: false
     default: "false"
+  fetch_all_tags:
+    description: "Boolean to fetch all tags for a repo (if false, only the last 100 will be fetched)."
+    required: false
+    default: "false"
   dry_run:
     description: "Do not perform tagging, just calculate next version and changelog, then exit."
     required: false
