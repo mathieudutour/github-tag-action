@@ -460,12 +460,19 @@ describe('github-tag-action', () => {
 
       const validTags = [
         {
-          name: 'v1.2.4-prerelease.0',
+          name: 'v0.2.4-prerelease.0',
           commit: { sha: '012345', url: '' },
           zipball_url: '',
           tarball_url: 'string',
           node_id: 'string',
         },
+        {
+          name: 'v0.2.3-prerelease.0',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        }
       ];
       jest
           .spyOn(utils, 'getValidTags')
@@ -480,7 +487,7 @@ describe('github-tag-action', () => {
        * Then
        */
       expect(mockCreateTag).toHaveBeenCalledWith(
-          'v1.2.4-prerelease.1',
+          'v0.2.4-prerelease.1',
           expect.any(Boolean),
           expect.any(String)
       );
