@@ -455,8 +455,8 @@ describe('github-tag-action', () => {
       setInput('default_prerelease_bump', 'false');
       const commits: any[] = [];
       jest
-          .spyOn(utils, 'getCommits')
-          .mockImplementation(async (sha) => commits);
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
 
       const validTags = [
         {
@@ -468,8 +468,8 @@ describe('github-tag-action', () => {
         },
       ];
       jest
-          .spyOn(utils, 'getValidTags')
-          .mockImplementation(async () => validTags);
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
 
       /*
        * When
@@ -490,8 +490,8 @@ describe('github-tag-action', () => {
       setInput('default_prerelease_bump', 'prerelease');
       const commits = [{ message: 'this is my first fix', hash: null }];
       jest
-          .spyOn(utils, 'getCommits')
-          .mockImplementation(async (sha) => commits);
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
 
       const validTags = [
         {
@@ -500,11 +500,11 @@ describe('github-tag-action', () => {
           zipball_url: '',
           tarball_url: 'string',
           node_id: 'string',
-        }
+        },
       ];
       jest
-          .spyOn(utils, 'getValidTags')
-          .mockImplementation(async () => validTags);
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
 
       /*
        * When
@@ -515,9 +515,9 @@ describe('github-tag-action', () => {
        * Then
        */
       expect(mockCreateTag).toHaveBeenCalledWith(
-          'v1.2.4-prerelease.0',
-          expect.any(Boolean),
-          expect.any(String)
+        'v1.2.4-prerelease.0',
+        expect.any(Boolean),
+        expect.any(String)
       );
       expect(mockSetFailed).not.toBeCalled();
     });

@@ -17,7 +17,9 @@ import { Await } from './ts';
 
 export default async function main() {
   const defaultBump = core.getInput('default_bump') as ReleaseType | 'false';
-  const defaultPreReleaseBump = core.getInput('default_prerelease_bump') as ReleaseType | 'false';
+  const defaultPreReleaseBump = core.getInput('default_prerelease_bump') as
+    | ReleaseType
+    | 'false';
   const tagPrefix = core.getInput('tag_prefix');
   const customTag = core.getInput('custom_tag');
   const releaseBranches = core.getInput('release_branches');
@@ -140,7 +142,7 @@ export default async function main() {
     // Default bump is set to false and we did not find an automatic bump
     if (!shouldContinue) {
       core.debug(
-          'No commit specifies the version bump. Skipping the tag creation.'
+        'No commit specifies the version bump. Skipping the tag creation.'
       );
       return;
     }
