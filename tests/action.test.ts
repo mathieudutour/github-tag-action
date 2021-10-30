@@ -448,11 +448,46 @@ describe('github-tag-action', () => {
       setInput('pre_release_branches', 'prerelease');
     });
 
+    it('does not create tag without commits and default_bump set to false', async () => {
+      /*
+       * Given
+       */
+      setInput('default_prerelease_bump', 'false');
+      const commits: any[] = [];
+      jest
+          .spyOn(utils, 'getCommits')
+          .mockImplementation(async (sha) => commits);
+
+      const validTags = [
+        {
+          name: 'v1.2.3',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+      ];
+      jest
+          .spyOn(utils, 'getValidTags')
+          .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await action();
+
+      /*
+       * Then
+       */
+      expect(mockCreateTag).not.toBeCalled();
+      expect(mockSetFailed).not.toBeCalled();
+    });
+
     it('does create prerelease tag', async () => {
       /*
        * Given
        */
-      setInput('default_bump', 'prerelease');
+      setInput('default_prerelease_bump', 'prerelease');
       const commits = [{ message: 'this is my first fix', hash: null }];
       jest
           .spyOn(utils, 'getCommits')
@@ -460,14 +495,7 @@ describe('github-tag-action', () => {
 
       const validTags = [
         {
-          name: 'v0.2.4-prerelease.0',
-          commit: { sha: '012345', url: '' },
-          zipball_url: '',
-          tarball_url: 'string',
-          node_id: 'string',
-        },
-        {
-          name: 'v0.2.3-prerelease.0',
+          name: 'v1.2.3',
           commit: { sha: '012345', url: '' },
           zipball_url: '',
           tarball_url: 'string',
@@ -487,7 +515,7 @@ describe('github-tag-action', () => {
        * Then
        */
       expect(mockCreateTag).toHaveBeenCalledWith(
-          'v0.2.4-prerelease.1',
+          'v1.2.4-prerelease.0',
           expect.any(Boolean),
           expect.any(String)
       );
