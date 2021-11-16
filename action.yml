@@ -45,7 +45,7 @@ inputs:
     description: "Comma separated list of branches (bash reg exp accepted) that will generate pre-release tags."
     required: false
   commit_sha:
-    description: "Use this commit SHA instead GITHUB_SHA."
+    description: "The commit SHA value to add the tag. If specified, it uses this value instead GITHUB_SHA. It could be useful when a previous step merged a branch into github.ref."
     required: false
   create_annotated_tag:
     description: "Boolean to create an annotated tag rather than lightweight."
