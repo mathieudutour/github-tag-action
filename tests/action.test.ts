@@ -7,11 +7,16 @@ import {
   setBranch,
   setCommitSha,
   setInput,
+  setRepository,
 } from './helper.test';
 
 jest.spyOn(core, 'debug').mockImplementation(() => {});
 jest.spyOn(core, 'info').mockImplementation(() => {});
 jest.spyOn(console, 'info').mockImplementation(() => {});
+
+beforeAll(() => {
+  setRepository('https://github.com', 'org/repo');
+});
 
 const mockCreateTag = jest
   .spyOn(github, 'createTag')
@@ -446,6 +451,80 @@ describe('github-tag-action', () => {
       jest.clearAllMocks();
       setBranch('prerelease');
       setInput('pre_release_branches', 'prerelease');
+    });
+
+    it('does not create tag without commits and default_bump set to false', async () => {
+      /*
+       * Given
+       */
+      setInput('default_prerelease_bump', 'false');
+      const commits: any[] = [];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
+
+      const validTags = [
+        {
+          name: 'v1.2.3',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+      ];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await action();
+
+      /*
+       * Then
+       */
+      expect(mockCreateTag).not.toBeCalled();
+      expect(mockSetFailed).not.toBeCalled();
+    });
+
+    it('does create prerelease tag', async () => {
+      /*
+       * Given
+       */
+      setInput('default_prerelease_bump', 'prerelease');
+      const commits = [{ message: 'this is my first fix', hash: null }];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
+
+      const validTags = [
+        {
+          name: 'v1.2.3',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+      ];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await action();
+
+      /*
+       * Then
+       */
+      expect(mockCreateTag).toHaveBeenCalledWith(
+        'v1.2.4-prerelease.0',
+        expect.any(Boolean),
+        expect.any(String)
+      );
+      expect(mockSetFailed).not.toBeCalled();
     });
 
     it('does create prepatch tag', async () => {
