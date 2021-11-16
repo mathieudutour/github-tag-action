@@ -17,6 +17,9 @@ import { Await } from './ts';
 
 export default async function main() {
   const defaultBump = core.getInput('default_bump') as ReleaseType | 'false';
+  const defaultPreReleaseBump = core.getInput('default_prerelease_bump') as
+    | ReleaseType
+    | 'false';
   const tagPrefix = core.getInput('tag_prefix');
   const customTag = core.getInput('custom_tag');
   const releaseBranches = core.getInput('release_branches');
@@ -124,11 +127,29 @@ export default async function main() {
       { commits, logger: { log: console.info.bind(console) } }
     );
 
-    if (!bump && defaultBump === 'false') {
+    // Determine if we should continue with tag creation based on main vs prerelease branch
+    let shouldContinue = true;
+    if (isPrerelease) {
+      if (!bump && defaultPreReleaseBump === 'false') {
+        shouldContinue = false;
+      }
+    } else {
+      if (!bump && defaultBump === 'false') {
+        shouldContinue = false;
+      }
+    }
+
+    // Default bump is set to false and we did not find an automatic bump
+    if (!shouldContinue) {
       core.debug(
         'No commit specifies the version bump. Skipping the tag creation.'
       );
       return;
+    }
+
+    // If we don't have an automatic bump for the prerelease, just set our bump as the default
+    if (isPrerelease && !bump) {
+      bump = defaultPreReleaseBump;
     }
 
     // If somebody uses custom release rules on a prerelease branch they might create a 'preprepatch' bump.
@@ -138,7 +159,7 @@ export default async function main() {
     }
 
     const releaseType: ReleaseType = isPrerelease
-      ? `pre${bump || defaultBump}`
+      ? `pre${bump}`
       : bump || defaultBump;
     core.setOutput('release_type', releaseType);
 
