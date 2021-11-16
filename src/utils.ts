@@ -31,7 +31,10 @@ export async function getValidTags(
   return validTags;
 }
 
-export async function getCommits(baseRef: string, headRef: string) {
+export async function getCommits(
+  baseRef: string,
+  headRef: string
+): Promise<{ message: string; hash: string | null }[]> {
   const commits = await compareCommits(baseRef, headRef);
 
   return commits

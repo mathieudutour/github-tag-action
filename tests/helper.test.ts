@@ -2,6 +2,14 @@ import yaml from 'js-yaml';
 import fs from 'fs';
 import path from 'path';
 
+export function setRepository(
+  GITHUB_SERVER_URL: string,
+  GITHUB_REPOSITORY: string
+) {
+  process.env['GITHUB_SERVER_URL'] = GITHUB_SERVER_URL;
+  process.env['GITHUB_REPOSITORY'] = GITHUB_REPOSITORY;
+}
+
 export function setBranch(branch: string) {
   process.env['GITHUB_REF'] = `refs/heads/${branch}`;
 }
@@ -23,7 +31,7 @@ export function loadDefaultInputs() {
     path.join(process.cwd(), 'action.yml'),
     'utf-8'
   );
-  const actionJson = yaml.safeLoad(actionYaml) as {
+  const actionJson = yaml.load(actionYaml) as {
     inputs: { [key: string]: { default?: string } };
   };
   const defaultInputs = Object.keys(actionJson['inputs'])

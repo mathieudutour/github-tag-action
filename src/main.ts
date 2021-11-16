@@ -4,7 +4,7 @@ import action from './action';
 async function run() {
   try {
     await action();
-  } catch (error) {
+  } catch (error: any) {
     core.setFailed(error.message);
   }
 }

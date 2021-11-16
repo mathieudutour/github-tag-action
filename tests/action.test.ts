@@ -7,11 +7,16 @@ import {
   setBranch,
   setCommitSha,
   setInput,
+  setRepository,
 } from './helper.test';
 
 jest.spyOn(core, 'debug').mockImplementation(() => {});
 jest.spyOn(core, 'info').mockImplementation(() => {});
 jest.spyOn(console, 'info').mockImplementation(() => {});
+
+beforeAll(() => {
+  setRepository('https://github.com', 'org/repo');
+});
 
 const mockCreateTag = jest
   .spyOn(github, 'createTag')
