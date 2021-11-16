@@ -114,9 +114,8 @@ export function mapCustomReleaseRules(customReleaseTypes: string) {
       return true;
     })
     .map((customReleaseRule) => {
-      const [type, release, section] = customReleaseRule.split(
-        releaseTypeSeparator
-      );
+      const [type, release, section] =
+        customReleaseRule.split(releaseTypeSeparator);
       const defaultRule = defaultChangelogRules[type.toLowerCase()];
 
       return {
