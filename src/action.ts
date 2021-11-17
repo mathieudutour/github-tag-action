@@ -59,12 +59,11 @@ export default async function main() {
   const isPullRequest = isPr(GITHUB_REF);
   const isPrerelease = !isReleaseBranch && !isPullRequest && isPreReleaseBranch;
 
-  const identifier = appendToPreReleaseTag
-    ? appendToPreReleaseTag
-    : currentBranch;
-
-  // Sanitize identifier according to https://semver.org/#backusnaur-form-grammar-for-valid-semver-versions
-  identifier = identifier.replace(/[^a-zA-Z0-9-]/g, '-');
+  // Sanitize identifier according to
+  // https://semver.org/#backusnaur-form-grammar-for-valid-semver-versions
+  const identifier = (
+    appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch
+  ).replace(/[^a-zA-Z0-9-]/g, '-');
 
   const prefixRegex = new RegExp(`^${tagPrefix}`);
 
