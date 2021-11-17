@@ -31,6 +31,7 @@ jobs:
 ### 📥 Inputs
 
 - **github_token** _(required)_ - Required for permission to tag the repo. Usually `${{ secrets.GITHUB_TOKEN }}`.
+- **commit_sha** _(optional)_ - The commit SHA value to add the tag. If specified, it uses this value instead GITHUB_SHA. It could be useful when a previous step merged a branch into github.ref.
 
 #### Fetch all tags
 

@@ -29,6 +29,7 @@ export default async function main() {
   const dryRun = core.getInput('dry_run');
   const customReleaseRules = core.getInput('custom_release_rules');
   const shouldFetchAllTags = core.getInput('fetch_all_tags');
+  const commitSha = core.getInput('commit_sha');
 
   let mappedReleaseRules;
   if (customReleaseRules) {
@@ -42,8 +43,9 @@ export default async function main() {
     return;
   }
 
-  if (!GITHUB_SHA) {
-    core.setFailed('Missing GITHUB_SHA.');
+  const commitRef = commitSha || GITHUB_SHA;
+  if (!commitRef) {
+    core.setFailed('Missing commit_sha or GITHUB_SHA.');
     return;
   }
 
@@ -79,7 +81,7 @@ export default async function main() {
   let newVersion: string;
 
   if (customTag) {
-    commits = await getCommits(latestTag.commit.sha, GITHUB_SHA);
+    commits = await getCommits(latestTag.commit.sha, commitRef);
 
     core.setOutput('release_type', 'custom');
     newVersion = customTag;
@@ -115,7 +117,7 @@ export default async function main() {
     core.setOutput('previous_version', previousVersion.version);
     core.setOutput('previous_tag', previousTag.name);
 
-    commits = await getCommits(previousTag.commit.sha, GITHUB_SHA);
+    commits = await getCommits(previousTag.commit.sha, commitRef);
 
     let bump = await analyzeCommits(
       {
@@ -222,5 +224,5 @@ export default async function main() {
     return;
   }
 
-  await createTag(newTag, createAnnotatedTag, GITHUB_SHA);
+  await createTag(newTag, createAnnotatedTag, commitRef);
 }
