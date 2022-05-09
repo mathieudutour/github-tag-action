@@ -80,6 +80,96 @@ describe('utils', () => {
     expect(validTags).toHaveLength(1);
   });
 
+  it('returns valid tags #2', async () => {
+    /*
+     * Given
+     */
+    const testTags = [
+      {
+        name: 'v1.0.0',
+        commit: { sha: 'string', url: 'string' },
+        zipball_url: 'string',
+        tarball_url: 'string',
+        node_id: 'string',
+      },
+      {
+        name: '0.0.91',
+        commit: { sha: 'string', url: 'string' },
+        zipball_url: 'string',
+        tarball_url: 'string',
+        node_id: 'string',
+      },
+    ];
+    const mockListTags = jest
+      .spyOn(github, 'listTags')
+      .mockImplementation(async () => testTags);
+
+    const regex_2 = /^/;
+
+    /*
+     * When
+     */
+    const validTags = await getValidTags(regex_2, false, true);
+
+    /*
+     * Then
+     */
+    expect(mockListTags).toHaveBeenCalled();
+    expect(validTags).toHaveLength(1);
+    expect(validTags[0]).toEqual({
+      name: '0.0.91',
+      commit: { sha: 'string', url: 'string' },
+      zipball_url: 'string',
+      tarball_url: 'string',
+      node_id: 'string',
+    });
+  });
+
+  it('returns valid tags #3', async () => {
+    /*
+     * Given
+     */
+    const testTags = [
+      {
+        name: 'v1.0.0',
+        commit: { sha: 'string', url: 'string' },
+        zipball_url: 'string',
+        tarball_url: 'string',
+        node_id: 'string',
+      },
+      {
+        name: '1.0.91',
+        commit: { sha: 'string', url: 'string' },
+        zipball_url: 'string',
+        tarball_url: 'string',
+        node_id: 'string',
+      },
+    ];
+    const mockListTags = jest
+      .spyOn(github, 'listTags')
+      .mockImplementation(async () => testTags);
+
+    const regex_2 = /^v/;
+
+    /*
+     * When
+     */
+    const validTags = await getValidTags(regex_2, false, true);
+
+    /*
+     * Then
+     */
+    expect(mockListTags).toHaveBeenCalled();
+    expect(validTags).toHaveLength(1);
+    expect(validTags[0]).toEqual({
+      name: 'v1.0.0',
+      commit: { sha: 'string', url: 'string' },
+      zipball_url: 'string',
+      tarball_url: 'string',
+      node_id: 'string',
+    });
+  });
+
   it('returns sorted tags', async () => {
     /*
      * Given

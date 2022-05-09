@@ -21,6 +21,7 @@ export default async function main() {
     | ReleaseType
     | 'false';
   const tagPrefix = core.getInput('tag_prefix');
+  const prefixMatchTag = core.getInput('prefix_match_tag');
   const customTag = core.getInput('custom_tag');
   const releaseBranches = core.getInput('release_branches');
   const preReleaseBranches = core.getInput('pre_release_branches');
@@ -69,7 +70,8 @@ export default async function main() {
 
   const validTags = await getValidTags(
     prefixRegex,
-    /true/i.test(shouldFetchAllTags)
+    /true/i.test(shouldFetchAllTags),
+    /true/i.test(prefixMatchTag)
   );
   const latestTag = getLatestTag(validTags, prefixRegex, tagPrefix);
   const latestPrereleaseTag = getLatestPrereleaseTag(
