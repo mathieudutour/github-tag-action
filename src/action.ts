@@ -57,7 +57,7 @@ export default async function main() {
     .split(',')
     .some((branch) => currentBranch.match(branch));
   const isPullRequest = isPr(GITHUB_REF);
-  const isPrerelease = !isReleaseBranch && !isPullRequest && isPreReleaseBranch;
+  const isPrerelease = !isReleaseBranch && isPreReleaseBranch;
 
   // Sanitize identifier according to
   // https://semver.org/#backusnaur-form-grammar-for-valid-semver-versions
