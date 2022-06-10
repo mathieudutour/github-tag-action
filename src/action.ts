@@ -25,7 +25,7 @@ export default async function main() {
   const releaseBranches = core.getInput('release_branches');
   const preReleaseBranches = core.getInput('pre_release_branches');
   const appendToPreReleaseTag = core.getInput('append_to_pre_release_tag');
-  const createAnnotatedTag = !!core.getInput('create_annotated_tag');
+  const createAnnotatedTag = /true/i.test(core.getInput('create_annotated_tag'));
   const dryRun = core.getInput('dry_run');
   const customReleaseRules = core.getInput('custom_release_rules');
   const shouldFetchAllTags = core.getInput('fetch_all_tags');
