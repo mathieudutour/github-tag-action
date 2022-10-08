@@ -20,10 +20,16 @@ inputs:
     description: "Which type of bump to use when none explicitly provided when commiting to a release branch (default: `patch`)."
     required: false
     default: "patch"
+  force_bump:
+    description: "A release type. If specified, it ignores the type of bump provided when committing to a release branch, as well as default_bump"
+    required: false
   default_prerelease_bump:
     description: "Which type of bump to use when none explicitly provided when commiting to a prerelease branch (default: `prerelease`)."
     required: false
     default: "prerelease"
+  force_prerelease_bump:
+    description: "A release type. If specified, it ignores the type of bump provided when committing to a prerelease branch, as well as default_prerelease_bump"
+    required: false
   tag_prefix:
     description: "A prefix to the tag name (default: `v`)."
     required: false
