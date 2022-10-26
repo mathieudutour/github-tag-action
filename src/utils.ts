@@ -10,7 +10,8 @@ type Tags = Await<ReturnType<typeof listTags>>;
 
 export async function getValidTags(
   prefixRegex: RegExp,
-  shouldFetchAllTags: boolean
+  shouldFetchAllTags: boolean,
+  prefixMatchTag: boolean = false
 ) {
   const tags = await listTags(shouldFetchAllTags);
 
@@ -20,8 +21,17 @@ export async function getValidTags(
 
   invalidTags.forEach((name) => core.debug(`Found Invalid Tag: ${name}.`));
 
+  let prefixRegexMatchSemver: RegExp = RegExp(
+    prefixRegex.toString().slice(1, -1) + '[0-9]+',
+    'g'
+  );
+
   const validTags = tags
-    .filter((tag) => valid(tag.name.replace(prefixRegex, '')))
+    .filter(
+      (tag) =>
+        valid(tag.name.replace(prefixRegex, '')) &&
+        (!prefixMatchTag || tag.name.match(prefixRegexMatchSemver))
+    )
     .sort((a, b) =>
       rcompare(a.name.replace(prefixRegex, ''), b.name.replace(prefixRegex, ''))
     );
