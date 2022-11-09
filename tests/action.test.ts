@@ -8,6 +8,7 @@ import {
   setCommitSha,
   setInput,
   setRepository,
+  setEventName,
 } from './helper.test';
 
 jest.spyOn(core, 'debug').mockImplementation(() => {});
@@ -33,6 +34,7 @@ describe('github-tag-action', () => {
     jest.clearAllMocks();
     setBranch('master');
     setCommitSha('79e0ea271c26aa152beef77c3275ff7b8f8d8274');
+    setEventName('push');
     loadDefaultInputs();
   });
 

@@ -49,8 +49,8 @@ export function getBranchFromRef(ref: string) {
   return ref.replace('refs/heads/', '');
 }
 
-export function isPr(ref: string) {
-  return ref.includes('refs/pull/');
+export function isPr(eventName: string) {
+  return eventName.includes('pull_request');
 }
 
 export function getLatestTag(

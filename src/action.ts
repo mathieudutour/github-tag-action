@@ -38,10 +38,15 @@ export default async function main() {
     mappedReleaseRules = mapCustomReleaseRules(customReleaseRules);
   }
 
-  const { GITHUB_REF, GITHUB_SHA } = process.env;
+  const { GITHUB_REF, GITHUB_SHA, GITHUB_EVENT_NAME } = process.env;
 
   if (!GITHUB_REF) {
     core.setFailed('Missing GITHUB_REF.');
+    return;
+  }
+
+  if (!GITHUB_EVENT_NAME) {
+    core.setFailed('Missing GITHUB_EVENT_NAME');
     return;
   }
 
@@ -58,8 +63,9 @@ export default async function main() {
   const isPreReleaseBranch = preReleaseBranches
     .split(',')
     .some((branch) => currentBranch.match(branch));
-  const isPullRequest = isPr(GITHUB_REF);
-  const isPrerelease = !isReleaseBranch && !isPullRequest && isPreReleaseBranch;
+  const isPullRequest = isPr(GITHUB_EVENT_NAME);
+  const isPrerelease =
+    !isReleaseBranch && (isPullRequest || isPreReleaseBranch);
 
   // Sanitize identifier according to
   // https://semver.org/#backusnaur-form-grammar-for-valid-semver-versions

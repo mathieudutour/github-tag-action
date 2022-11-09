@@ -27,16 +27,16 @@ describe('utils', () => {
     expect(branch).toEqual('master');
   });
 
-  it('test if ref is PR', () => {
+  it('test if triggering event is PR', () => {
     /*
      * Given
      */
-    const remoteRef = 'refs/pull/123/merge';
+    const eventName = 'pull_request';
 
     /*
      * When
      */
-    const isPullRequest = utils.isPr(remoteRef);
+    const isPullRequest = utils.isPr(eventName);
 
     /*
      * Then
