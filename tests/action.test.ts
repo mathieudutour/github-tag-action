@@ -224,6 +224,7 @@ describe('github-tag-action', () => {
       jest.clearAllMocks();
       setBranch('release');
       setInput('release_branches', 'release');
+      setEventName('push');
     });
 
     it('does create patch tag', async () => {
@@ -872,6 +873,48 @@ describe('github-tag-action', () => {
        */
       expect(mockSetOutput).toHaveBeenCalledWith('new_version', '2.0.0');
       expect(mockCreateTag).not.toBeCalled();
+      expect(mockSetFailed).not.toBeCalled();
+    });
+  });
+
+  describe('pull requests', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      setBranch('branch-with-my-first-feature');
+      setEventName('pull_request');
+    });
+
+    it('does not create tag on pull request', async () => {
+      /*
+       * Given
+       */
+      const commits = [{ message: 'fix: this is my first fix', hash: null }];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
+
+      const validTags = [
+        {
+          name: 'v1.2.3',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+      ];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await action();
+
+      /*
+       * Then
+       */
+      expect(mockCreateTag).not.toHaveBeenCalledWith();
       expect(mockSetFailed).not.toBeCalled();
     });
   });
