@@ -28,12 +28,13 @@ const mockSetOutput = jest
   .mockImplementation(() => {});
 
 const mockSetFailed = jest.spyOn(core, 'setFailed');
+const commitSha = '79e0ea271c26aa152beef77c3275ff7b8f8d8274';
 
 describe('github-tag-action', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setBranch('master');
-    setCommitSha('79e0ea271c26aa152beef77c3275ff7b8f8d8274');
+    setCommitSha(commitSha);
     setEventName('push');
     loadDefaultInputs();
   });
@@ -487,6 +488,7 @@ describe('github-tag-action', () => {
       /*
        * Then
        */
+
       expect(mockCreateTag).not.toBeCalled();
       expect(mockSetFailed).not.toBeCalled();
     });
@@ -880,11 +882,11 @@ describe('github-tag-action', () => {
   describe('pull requests', () => {
     beforeEach(() => {
       jest.clearAllMocks();
-      setBranch('branch-with-my-first-feature');
+      setBranch('branch-with-my-first-fix');
       setEventName('pull_request');
     });
 
-    it('does not create tag on pull request', async () => {
+    it('does create new version with commit sha suffix on pull request', async () => {
       /*
        * Given
        */
@@ -914,6 +916,10 @@ describe('github-tag-action', () => {
       /*
        * Then
        */
+      expect(mockSetOutput).toHaveBeenCalledWith(
+        'new_version',
+        `1.2.4-${commitSha.slice(0, 7)}`
+      );
       expect(mockCreateTag).not.toHaveBeenCalledWith();
       expect(mockSetFailed).not.toBeCalled();
     });
