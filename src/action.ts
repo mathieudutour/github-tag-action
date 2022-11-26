@@ -1,4 +1,5 @@
 import * as core from '@actions/core';
+import { context } from '@actions/github';
 import { gte, inc, parse, ReleaseType, SemVer, valid } from 'semver';
 import { analyzeCommits } from '@semantic-release/commit-analyzer';
 import { generateNotes } from '@semantic-release/release-notes-generator';
@@ -29,6 +30,7 @@ export default async function main() {
     core.getInput('create_annotated_tag')
   );
   const dryRun = core.getInput('dry_run');
+  const commitMethod = core.getInput('commit_method');
   const customReleaseRules = core.getInput('custom_release_rules');
   const shouldFetchAllTags = core.getInput('fetch_all_tags');
   const commitSha = core.getInput('commit_sha');
@@ -121,7 +123,16 @@ export default async function main() {
     core.setOutput('previous_version', previousVersion.version);
     core.setOutput('previous_tag', previousTag.name);
 
-    commits = await getCommits(previousTag.commit.sha, commitRef);
+    if (commitMethod == 'tag') {
+      commits = await getCommits(previousTag.commit.sha, commitRef);
+    } else if (isPullRequest) {
+      // @ts-ignore
+      const baseRef = context.payload.pull_request.base.sha;
+      commits = await getCommits(baseRef, commitRef);
+    } else {
+      core.setFailed('commitMethod is not "tag" but we are not in a PR.');
+      return;
+    }
 
     let bump = await analyzeCommits(
       {

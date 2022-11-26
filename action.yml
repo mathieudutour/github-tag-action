@@ -59,6 +59,10 @@ inputs:
     description: "Do not perform tagging, just calculate next version and changelog, then exit."
     required: false
     default: "false"
+  commit_method:
+    description: "We can fetch commits comparison form tag or from PR's base, default is from a 'tag'. Anything else assume PR"
+    required: false
+    default: "tag"
 
 runs:
   using: "node16"
