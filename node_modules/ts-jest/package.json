@@ -1,0 +1,150 @@
+{
+  "name": "ts-jest",
+  "version": "27.0.7",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "ts-jest": "cli.js"
+  },
+  "description": "A Jest transformer with source map support that lets you use Jest to test projects written in TypeScript",
+  "scripts": {
+    "prebuild": "node scripts/pre-build.js",
+    "build": "tsc -p tsconfig.build.json",
+    "postbuild": "node scripts/post-build.js",
+    "clean": "node scripts/clean.js",
+    "test": "run-s -s test:e2e \"test:unit -- {@}\" --",
+    "test:prepare": "npm run test:e2e -- --prepareOnly",
+    "test:e2e": "node scripts/e2e.js",
+    "test:e2e:update-snaphots": "node scripts/e2e.js --updateSnapshot",
+    "test:unit": "node_modules/.bin/jest",
+    "test:external": "node scripts/test-external-project.js",
+    "test:external-repos": "npm run test:external external-repos",
+    "lint": "node_modules/.bin/eslint --ext .js,.ts .",
+    "lint:fix": "node_modules/.bin/eslint --fix --ext .js,.ts .",
+    "lint:prettier": "prettier 'scripts/**' '**/*.{yml,yaml}' 'website/**/*.{css,js,md}' 'CONTRIBUTING.md' 'README.md' 'TROUBLESHOOTING.md' --write --ignore-path .gitignore",
+    "lint:prettier-ci": "prettier 'scripts/**' '**/*.{yml,yaml}' 'website/**/*.{css,js,md}' 'CONTRIBUTING.md' 'README.md' 'TROUBLESHOOTING.md' --check --ignore-path .gitignore",
+    "doc": "cd website && npm run start",
+    "doc:build": "cd website && npm run build",
+    "changelog": "node_modules/.bin/conventional-changelog -p angular -i CHANGELOG.md -s -r 1",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run test",
+    "preversion": "npm run test",
+    "update:e2e": "node scripts/update-e2e-templates.js",
+    "version": "npm run changelog && git add CHANGELOG.md",
+    "raw:options": "node scripts/generate-raw-compiler-options.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kulshekhar/ts-jest.git"
+  },
+  "keywords": [
+    "jest",
+    "typescript",
+    "sourcemap",
+    "react",
+    "testing"
+  ],
+  "author": "Kulshekhar Kabra <kulshekhar@users.noreply.github.com> (https://github.com/kulshekhar)",
+  "contributors": [
+    "Huafu Gandon <huafu.gandon@gmail.com> (https://github.com/huafu)",
+    "Anh Pham <anhpnnd@gmail.com> (https://github.com/ahnpnl)",
+    "Gustav Wengel <gustavwengel@gmail.com> (https://github.com/GeeWee)"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kulshekhar/ts-jest/issues"
+  },
+  "homepage": "https://kulshekhar.github.io/ts-jest",
+  "dependencies": {
+    "bs-logger": "0.x",
+    "fast-json-stable-stringify": "2.x",
+    "jest-util": "^27.0.0",
+    "json5": "2.x",
+    "lodash.memoize": "4.x",
+    "make-error": "1.x",
+    "semver": "7.x",
+    "yargs-parser": "20.x"
+  },
+  "peerDependencies": {
+    "@babel/core": ">=7.0.0-beta.0 <8",
+    "@types/jest": "^27.0.0",
+    "babel-jest": ">=27.0.0 <28",
+    "jest": "^27.0.0",
+    "typescript": ">=3.8 <5.0"
+  },
+  "peerDependenciesMeta": {
+    "babel-jest": {
+      "optional": true
+    },
+    "@babel/core": {
+      "optional": true
+    },
+    "@types/jest": {
+      "optional": true
+    }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
+      "post-commit": "git reset"
+    }
+  },
+  "devDependencies": {
+    "@commitlint/cli": "13.x",
+    "@commitlint/config-angular": "^13.1.0",
+    "@jest/transform": "^27.1.1",
+    "@jest/types": "^27.1.1",
+    "@types/babel__core": "7.x",
+    "@types/cross-spawn": "latest",
+    "@types/fs-extra": "latest",
+    "@types/jest": "latest",
+    "@types/js-yaml": "latest",
+    "@types/lodash.camelcase": "4.x",
+    "@types/lodash.memoize": "4.x",
+    "@types/lodash.set": "4.x",
+    "@types/micromatch": "4.x",
+    "@types/node": "16.11.0",
+    "@types/node-fetch": "^3.0.3",
+    "@types/react": "17.x",
+    "@types/semver": "latest",
+    "@types/yargs": "latest",
+    "@types/yargs-parser": "20.x",
+    "@typescript-eslint/eslint-plugin": "4.x",
+    "@typescript-eslint/parser": "4.x",
+    "conventional-changelog-cli": "2.x",
+    "cross-spawn": "latest",
+    "eslint": "7.x",
+    "eslint-config-prettier": "latest",
+    "eslint-plugin-import": "latest",
+    "eslint-plugin-jest": "latest",
+    "eslint-plugin-jsdoc": "latest",
+    "eslint-plugin-prefer-arrow": "latest",
+    "eslint-plugin-prettier": "latest",
+    "execa": "latest",
+    "fs-extra": "10.x",
+    "glob": "^7.1.7",
+    "glob-gitignore": "latest",
+    "husky": "4.x",
+    "jest": "^27.1.1",
+    "js-yaml": "latest",
+    "json-schema-to-typescript": "^10.1.4",
+    "lint-staged": "latest",
+    "lodash.camelcase": "^4.3.0",
+    "lodash.set": "^4.3.2",
+    "node-fetch": "^3.0.0",
+    "npm-run-all": "latest",
+    "prettier": "^2.4.0",
+    "source-map": "latest",
+    "typescript": "~4.2.4"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "git add"
+    ]
+  },
+  "engines": {
+    "node": "^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0"
+  }
+}
