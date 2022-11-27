@@ -126,8 +126,7 @@ export default async function main() {
     if (commitMethod == 'tag') {
       commits = await getCommits(previousTag.commit.sha, commitRef);
     } else if (isPullRequest) {
-      // @ts-ignore
-      const baseRef = context.payload.pull_request.base.sha;
+      const baseRef = context?.payload?.pull_request?.base?.sha;
       commits = await getCommits(baseRef, commitRef);
     } else {
       core.setFailed('commitMethod is not "tag" but we are not in a PR.');
