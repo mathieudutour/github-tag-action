@@ -5,6 +5,7 @@ import DEFAULT_RELEASE_TYPES from '@semantic-release/commit-analyzer/lib/default
 import { compareCommits, listTags } from './github';
 import { defaultChangelogRules } from './defaults';
 import { Await } from './ts';
+import { context } from '@actions/github';
 
 type Tags = Await<ReturnType<typeof listTags>>;
 
@@ -30,19 +31,58 @@ export async function getValidTags(
 
   return validTags;
 }
+interface FinalCommit {
+  sha: string | null;
+  commit: {
+    message: string;
+  };
+}
 
 export async function getCommits(
   baseRef: string,
   headRef: string
 ): Promise<{ message: string; hash: string | null }[]> {
-  const commits = await compareCommits(baseRef, headRef);
+  let commits: Array<FinalCommit>;
+  commits = await compareCommits(baseRef, headRef);
+  core.info('We found ' + commits.length + ' commits using classic compare!');
+  if (commits.length < 1) {
+    core.info(
+      'We did not find enough commits, attempting to scan closed PR method.'
+    );
+    commits = getClosedPRCommits();
+  }
+  if (commits.length == 0) {
+    return [];
+  }
 
   return commits
-    .filter((commit) => !!commit.commit.message)
-    .map((commit) => ({
+    .filter((commit: FinalCommit) => !!commit.commit.message)
+    .map((commit: FinalCommit) => ({
       message: commit.commit.message,
       hash: commit.sha,
     }));
+}
+
+function getClosedPRCommits() {
+  let commits = Array<FinalCommit>();
+  if (!('pull_request' in context.payload)) {
+    core.debug('We are in a closed PR context continuing.');
+    core.debug(JSON.stringify(context.payload.commits));
+    let pr_commit_count = context.payload.commits.length;
+    core.info(
+      'We found ' + pr_commit_count + ' commits from the Closed PR method.'
+    );
+    commits = context.payload.commits
+      .filter((commit: FinalCommit) => !!commit.commit.message)
+      .filter((commit: FinalCommit) => ({
+        message: commit.commit.message,
+        hash: commit.sha,
+      }));
+    core.debug(
+      'After processing we are going to present ' + commits.length + ' commits!'
+    );
+  }
+  return commits;
 }
 
 export function getBranchFromRef(ref: string) {
