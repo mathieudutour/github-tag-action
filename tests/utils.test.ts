@@ -57,7 +57,7 @@ describe('utils', () => {
         node_id: 'string',
       },
       {
-        name: '1.2.3',
+        name: 'v1.2.3',
         commit: { sha: 'string', url: 'string' },
         zipball_url: 'string',
         tarball_url: 'string',
@@ -86,28 +86,28 @@ describe('utils', () => {
      */
     const testTags = [
       {
-        name: '1.2.4-prerelease.1',
+        name: 'v1.2.4-prerelease.1',
         commit: { sha: 'string', url: 'string' },
         zipball_url: 'string',
         tarball_url: 'string',
         node_id: 'string',
       },
       {
-        name: '1.2.4-prerelease.2',
+        name: 'v1.2.4-prerelease.2',
         commit: { sha: 'string', url: 'string' },
         zipball_url: 'string',
         tarball_url: 'string',
         node_id: 'string',
       },
       {
-        name: '1.2.4-prerelease.0',
+        name: 'v1.2.4-prerelease.0',
         commit: { sha: 'string', url: 'string' },
         zipball_url: 'string',
         tarball_url: 'string',
         node_id: 'string',
       },
       {
-        name: '1.2.3',
+        name: 'v1.2.3',
         commit: { sha: 'string', url: 'string' },
         zipball_url: 'string',
         tarball_url: 'string',
@@ -128,7 +128,55 @@ describe('utils', () => {
      */
     expect(mockListTags).toHaveBeenCalled();
     expect(validTags[0]).toEqual({
-      name: '1.2.4-prerelease.2',
+      name: 'v1.2.4-prerelease.2',
+      commit: { sha: 'string', url: 'string' },
+      zipball_url: 'string',
+      tarball_url: 'string',
+      node_id: 'string',
+    });
+  });
+
+  it('returns only prefixed tags', async () => {
+    /*
+     * Given
+     */
+    const testTags = [
+      {
+        name: 'app2/5.0.0',
+        commit: { sha: 'string', url: 'string' },
+        zipball_url: 'string',
+        tarball_url: 'string',
+        node_id: 'string',
+      },
+      {
+        name: '7.0.0',
+        commit: { sha: 'string', url: 'string' },
+        zipball_url: 'string',
+        tarball_url: 'string',
+        node_id: 'string',
+      },
+      {
+        name: 'app1/3.0.0',
+        commit: { sha: 'string', url: 'string' },
+        zipball_url: 'string',
+        tarball_url: 'string',
+        node_id: 'string',
+      },
+    ];
+    const mockListTags = jest
+      .spyOn(github, 'listTags')
+      .mockImplementation(async () => testTags);
+    /*
+     * When
+     */
+    const validTags = await getValidTags(/^app1\//, false);
+    /*
+     * Then
+     */
+    expect(mockListTags).toHaveBeenCalled();
+    expect(validTags).toHaveLength(1);
+    expect(validTags[0]).toEqual({
+      name: 'app1/3.0.0',
       commit: { sha: 'string', url: 'string' },
       zipball_url: 'string',
       tarball_url: 'string',
