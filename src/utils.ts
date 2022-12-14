@@ -15,13 +15,17 @@ export async function getValidTags(
   const tags = await listTags(shouldFetchAllTags);
 
   const invalidTags = tags.filter(
-    (tag) => !prefixRegex.test(tag.name) || !valid(tag.name.replace(prefixRegex, ''))
+    (tag) =>
+      !prefixRegex.test(tag.name) || !valid(tag.name.replace(prefixRegex, ''))
   );
 
   invalidTags.forEach((name) => core.debug(`Found Invalid Tag: ${name}.`));
 
   const validTags = tags
-    .filter((tag) => prefixRegex.test(tag.name) && valid(tag.name.replace(prefixRegex, '')))
+    .filter(
+      (tag) =>
+        prefixRegex.test(tag.name) && valid(tag.name.replace(prefixRegex, ''))
+    )
     .sort((a, b) =>
       rcompare(a.name.replace(prefixRegex, ''), b.name.replace(prefixRegex, ''))
     );
