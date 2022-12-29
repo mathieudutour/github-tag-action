@@ -22,6 +22,8 @@ export default async function main() {
     | 'false';
   const tagPrefix = core.getInput('tag_prefix');
   const customTag = core.getInput('custom_tag');
+  const customVersionYamlFile = core.getInput('custom_version_yaml_file');
+  const customVersionPath = core.getInput('custom_version_path');
   const releaseBranches = core.getInput('release_branches');
   const preReleaseBranches = core.getInput('pre_release_branches');
   const appendToPreReleaseTag = core.getInput('append_to_pre_release_tag');
@@ -84,7 +86,27 @@ export default async function main() {
 
   let newVersion: string;
 
-  if (customTag) {
+  if (customVersionYamlFile) {
+    commits = await getCommits(latestTag.commit.sha, commitRef);
+
+    core.info(`Version is custom from YAML file.`);
+
+    core.setOutput('release_type', 'custom');
+
+    const path = require('path')
+    const fs = require('fs')
+    const objectPath = require('object-path')
+    const yaml = require('yaml')
+    let fileLocation = path.resolve(process.cwd(), customVersionYamlFile);
+    if (fs.existsSync(fileLocation)) {
+      const fileContent = fs.readFileSync(fileLocation, 'utf8');
+      const yamlContent = yaml.parse(fileContent);
+      newVersion = objectPath.get(yamlContent, customVersionPath, null);
+    } else {
+      core.setFailed(`${customVersionYamlFile} is not found`);
+      return;
+    }
+  } else if (customTag) {
     commits = await getCommits(latestTag.commit.sha, commitRef);
 
     core.setOutput('release_type', 'custom');
