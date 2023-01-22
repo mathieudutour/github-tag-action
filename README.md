@@ -18,8 +18,6 @@ jobs:
       - name: Bump version and push tag
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Create a GitHub release
         uses: ncipollo/release-action@v1
         with:
@@ -30,7 +28,7 @@ jobs:
 
 ### 📥 Inputs
 
-- **github_token** _(required)_ - Required for permission to tag the repo. Usually `${{ secrets.GITHUB_TOKEN }}`.
+- **github_token** _(optional)_ - GitHub token for permission to tag the repo (default: `${{github.token}}`).
 - **commit_sha** _(optional)_ - The commit SHA value to add the tag. If specified, it uses this value instead GITHUB_SHA. It could be useful when a previous step merged a branch into github.ref.
 
 #### Fetch all tags
