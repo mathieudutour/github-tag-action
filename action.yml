@@ -14,9 +14,8 @@ outputs:
     description: "The conventional changelog since the previous tag"
 inputs:
   github_token:
-    description: "GitHub token for permission to tag the repo."
-    required: false
-    default: ${{ github.token }}
+    description: "Required for permission to tag the repo."
+    required: true
   default_bump:
     description: "Which type of bump to use when none explicitly provided when commiting to a release branch (default: `patch`)."
     required: false
