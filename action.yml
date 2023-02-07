@@ -59,6 +59,10 @@ inputs:
     description: "Do not perform tagging, just calculate next version and changelog, then exit."
     required: false
     default: "false"
+  push_tag:
+    description: "Push the created tag to remote ref. If false, tag is created, but not pushed."
+    required: false
+    default: "true"
 
 runs:
   using: "node16"
