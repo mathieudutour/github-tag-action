@@ -5,12 +5,14 @@ import { generateNotes } from '@semantic-release/release-notes-generator';
 import {
   getBranchFromRef,
   isPr,
+  isPrereleaseBranch,
   getCommits,
   getLatestPrereleaseTag,
   getLatestTag,
   getValidTags,
   mapCustomReleaseRules,
   mergeWithDefaultChangelogRules,
+  getIdentifier,
 } from './utils';
 import { createTag } from './github';
 import { Await } from './ts';
@@ -38,10 +40,15 @@ export default async function main() {
     mappedReleaseRules = mapCustomReleaseRules(customReleaseRules);
   }
 
-  const { GITHUB_REF, GITHUB_SHA } = process.env;
+  const { GITHUB_REF, GITHUB_SHA, GITHUB_EVENT_NAME } = process.env;
 
   if (!GITHUB_REF) {
     core.setFailed('Missing GITHUB_REF.');
+    return;
+  }
+
+  if (!GITHUB_EVENT_NAME) {
+    core.setFailed('Missing GITHUB_EVENT_NAME');
     return;
   }
 
@@ -55,17 +62,22 @@ export default async function main() {
   const isReleaseBranch = releaseBranches
     .split(',')
     .some((branch) => currentBranch.match(branch));
-  const isPreReleaseBranch = preReleaseBranches
-    .split(',')
-    .some((branch) => currentBranch.match(branch));
-  const isPullRequest = isPr(GITHUB_REF);
+  const isPreReleaseBranch = isPrereleaseBranch(
+    preReleaseBranches,
+    currentBranch
+  );
+  const isPullRequest = isPr(GITHUB_EVENT_NAME);
   const isPrerelease = !isReleaseBranch && !isPullRequest && isPreReleaseBranch;
 
   // Sanitize identifier according to
   // https://semver.org/#backusnaur-form-grammar-for-valid-semver-versions
-  const identifier = (
-    appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch
-  ).replace(/[^a-zA-Z0-9-]/g, '-');
+  const identifier = getIdentifier(
+    appendToPreReleaseTag,
+    currentBranch,
+    isPullRequest,
+    isPrerelease,
+    commitRef
+  );
 
   const prefixRegex = new RegExp(`^${tagPrefix}`);
 
@@ -181,7 +193,11 @@ export default async function main() {
       return;
     }
 
-    newVersion = incrementedVersion;
+    if (isPullRequest) {
+      newVersion = `${incrementedVersion}-${identifier}`;
+    } else {
+      newVersion = incrementedVersion;
+    }
   }
 
   core.info(`New version is ${newVersion}.`);

@@ -18,6 +18,10 @@ export function setCommitSha(sha: string) {
   process.env['GITHUB_SHA'] = sha;
 }
 
+export function setEventName(eventName: string) {
+  process.env['GITHUB_EVENT_NAME'] = eventName;
+}
+
 export function setInput(key: string, value: string) {
   process.env[`INPUT_${key.toUpperCase()}`] = value;
 }

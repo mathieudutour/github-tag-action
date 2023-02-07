@@ -53,8 +53,20 @@ export function getBranchFromRef(ref: string) {
   return ref.replace('refs/heads/', '');
 }
 
-export function isPr(ref: string) {
-  return ref.includes('refs/pull/');
+export function isPr(eventName: string) {
+  return eventName.includes('pull_request');
+}
+
+export function isPrereleaseBranch(
+  preReleaseBranches: string,
+  currentBranch: string
+) {
+  if (preReleaseBranches) {
+    return preReleaseBranches
+      .split(',')
+      .some((branch) => currentBranch.match(branch));
+  }
+  return false;
 }
 
 export function getLatestTag(
@@ -142,4 +154,24 @@ export function mergeWithDefaultChangelogRules(
   );
 
   return Object.values(mergedRules).filter((rule) => !!rule.section);
+}
+
+export function getIdentifier(
+  appendToPreReleaseTag: string,
+  currentBranch: string,
+  isPullRequest: boolean,
+  isPrerelease: boolean,
+  commitRef: string
+): string {
+  // On prerelease: Sanitize identifier according to
+  // https://semver.org/#backusnaur-form-grammar-for-valid-semver-versions
+  let identifier: string;
+  if (isPullRequest) {
+    // On pull request, use commit SHA for identifier
+    return commitRef.slice(0, 7).replace(/[^a-zA-Z0-9-]/g, '-');
+  }
+  identifier = (
+    appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch
+  ).replace(/[^a-zA-Z0-9-]/g, '-');
+  return identifier;
 }
