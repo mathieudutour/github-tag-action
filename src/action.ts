@@ -16,10 +16,10 @@ import { createTag } from './github';
 import { Await } from './ts';
 
 export default async function main() {
-  const defaultBump = core.getInput('default_bump') as ReleaseType | 'false';
+  const defaultBump = core.getInput('default_bump') as ReleaseType | 'patch';
   const defaultPreReleaseBump = core.getInput('default_prerelease_bump') as
     | ReleaseType
-    | 'false';
+    | 'prepatch';
   const tagPrefix = core.getInput('tag_prefix');
   const customTag = core.getInput('custom_tag');
   const releaseBranches = core.getInput('release_branches');
@@ -123,50 +123,9 @@ export default async function main() {
 
     commits = await getCommits(previousTag.commit.sha, commitRef);
 
-    let bump = await analyzeCommits(
-      {
-        releaseRules: mappedReleaseRules
-          ? // analyzeCommits doesn't appreciate rules with a section /shrug
-            mappedReleaseRules.map(({ section, ...rest }) => ({ ...rest }))
-          : undefined,
-      },
-      { commits, logger: { log: console.info.bind(console) } }
-    );
-
-    // Determine if we should continue with tag creation based on main vs prerelease branch
-    let shouldContinue = true;
-    if (isPrerelease) {
-      if (!bump && defaultPreReleaseBump === 'false') {
-        shouldContinue = false;
-      }
-    } else {
-      if (!bump && defaultBump === 'false') {
-        shouldContinue = false;
-      }
-    }
-
-    // Default bump is set to false and we did not find an automatic bump
-    if (!shouldContinue) {
-      core.debug(
-        'No commit specifies the version bump. Skipping the tag creation.'
-      );
-      return;
-    }
-
-    // If we don't have an automatic bump for the prerelease, just set our bump as the default
-    if (isPrerelease && !bump) {
-      bump = defaultPreReleaseBump;
-    }
-
-    // If somebody uses custom release rules on a prerelease branch they might create a 'preprepatch' bump.
-    const preReg = /^pre/;
-    if (isPrerelease && preReg.test(bump)) {
-      bump = bump.replace(preReg, '');
-    }
-
     const releaseType: ReleaseType = isPrerelease
-      ? `pre${bump}`
-      : bump || defaultBump;
+      ? defaultPreReleaseBump
+      : defaultBump;
     core.setOutput('release_type', releaseType);
 
     const incrementedVersion = inc(previousVersion, releaseType, identifier);
