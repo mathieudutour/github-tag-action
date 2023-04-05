@@ -129,4 +129,5 @@ If no commit message contains any information, then **default_bump** will be use
 
 ## Credits
 This action is based on: [mathieudutour/github-tag-action](https://github.com/mathieudutour/github-tag-action)
+
 [anothrNick/github-tag-action](https://github.com/anothrNick/github-tag-action) - a similar action using a Dockerfile (hence not working on macOS)
