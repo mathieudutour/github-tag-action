@@ -1,6 +1,7 @@
-name: "GitHub Tag"
+name: "HZKnight GitHub Tag"
 description: "Bump and push git tag on merge"
 author: "Mathieu Dutour"
+author: "Luca Liscio"
 outputs:
   new_tag:
     description: "Generated tag"
