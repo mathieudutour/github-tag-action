@@ -22,6 +22,10 @@ const mockCreateTag = jest
   .spyOn(github, 'createTag')
   .mockResolvedValue(undefined);
 
+jest
+  .spyOn(github, 'validatedCommitShaInput')
+  .mockImplementation(async (commitSha) => commitSha);
+
 const mockSetOutput = jest
   .spyOn(core, 'setOutput')
   .mockImplementation(() => {});

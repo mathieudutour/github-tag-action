@@ -12,7 +12,7 @@ import {
   mapCustomReleaseRules,
   mergeWithDefaultChangelogRules,
 } from './utils';
-import { createTag } from './github';
+import { createTag, validatedCommitShaInput } from './github';
 import { Await } from './ts';
 
 export default async function main() {
@@ -45,11 +45,12 @@ export default async function main() {
     return;
   }
 
-  const commitRef = commitSha || GITHUB_SHA;
+  let commitRef = commitSha || GITHUB_SHA;
   if (!commitRef) {
     core.setFailed('Missing commit_sha or GITHUB_SHA.');
     return;
   }
+  commitRef = await validatedCommitShaInput(commitRef);
 
   const currentBranch = getBranchFromRef(GITHUB_REF);
   const isReleaseBranch = releaseBranches

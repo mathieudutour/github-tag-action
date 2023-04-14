@@ -92,3 +92,28 @@ export async function createTag(
     sha: annotatedTag ? annotatedTag.data.sha : GITHUB_SHA,
   });
 }
+
+/**
+ * Validates that the commitSha is a valid commit sha or a valid ref.
+ * Returns the commit sha for the input.
+ *
+ * @param commitSha - commit sha or ref
+ */
+export async function validatedCommitShaInput(commitSha: string) {
+  const octokit = getOctokitSingleton();
+  try {
+    return (
+      await octokit.git.getCommit({
+        ...context.repo,
+        commit_sha: commitSha,
+      })
+    ).data.sha;
+  } catch (e) {
+    return (
+      await octokit.git.getRef({
+        ...context.repo,
+        ref: commitSha,
+      })
+    ).data.object.sha;
+  }
+}
