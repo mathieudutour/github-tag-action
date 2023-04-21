@@ -155,9 +155,14 @@ export default async function main() {
 
     // If we don't have an automatic bump for the prerelease, just set our bump as the default
     if (isPrerelease && !bump) {
-      bump = defaultPreReleaseBump;
+      if (previousVersion.prerelease.length == 0)
+        // previous version is a prerelease -> draft a new version with the default bump and make it a prerelease
+        bump = defaultBump;
+      else
+        bump = defaultPreReleaseBump;
     }
 
+    // TODO: these next 10 lines are horrible!! why we have preminor as bump type at all if it is always striped away?
     // If somebody uses custom release rules on a prerelease branch they might create a 'preprepatch' bump.
     const preReg = /^pre/;
     if (isPrerelease && preReg.test(bump)) {
