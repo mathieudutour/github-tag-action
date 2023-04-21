@@ -20,6 +20,11 @@ inputs:
     description: "Which type of bump to use when none explicitly provided when commiting to a release branch (default: `patch`)."
     required: false
     default: "patch"
+  default_draft_bump:
+    description: |
+      Which type of bump to use when none explicitly provided when commiting to a prerelease branch with no previous prerelease version (default: same as `default_prerelease_bump`).
+      Defaults to prerelease for backward-compatibility with previous behaviour. Might make more sense to set it to the same as `default_bump`.
+    required: false
   default_prerelease_bump:
     description: "Which type of bump to use when none explicitly provided when commiting to a prerelease branch (default: `prerelease`)."
     required: false
