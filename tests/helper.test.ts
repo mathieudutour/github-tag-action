@@ -28,8 +28,8 @@ export function setInputs(map: { [key: string]: string }) {
 
 export function resetInputs(map: { [key: string]: string }) {
   Object.keys(process.env)
-    .filter(k => k.startsWith("INPUT_"))
-    .forEach(k => delete process.env[k]);
+    .filter((k) => k.startsWith('INPUT_'))
+    .forEach((k) => delete process.env[k]);
   Object.keys(map).forEach((key) => setInput(key, map[key]));
 }
 

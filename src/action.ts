@@ -20,7 +20,9 @@ export default async function main() {
   const defaultPreReleaseBump = core.getInput('default_prerelease_bump') as
     | ReleaseType
     | 'false';
-  const defaultDraftBump = core.getInput('default_draft_bump') as ReleaseType | 'false' || defaultPreReleaseBump;
+  const defaultDraftBump =
+    (core.getInput('default_draft_bump') as ReleaseType | 'false') ||
+    defaultPreReleaseBump;
   const tagPrefix = core.getInput('tag_prefix');
   const customTag = core.getInput('custom_tag');
   const releaseBranches = core.getInput('release_branches');
@@ -162,8 +164,7 @@ export default async function main() {
       if (!previousWasPrerelease)
         // previous version is a prerelease -> draft a new version with the default bump and make it a prerelease
         bump = defaultDraftBump;
-      else
-        bump = defaultPreReleaseBump;
+      else bump = defaultPreReleaseBump;
     }
 
     // TODO: these next 10 lines are horrible!! why we have preminor as bump type at all if it is always striped away?
