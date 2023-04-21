@@ -450,6 +450,7 @@ describe('github-tag-action', () => {
     beforeEach(() => {
       jest.clearAllMocks();
       setBranch('prerelease');
+      loadDefaultInputs();    
       setInput('pre_release_branches', 'prerelease');
     });
 
