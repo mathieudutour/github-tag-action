@@ -184,6 +184,40 @@ describe('utils', () => {
     });
   });
 
+
+  it('filters out commits that dont match the given filters', async () => {
+    /**
+     * Given
+     */
+    const filters = 'api,tests,something-dash';
+    const allCommits = [
+      { message: 'fix(api): fix a bug', hash: null },
+      { message: 'fix(tests): fix some tests', hash: null },
+      { message: 'fix(test): fix a tests', hash: null },
+      { message: 'feat: add a feature', hash: null },
+      { message: 'feat(api): add a feature to the api', hash: null },
+      { message: 'feat(something-dash): a dash', hash: null },
+    ];
+
+    /**
+     * When
+     */
+    const result = await utils.getFilteredCommits(
+      allCommits,
+      filters.split(',')
+    );
+
+    /**
+     * Then
+     */
+    expect(result).toEqual([
+      { message: 'fix(api): fix a bug', hash: null },
+      { message: 'fix(tests): fix some tests', hash: null },
+      { message: 'feat(api): add a feature to the api', hash: null },
+      { message: 'feat(something-dash): a dash', hash: null },
+    ]);
+  });
+
   describe('custom release types', () => {
     it('maps custom release types', () => {
       /*

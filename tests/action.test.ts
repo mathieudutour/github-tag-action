@@ -873,4 +873,157 @@ describe('github-tag-action', () => {
       expect(mockSetFailed).not.toBeCalled();
     });
   });
+
+  describe('filtered commits', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      setInput('filters', 'api');
+    });
+
+    it('does create patch tag only considering filtered commits', async () => {
+      /*
+       * Given
+       */
+      const commits = [
+        { message: 'fix: this is my first fix', hash: null },
+        { message: 'feat(web): a web feature', hash: null },
+        { message: 'docs(test): some test documentation', hash: null },
+        { message: 'fix(api): an api bug fix', hash: null },
+        {
+          message: `feat(web): an api bug fix
+                    BREAKING CHANGE: something has been removed`,
+          hash: null,
+        },
+      ];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
+
+      const validTags = [
+        {
+          name: 'v1.2.3',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+      ];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await action();
+
+      /*
+       * Then
+       */
+      expect(mockCreateTag).toHaveBeenCalledWith(
+        'v1.2.4',
+        expect.any(Boolean),
+        expect.any(String)
+      );
+      expect(mockSetFailed).not.toBeCalled();
+    });
+
+    it('does create minor tag only considering filtered commits', async () => {
+      /*
+       * Given
+       */
+      const commits = [
+        { message: 'fix: this is my first fix', hash: null },
+        { message: 'fix(web): a web feature', hash: null },
+        { message: 'docs(test): some test documentation', hash: null },
+        { message: 'feat(api): an api bug fix', hash: null },
+        {
+          message: `feat(web): an api bug fix
+                    BREAKING CHANGE: something has been removed`,
+          hash: null,
+        },
+      ];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
+
+      const validTags = [
+        {
+          name: 'v1.2.3',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+      ];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await action();
+
+      /*
+       * Then
+       */
+      expect(mockCreateTag).toHaveBeenCalledWith(
+        'v1.3.0',
+        expect.any(Boolean),
+        expect.any(String)
+      );
+      expect(mockSetFailed).not.toBeCalled();
+    });
+
+    it('does create major tag only considering filtered commits', async () => {
+      /*
+       * Given
+       */
+      const commits = [
+        { message: 'fix: this is my first fix', hash: null },
+        { message: 'feat(web): a web feature', hash: null },
+        { message: 'docs(test): some test documentation', hash: null },
+        { message: 'feat(web): a web feature', hash: null },
+        { message: 'feat(api): an api bug fix', hash: null },
+        {
+          message: `feat(api): a breaking api change
+                    BREAKING CHANGE: something has been removed`,
+          hash: null,
+        },
+      ];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
+
+      const validTags = [
+        {
+          name: 'v1.2.3',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+      ];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await action();
+
+      /*
+       * Then
+       */
+      expect(mockCreateTag).toHaveBeenCalledWith(
+        'v2.0.0',
+        expect.any(Boolean),
+        expect.any(String)
+      );
+      expect(mockSetFailed).not.toBeCalled();
+    });
+  });
+
 });
