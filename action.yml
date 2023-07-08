@@ -8,6 +8,8 @@ outputs:
     description: "Generated tag without the prefix"
   previous_tag:
     description: "Previous tag (or `0.0.0`)"
+  previous_version:
+    description: "The value of the previous tag (or 0.0.0 if none) without the prefix. Note that if custom_tag is set, this will be undefined."
   release_type:
     description: "The computed release type (`major`, `minor`, `patch` or `custom` - can be prefixed with `pre`)"
   changelog:
