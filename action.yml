@@ -59,6 +59,9 @@ inputs:
     description: "Do not perform tagging, just calculate next version and changelog, then exit."
     required: false
     default: "false"
+  repo:
+    description: "Optionally specify the repo where the release should be generated. Defaults to current repo"
+    required: false
 
 runs:
   using: "node16"

@@ -32,6 +32,7 @@ export default async function main() {
   const customReleaseRules = core.getInput('custom_release_rules');
   const shouldFetchAllTags = core.getInput('fetch_all_tags');
   const commitSha = core.getInput('commit_sha');
+  const repo = core.getInput('repo');
 
   let mappedReleaseRules;
   if (customReleaseRules) {
@@ -191,6 +192,12 @@ export default async function main() {
   core.info(`New tag after applying prefix is ${newTag}.`);
   core.setOutput('new_tag', newTag);
 
+  if (repo) {
+    repositoryUrl=`${process.env.GITHUB_SERVER_URL}/${repo}`;
+  } else {
+    repositoryUrl=`${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}`
+  }
+
   const changelog = await generateNotes(
     {
       preset: 'conventionalcommits',
@@ -202,7 +209,7 @@ export default async function main() {
       commits,
       logger: { log: console.info.bind(console) },
       options: {
-        repositoryUrl: `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}`,
+        repositoryUrl: repositoryUrl,
       },
       lastRelease: { gitTag: latestTag.name },
       nextRelease: { gitTag: newTag, version: newVersion },
