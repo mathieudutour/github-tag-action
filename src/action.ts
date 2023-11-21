@@ -192,6 +192,8 @@ export default async function main() {
   core.info(`New tag after applying prefix is ${newTag}.`);
   core.setOutput('new_tag', newTag);
 
+  let repositoryUrl: string;
+  
   if (repo) {
     repositoryUrl=`${process.env.GITHUB_SERVER_URL}/${repo}`;
   } else {
