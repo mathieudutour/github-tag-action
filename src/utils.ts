@@ -37,12 +37,18 @@ export async function getValidTags(
 
 export async function getCommits(
   baseRef: string,
-  headRef: string
+  headRef: string,
+  targetPath?: string
 ): Promise<{ message: string; hash: string | null }[]> {
   const commits = await compareCommits(baseRef, headRef);
 
   return commits
     .filter((commit) => !!commit.commit.message)
+    .filter((commit) =>
+      !targetPath
+        ? true
+        : commit.files?.some((file) => file.filename?.includes(targetPath))
+    )
     .map((commit) => ({
       message: commit.commit.message,
       hash: commit.sha,
