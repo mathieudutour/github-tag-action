@@ -195,9 +195,9 @@ export default async function main() {
   let repositoryUrl: string;
   
   if (repo) {
-    repositoryUrl=`${process.env.GITHUB_SERVER_URL}/${repo}`;
+    repositoryUrl = `${process.env.GITHUB_SERVER_URL}/${repo}`;
   } else {
-    repositoryUrl=`${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}`
+    repositoryUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}`
   }
 
   const changelog = await generateNotes(
