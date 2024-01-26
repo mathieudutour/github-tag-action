@@ -1,8 +1,8 @@
 __tests__/runner/*
 
 # comment out in distribution branches
-node_modules/
-lib/
+# node_modules/
+# lib/
 
 # Rest pulled from https://github.com/github/gitignore/blob/master/Node.gitignore
 # Logs
