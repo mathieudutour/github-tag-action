@@ -11,9 +11,9 @@ import {
   getValidTags,
   mapCustomReleaseRules,
   mergeWithDefaultChangelogRules,
-} from './utils';
-import { createTag } from './github';
-import { Await } from './ts';
+} from './utils.js';
+import { createTag } from './github.js';
+import { Await } from './ts.js';
 
 export default async function main() {
   const defaultBump = core.getInput('default_bump') as ReleaseType | 'false';
@@ -218,7 +218,7 @@ export default async function main() {
     return;
   }
 
-  if (validTags.map((tag) => tag.name).includes(newTag)) {
+  if (validTags.map((tag: any) => tag.name).includes(newTag)) {
     core.info('This tag already exists. Skipping the tag creation.');
     return;
   }

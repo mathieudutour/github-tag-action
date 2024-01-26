@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES6",
-    "module": "ES6",
-    "moduleResolution": "Bundler",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "outDir": "./lib",
     "rootDir": "./src",
     "strict": true,

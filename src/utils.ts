@@ -2,9 +2,9 @@ import * as core from '@actions/core';
 import { prerelease, rcompare, valid } from 'semver';
 // @ts-ignore
 import DEFAULT_RELEASE_TYPES from '@semantic-release/commit-analyzer/lib/default-release-types';
-import { compareCommits, listTags } from './github';
-import { defaultChangelogRules } from './defaults';
-import { Await } from './ts';
+import { compareCommits, listTags } from './github.js';
+import { defaultChangelogRules } from './defaults.js';
+import { Await } from './ts.js';
 
 type Tags = Await<ReturnType<typeof listTags>>;
 
@@ -15,22 +15,22 @@ export async function getValidTags(
   const tags = await listTags(shouldFetchAllTags);
 
   const invalidTags = tags.filter(
-    (tag) =>
+    (tag: any) =>
       !prefixRegex.test(tag.name) || !valid(tag.name.replace(prefixRegex, ''))
   );
 
-  invalidTags.forEach((name) => core.debug(`Found Invalid Tag: ${name}.`));
+  invalidTags.forEach((name: any) => core.debug(`Found Invalid Tag: ${name}.`));
 
   const validTags = tags
     .filter(
-      (tag) =>
+      (tag: any) =>
         prefixRegex.test(tag.name) && valid(tag.name.replace(prefixRegex, ''))
     )
-    .sort((a, b) =>
+    .sort((a: any, b: any) =>
       rcompare(a.name.replace(prefixRegex, ''), b.name.replace(prefixRegex, ''))
     );
 
-  validTags.forEach((tag) => core.debug(`Found Valid Tag: ${tag.name}.`));
+  validTags.forEach((tag: any) => core.debug(`Found Valid Tag: ${tag.name}.`));
 
   return validTags;
 }
@@ -63,7 +63,7 @@ export function getLatestTag(
   tagPrefix: string
 ) {
   return (
-    tags.find((tag) => !prerelease(tag.name.replace(prefixRegex, ''))) || {
+    tags.find((tag: any) => !prerelease(tag.name.replace(prefixRegex, ''))) || {
       name: `${tagPrefix}0.0.0`,
       commit: {
         sha: 'HEAD',
@@ -79,7 +79,7 @@ export function getLatestPrereleaseTag(
 ) {
   return tags
     .filter((tag) => prerelease(tag.name.replace(prefixRegex, '')))
-    .find((tag) => tag.name.replace(prefixRegex, '').match(identifier));
+    .find((tag: any) => tag.name.replace(prefixRegex, '').match(identifier));
 }
 
 export function mapCustomReleaseRules(customReleaseTypes: string) {
@@ -141,5 +141,5 @@ export function mergeWithDefaultChangelogRules(
     { ...defaultChangelogRules }
   );
 
-  return Object.values(mergedRules).filter((rule) => !!rule.section);
+  return Object.values(mergedRules).filter((rule: any) => !!rule.section);
 }
