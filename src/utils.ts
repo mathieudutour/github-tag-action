@@ -8,8 +8,6 @@ import { Await } from './ts.js';
 
 type Tags = Await<ReturnType<typeof listTags>>;
 
-//const DEFAULT_RELEASE_TYPES = ["major", "premajor", "minor", "preminor", "patch", "prepatch", "prerelease"];
-
 export async function getValidTags(
   prefixRegex: RegExp,
   shouldFetchAllTags: boolean
