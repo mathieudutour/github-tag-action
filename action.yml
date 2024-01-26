@@ -61,7 +61,7 @@ inputs:
     default: "false"
 
 runs:
-  using: "node16"
+  using: "node20"
   main: "lib/main.js"
 branding:
   icon: "git-merge"
