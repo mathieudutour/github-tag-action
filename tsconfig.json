@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "NodeNext",                     /* Concatenate and emit output to single file. */
-    "outDir": "./lib",                        /* Redirect output structure to the directory. */
+    "target": "es6",
+    "module": "es6",
+    "moduleResolution": "Node",
+    "outDir": "./lib",
     "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true
