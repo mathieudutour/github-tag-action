@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import { prerelease, rcompare, valid } from 'semver';
 // @ts-ignore
-import DEFAULT_RELEASE_TYPES from '@semantic-release/commit-analyzer/lib/default-release-types';
+import DEFAULT_RELEASE_TYPES from '@semantic-release/commit-analyzer/lib/default-release-types.js';
 import { compareCommits, listTags } from './github.js';
 import { defaultChangelogRules } from './defaults.js';
 import { Await } from './ts.js';
