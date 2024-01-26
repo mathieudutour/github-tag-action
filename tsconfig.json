@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "target": "esNext",
-    "module": "commonjs",                     /* Concatenate and emit output to single file. */
+    "target": "ESNext",
+    "module": "NodeNext",                     /* Concatenate and emit output to single file. */
     "outDir": "./lib",                        /* Redirect output structure to the directory. */
     "rootDir": "./src",
     "strict": true,
