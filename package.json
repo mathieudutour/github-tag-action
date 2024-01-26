@@ -1,6 +1,6 @@
 {
   "name": "github-tag-action",
-  "version": "6.1.0",
+  "version": "7.0.0",
   "private": true,
   "description": "A GitHub Action to automatically bump and tag master, on merge, with the latest SemVer formatted version.",
   "main": "lib/main.js",
@@ -21,25 +21,26 @@
   "author": "Mathieu Dutour",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.10.0",
-    "@actions/exec": "^1.1.0",
-    "@actions/github": "^4.0.0",
-    "@semantic-release/commit-analyzer": "^8.0.1",
-    "@semantic-release/release-notes-generator": "^9.0.1",
-    "conventional-changelog-conventionalcommits": "^4.6.1",
-    "semver": "^7.3.5"
+    "@actions/core": "^1.10.1",
+    "@actions/exec": "^1.1.1",
+    "@actions/github": "^6.0.0",
+    "@semantic-release/commit-analyzer": "^11.1.0",
+    "@semantic-release/release-notes-generator": "^12.1.0",
+    "conventional-changelog-conventionalcommits": "^7.0.2",
+    "semver": "^7.5.4"
   },
   "devDependencies": {
-    "@octokit/rest": "^18.12.0",
-    "@types/jest": "^27.0.2",
-    "@types/js-yaml": "^4.0.4",
-    "@types/node": "^16.11.7",
-    "@types/semver": "^7.3.9",
-    "jest": "^27.3.1",
-    "jest-circus": "^27.3.1",
+    "@octokit/rest": "^20.0.2",
+    "@octokit/types": "^12.4.0",
+    "@types/jest": "^29.5.11",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.11.7",
+    "@types/semver": "^7.5.6",
+    "jest": "^29.7.0",
+    "jest-circus": "^29.7.0",
     "js-yaml": "^4.1.0",
-    "prettier": "2.4.1",
-    "ts-jest": "^27.0.7",
-    "typescript": "^4.4.4"
+    "prettier": "3.2.4",
+    "ts-jest": "^29.1.2",
+    "typescript": "^5.3.3"
   }
 }

@@ -1,8 +1,10 @@
 /.github/
-/.vscode/
+.vscode/
 /lib/
-/docs/
+/docs
 /*.json
 /*.js
 /*.yml
 /*.md
+*/
+LICENSE
