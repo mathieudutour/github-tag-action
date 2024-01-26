@@ -1,12 +1,14 @@
 import * as core from '@actions/core';
 import { prerelease, rcompare, valid } from 'semver';
 // @ts-ignore
-import DEFAULT_RELEASE_TYPES from '@semantic-release/commit-analyzer/lib/default-release-types.js';
+//import DEFAULT_RELEASE_TYPES from '@semantic-release/commit-analyzer/lib/default-release-types.js';
 import { compareCommits, listTags } from './github.js';
 import { defaultChangelogRules } from './defaults.js';
 import { Await } from './ts.js';
 
 type Tags = Await<ReturnType<typeof listTags>>;
+
+const DEFAULT_RELEASE_TYPES = ["major", "premajor", "minor", "preminor", "patch", "prepatch", "prerelease"];
 
 export async function getValidTags(
   prefixRegex: RegExp,
