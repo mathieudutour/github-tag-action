@@ -4,7 +4,6 @@
   "private": true,
   "description": "A GitHub Action to automatically bump and tag master, on merge, with the latest SemVer formatted version.",
   "main": "lib/main.js",
-  "type": "module",
   "scripts": {
     "build": "tsc",
     "test": "jest --testTimeout 10000",
