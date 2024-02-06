@@ -2,6 +2,7 @@
 /.vscode/
 /lib/
 /docs/
+/dist/
 /*.json
 /*.js
 /*.yml
