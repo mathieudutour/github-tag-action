@@ -8,9 +8,7 @@
     "build": "tsc",
     "test-dev": "vitest",
     "test": "vitest run",
-    "package": "ncc build --minify --source-map --license licenses.txt",
-    "check": "prettier --check .",
-    "build-package": "npm run build && npm run package"
+    "check": "prettier --check ."
   },
   "repository": {
     "type": "git",
