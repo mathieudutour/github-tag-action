@@ -2,6 +2,8 @@
 
 A GitHub Action to automatically bump and tag master, on merge, with the latest SemVer formatted version. Works on any platform.
 
+This is a fork repository of [mathieudutour/github-tag-action](https://github.com/mathieudutour/github-tag-action).
+
 ## Usage
 
 ```yaml
