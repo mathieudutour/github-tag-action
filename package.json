@@ -1,13 +1,15 @@
 {
   "name": "github-tag-action",
-  "version": "6.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "A GitHub Action to automatically bump and tag master, on merge, with the latest SemVer formatted version.",
   "main": "lib/main.js",
   "scripts": {
     "build": "tsc",
     "test": "jest --testTimeout 10000",
-    "check": "prettier --check ."
+    "package": "ncc build --minify --source-map --license licenses.txt",
+    "check": "prettier --check .",
+    "build-package": "npm run build && npm run package"
   },
   "repository": {
     "type": "git",
@@ -35,6 +37,7 @@
     "@types/js-yaml": "^4.0.4",
     "@types/node": "^16.11.7",
     "@types/semver": "^7.3.9",
+    "@vercel/ncc": "^0.38.1",
     "jest": "^27.3.1",
     "jest-circus": "^27.3.1",
     "js-yaml": "^4.1.0",
