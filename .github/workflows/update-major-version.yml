@@ -1,0 +1,12 @@
+name: Update Major Version
+
+on:
+  release:
+    types: [published, edited]
+
+jobs:
+  update-majorver:
+    name: Update Major Version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: Actions-R-Us/actions-tagger@v2
