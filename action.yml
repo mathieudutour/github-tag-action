@@ -63,7 +63,7 @@ inputs:
 
 runs:
   using: "node20"
-  main: "dist/main.js"
+  main: "dist/index.js"
 branding:
   icon: "git-merge"
   color: "yellow"

@@ -8,7 +8,7 @@ on:
         type: string
 
 jobs:
-  test:
+  current-repo:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
