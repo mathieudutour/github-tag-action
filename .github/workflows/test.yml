@@ -10,6 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Use Node.js 20
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'      
       - run: npm ci
       - run: npm run test
       - run: npm run check
