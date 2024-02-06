@@ -5,6 +5,7 @@ async function run() {
   try {
     await action();
   } catch (error: any) {
+    console.error(error)
     core.setFailed(error.message);
   }
 }

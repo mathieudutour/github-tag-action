@@ -1,7 +1,7 @@
 * {{header}}
 
-{{~!-- commit link --}}
-{{~#if @root.linkReferences}} ([{{hash}}](
+{{~!-- commit link --}} {{#if @root.linkReferences~}}
+  ([{{hash}}](
   {{~#if @root.repository}}
     {{~#if @root.host}}
       {{~@root.host}}/
@@ -14,7 +14,9 @@
     {{~@root.repoUrl}}
   {{~/if}}/
   {{~@root.commit}}/{{hash}}))
-{{~else if hash}} {{hash}}{{~/if}}
+{{~else}}
+  {{~hash}}
+{{~/if}}
 
 {{~!-- commit references --}}
 {{~#if references~}}
