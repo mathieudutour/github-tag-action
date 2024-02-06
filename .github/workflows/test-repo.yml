@@ -1,0 +1,17 @@
+name: "Test current repository"
+on:
+  workflow_dispatch:
+    inputs:
+      custom_tag:
+        description: custom_tag argument
+        required: false
+        type: string
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+        with:
+          custom_tag: "${{inputs.custom_tag}}"
