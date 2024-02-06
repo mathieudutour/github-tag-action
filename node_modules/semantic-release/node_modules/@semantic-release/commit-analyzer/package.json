@@ -1,0 +1,101 @@
+{
+  "name": "@semantic-release/commit-analyzer",
+  "description": "semantic-release plugin to analyze commits with conventional-changelog",
+  "version": "11.1.0",
+  "type": "module",
+  "author": "Pierre Vanduynslager (https://twitter.com/@pvdlg_)",
+  "ava": {
+    "files": [
+      "test/**/*.test.js"
+    ]
+  },
+  "bugs": {
+    "url": "https://github.com/semantic-release/commit-analyzer/issues"
+  },
+  "contributors": [
+    "Stephan Bönnemann <stephan@boennemann.me> (http://boennemann.me)",
+    "Gregor Martynus (https://twitter.com/gr2m)"
+  ],
+  "dependencies": {
+    "conventional-changelog-angular": "^7.0.0",
+    "conventional-commits-filter": "^4.0.0",
+    "conventional-commits-parser": "^5.0.0",
+    "debug": "^4.0.0",
+    "import-from-esm": "^1.0.3",
+    "lodash-es": "^4.17.21",
+    "micromatch": "^4.0.2"
+  },
+  "devDependencies": {
+    "ava": "5.3.1",
+    "c8": "8.0.1",
+    "conventional-changelog-atom": "4.0.0",
+    "conventional-changelog-conventionalcommits": "7.0.2",
+    "conventional-changelog-ember": "4.0.0",
+    "conventional-changelog-eslint": "5.0.0",
+    "conventional-changelog-express": "4.0.0",
+    "conventional-changelog-jshint": "4.0.0",
+    "prettier": "3.0.3",
+    "semantic-release": "22.0.6",
+    "sinon": "17.0.1"
+  },
+  "engines": {
+    "node": "^18.17 || >=20.6.1"
+  },
+  "files": [
+    "lib",
+    "index.js"
+  ],
+  "homepage": "https://github.com/semantic-release/commit-analyzer#readme",
+  "keywords": [
+    "changelog",
+    "commit-analyzer",
+    "conventional-changelog",
+    "conventional-commits",
+    "github",
+    "publish",
+    "release",
+    "semantic-release"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "c8": {
+    "include": [
+      "lib/**/*.js",
+      "index.js"
+    ],
+    "reporter": [
+      "json",
+      "text",
+      "html"
+    ],
+    "all": true
+  },
+  "peerDependencies": {
+    "semantic-release": ">=20.1.0"
+  },
+  "prettier": {
+    "printWidth": 120,
+    "trailingComma": "es5"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/semantic-release/commit-analyzer.git"
+  },
+  "scripts": {
+    "lint": "prettier --check \"*.{js,json,md}\" \".github/**/*.{md,yml}\" \"{bin,lib,test}/*.js\"",
+    "lint:fix": "prettier --write \"*.{js,json,md}\" \".github/**/*.{md,yml}\" \"{bin,lib,test}/*.js\"",
+    "pretest": "npm run lint",
+    "semantic-release": "semantic-release",
+    "test": "c8 ava -v",
+    "test:ci": "c8 ava -v"
+  },
+  "renovate": {
+    "extends": [
+      "github>semantic-release/.github"
+    ]
+  }
+}

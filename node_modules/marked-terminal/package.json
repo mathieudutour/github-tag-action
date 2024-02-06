@@ -1,0 +1,66 @@
+{
+  "name": "marked-terminal",
+  "version": "6.2.0",
+  "description": "A custom render for marked to output to the Terminal",
+  "main": "./index.cjs",
+  "browser": "./index.js",
+  "exports": {
+    "node": {
+      "import": "./index.js",
+      "require": "./index.cjs"
+    },
+    "default": "./index.js"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "prepack": "npm run build",
+    "test": "cross-env FORCE_HYPERLINK=0 mocha tests/*.js --reporter spec"
+  },
+  "files": [
+    "index.js",
+    "index.cjs"
+  ],
+  "keywords": [
+    "marked",
+    "render",
+    "terminal",
+    "markdown",
+    "markdown-to-terminal"
+  ],
+  "author": "Mikael Brevik",
+  "license": "MIT",
+  "peerDependencies": {
+    "marked": ">=1 <12"
+  },
+  "dependencies": {
+    "ansi-escapes": "^6.2.0",
+    "cardinal": "^2.1.1",
+    "chalk": "^5.3.0",
+    "cli-table3": "^0.6.3",
+    "node-emoji": "^2.1.3",
+    "supports-hyperlinks": "^3.0.0"
+  },
+  "directories": {
+    "example": "example"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "cross-env": "^7.0.3",
+    "marked": "^11.0.1",
+    "mocha": "^10.2.0",
+    "rollup": "^4.8.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mikaelbr/marked-terminal.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mikaelbr/marked-terminal/issues"
+  },
+  "homepage": "https://github.com/mikaelbr/marked-terminal"
+}

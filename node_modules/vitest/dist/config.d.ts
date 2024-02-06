@@ -1,0 +1,15 @@
+export { ConfigEnv, UserConfig, mergeConfig } from 'vite';
+export { aw as UserConfigExport, av as UserConfigFn, at as UserConfigFnObject, au as UserConfigFnPromise, ay as UserProjectConfigExport, ax as UserProjectConfigFn, a0 as UserWorkspaceConfig, aC as configDefaults, aF as coverageConfigDefaults, aE as defaultExclude, aD as defaultInclude, az as defineConfig, aA as defineProject, aB as defineWorkspace, aG as extraInlineDeps } from './reporters-1evA5lom.js';
+import '@vitest/runner';
+import 'vite-node';
+import '@vitest/snapshot';
+import '@vitest/expect';
+import '@vitest/runner/utils';
+import '@vitest/utils';
+import 'tinybench';
+import 'vite-node/client';
+import '@vitest/snapshot/manager';
+import 'vite-node/server';
+import 'node:worker_threads';
+import 'node:fs';
+import 'chai';
