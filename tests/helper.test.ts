@@ -1,6 +1,7 @@
 import yaml from 'js-yaml';
 import fs from 'fs';
 import path from 'path';
+import { describe, it } from 'vitest';
 
 export function setRepository(
   GITHUB_SERVER_URL: string,

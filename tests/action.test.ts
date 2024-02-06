@@ -9,28 +9,27 @@ import {
   setInput,
   setRepository,
 } from './helper.test';
+import { beforeAll, beforeEach, describe, it, expect, vi } from 'vitest';
 
-jest.spyOn(core, 'debug').mockImplementation(() => {});
-jest.spyOn(core, 'info').mockImplementation(() => {});
-jest.spyOn(console, 'info').mockImplementation(() => {});
+vi.spyOn(core, 'debug').mockImplementation(() => {});
+vi.spyOn(core, 'info').mockImplementation(() => {});
+vi.spyOn(console, 'info').mockImplementation(() => {});
 
 beforeAll(() => {
   setRepository('https://github.com', 'org/repo');
 });
 
-const mockCreateTag = jest
+const mockCreateTag = vi
   .spyOn(github, 'createTag')
   .mockResolvedValue(undefined);
 
-const mockSetOutput = jest
-  .spyOn(core, 'setOutput')
-  .mockImplementation(() => {});
+const mockSetOutput = vi.spyOn(core, 'setOutput').mockImplementation(() => {});
 
-const mockSetFailed = jest.spyOn(core, 'setFailed');
+const mockSetFailed = vi.spyOn(core, 'setFailed');
 
 describe('github-tag-action', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     setBranch('master');
     setCommitSha('79e0ea271c26aa152beef77c3275ff7b8f8d8274');
     loadDefaultInputs();
@@ -42,14 +41,10 @@ describe('github-tag-action', () => {
        * Given
        */
       const commits = [{ message: 'fix: this is my first fix', hash: null }];
-      jest
-        .spyOn(utils, 'getCommits')
-        .mockImplementation(async (sha) => commits);
+      vi.spyOn(utils, 'getCommits').mockImplementation(async (sha) => commits);
 
       const validTags: any[] = [];
-      jest
-        .spyOn(utils, 'getValidTags')
-        .mockImplementation(async () => validTags);
+      vi.spyOn(utils, 'getValidTags').mockImplementation(async () => validTags);
 
       /*
        * When
@@ -72,14 +67,10 @@ describe('github-tag-action', () => {
        * Given
        */
       const commits: any[] = [];
-      jest
-        .spyOn(utils, 'getCommits')
-        .mockImplementation(async (sha) => commits);
+      vi.spyOn(utils, 'getCommits').mockImplementation(async (sha) => commits);
 
       const validTags: any[] = [];
-      jest
-        .spyOn(utils, 'getValidTags')
-        .mockImplementation(async () => validTags);
+      vi.spyOn(utils, 'getValidTags').mockImplementation(async () => validTags);
 
       /*
        * When
@@ -103,9 +94,7 @@ describe('github-tag-action', () => {
        */
       setInput('default_bump', 'false');
       const commits: any[] = [];
-      jest
-        .spyOn(utils, 'getCommits')
-        .mockImplementation(async (sha) => commits);
+      vi.spyOn(utils, 'getCommits').mockImplementation(async (sha) => commits);
 
       const validTags = [
         {
@@ -116,9 +105,7 @@ describe('github-tag-action', () => {
           node_id: 'string',
         },
       ];
-      jest
-        .spyOn(utils, 'getValidTags')
-        .mockImplementation(async () => validTags);
+      vi.spyOn(utils, 'getValidTags').mockImplementation(async () => validTags);
 
       /*
        * When
@@ -141,9 +128,7 @@ describe('github-tag-action', () => {
         { message: 'james: is the new cool guy', hash: null },
         { message: 'bond: is his last name', hash: null },
       ];
-      jest
-        .spyOn(utils, 'getCommits')
-        .mockImplementation(async (sha) => commits);
+      vi.spyOn(utils, 'getCommits').mockImplementation(async (sha) => commits);
 
       const validTags = [
         {
@@ -154,9 +139,7 @@ describe('github-tag-action', () => {
           node_id: 'string',
         },
       ];
-      jest
-        .spyOn(utils, 'getValidTags')
-        .mockImplementation(async () => validTags);
+      vi.spyOn(utils, 'getValidTags').mockImplementation(async () => validTags);
 
       /*
        * When
@@ -183,9 +166,7 @@ describe('github-tag-action', () => {
         { message: 'fix: is the new cool guy', hash: null },
         { message: 'feat: is his last name', hash: null },
       ];
-      jest
-        .spyOn(utils, 'getCommits')
-        .mockImplementation(async (sha) => commits);
+      vi.spyOn(utils, 'getCommits').mockImplementation(async (sha) => commits);
 
       const validTags = [
         {
@@ -196,9 +177,7 @@ describe('github-tag-action', () => {
           node_id: 'string',
         },
       ];
-      jest
-        .spyOn(utils, 'getValidTags')
-        .mockImplementation(async () => validTags);
+      vi.spyOn(utils, 'getValidTags').mockImplementation(async () => validTags);
 
       /*
        * When
@@ -219,7 +198,7 @@ describe('github-tag-action', () => {
 
   describe('release branches', () => {
     beforeEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
       setBranch('release');
       setInput('release_branches', 'release');
     });
@@ -229,9 +208,7 @@ describe('github-tag-action', () => {
        * Given
        */
       const commits = [{ message: 'fix: this is my first fix', hash: null }];
-      jest
-        .spyOn(utils, 'getCommits')
-        .mockImplementation(async (sha) => commits);
+      vi.spyOn(utils, 'getCommits').mockImplementation(async (sha) => commits);
 
       const validTags = [
         {
@@ -242,9 +219,7 @@ describe('github-tag-action', () => {
           node_id: 'string',
         },
       ];
-      jest
-        .spyOn(utils, 'getValidTags')
-        .mockImplementation(async () => validTags);
+      vi.spyOn(utils, 'getValidTags').mockImplementation(async () => validTags);
 
       /*
        * When
@@ -269,9 +244,7 @@ describe('github-tag-action', () => {
       const commits = [
         { message: 'feat: this is my first feature', hash: null },
       ];
-      jest
-        .spyOn(utils, 'getCommits')
-        .mockImplementation(async (sha) => commits);
+      vi.spyOn(utils, 'getCommits').mockImplementation(async (sha) => commits);
 
       const validTags = [
         {
@@ -282,9 +255,7 @@ describe('github-tag-action', () => {
           node_id: 'string',
         },
       ];
-      jest
-        .spyOn(utils, 'getValidTags')
-        .mockImplementation(async () => validTags);
+      vi.spyOn(utils, 'getValidTags').mockImplementation(async () => validTags);
 
       /*
        * When
@@ -313,9 +284,7 @@ describe('github-tag-action', () => {
           hash: null,
         },
       ];
-      jest
-        .spyOn(utils, 'getCommits')
-        .mockImplementation(async (sha) => commits);
+      vi.spyOn(utils, 'getCommits').mockImplementation(async (sha) => commits);
 
       const validTags = [
         {
@@ -326,9 +295,7 @@ describe('github-tag-action', () => {
           node_id: 'string',
         },
       ];
-      jest
-        .spyOn(utils, 'getValidTags')
-        .mockImplementation(async () => validTags);
+      vi.spyOn(utils, 'getValidTags').mockImplementation(async () => validTags);
 
       /*
        * When
@@ -353,9 +320,7 @@ describe('github-tag-action', () => {
       const commits = [
         { message: 'feat: some new feature on a release branch', hash: null },
       ];
-      jest
-        .spyOn(utils, 'getCommits')
-        .mockImplementation(async (sha) => commits);
+      vi.spyOn(utils, 'getCommits').mockImplementation(async (sha) => commits);
 
       const validTags = [
         {
@@ -380,9 +345,7 @@ describe('github-tag-action', () => {
           node_id: 'string',
         },
       ];
-      jest
-        .spyOn(utils, 'getValidTags')
-        .mockImplementation(async () => validTags);
+      vi.spyOn(utils, 'getValidTags').mockImplementation(async () => validTags);
 
       /*
        * When
@@ -412,9 +375,7 @@ describe('github-tag-action', () => {
         },
         { message: 'james: this should make a preminor', hash: null },
       ];
-      jest
-        .spyOn(utils, 'getCommits')
-        .mockImplementation(async (sha) => commits);
+      vi.spyOn(utils, 'getCommits').mockImplementation(async (sha) => commits);
 
       const validTags = [
         {
@@ -425,9 +386,7 @@ describe('github-tag-action', () => {
           node_id: 'string',
         },
       ];
-      jest
-        .spyOn(utils, 'getValidTags')
-        .mockImplementation(async () => validTags);
+      vi.spyOn(utils, 'getValidTags').mockImplementation(async () => validTags);
 
       /*
        * When
@@ -448,7 +407,7 @@ describe('github-tag-action', () => {
 
   describe('pre-release branches', () => {
     beforeEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
       setBranch('prerelease');
       setInput('pre_release_branches', 'prerelease');
     });
@@ -459,9 +418,7 @@ describe('github-tag-action', () => {
        */
       setInput('default_prerelease_bump', 'false');
       const commits: any[] = [];
-      jest
-        .spyOn(utils, 'getCommits')
-        .mockImplementation(async (sha) => commits);
+      vi.spyOn(utils, 'getCommits').mockImplementation(async (sha) => commits);
 
       const validTags = [
         {
@@ -472,9 +429,7 @@ describe('github-tag-action', () => {
           node_id: 'string',
         },
       ];
-      jest
-        .spyOn(utils, 'getValidTags')
-        .mockImplementation(async () => validTags);
+      vi.spyOn(utils, 'getValidTags').mockImplementation(async () => validTags);
 
       /*
        * When
@@ -494,9 +449,7 @@ describe('github-tag-action', () => {
        */
       setInput('default_prerelease_bump', 'prerelease');
       const commits = [{ message: 'this is my first fix', hash: null }];
-      jest
-        .spyOn(utils, 'getCommits')
-        .mockImplementation(async (sha) => commits);
+      vi.spyOn(utils, 'getCommits').mockImplementation(async (sha) => commits);
 
       const validTags = [
         {
@@ -507,9 +460,7 @@ describe('github-tag-action', () => {
           node_id: 'string',
         },
       ];
-      jest
-        .spyOn(utils, 'getValidTags')
-        .mockImplementation(async () => validTags);
+      vi.spyOn(utils, 'getValidTags').mockImplementation(async () => validTags);
 
       /*
        * When
@@ -532,9 +483,7 @@ describe('github-tag-action', () => {
        * Given
        */
       const commits = [{ message: 'fix: this is my first fix', hash: null }];
-      jest
-        .spyOn(utils, 'getCommits')
-        .mockImplementation(async (sha) => commits);
+      vi.spyOn(utils, 'getCommits').mockImplementation(async (sha) => commits);
 
       const validTags = [
         {
@@ -545,9 +494,7 @@ describe('github-tag-action', () => {
           node_id: 'string',
         },
       ];
-      jest
-        .spyOn(utils, 'getValidTags')
-        .mockImplementation(async () => validTags);
+      vi.spyOn(utils, 'getValidTags').mockImplementation(async () => validTags);
 
       /*
        * When
@@ -572,9 +519,7 @@ describe('github-tag-action', () => {
       const commits = [
         { message: 'feat: this is my first feature', hash: null },
       ];
-      jest
-        .spyOn(utils, 'getCommits')
-        .mockImplementation(async (sha) => commits);
+      vi.spyOn(utils, 'getCommits').mockImplementation(async (sha) => commits);
 
       const validTags = [
         {
@@ -585,9 +530,7 @@ describe('github-tag-action', () => {
           node_id: 'string',
         },
       ];
-      jest
-        .spyOn(utils, 'getValidTags')
-        .mockImplementation(async () => validTags);
+      vi.spyOn(utils, 'getValidTags').mockImplementation(async () => validTags);
 
       /*
        * When
@@ -616,9 +559,7 @@ describe('github-tag-action', () => {
           hash: null,
         },
       ];
-      jest
-        .spyOn(utils, 'getCommits')
-        .mockImplementation(async (sha) => commits);
+      vi.spyOn(utils, 'getCommits').mockImplementation(async (sha) => commits);
 
       const validTags = [
         {
@@ -629,9 +570,7 @@ describe('github-tag-action', () => {
           node_id: 'string',
         },
       ];
-      jest
-        .spyOn(utils, 'getValidTags')
-        .mockImplementation(async () => validTags);
+      vi.spyOn(utils, 'getValidTags').mockImplementation(async () => validTags);
 
       /*
        * When
@@ -659,9 +598,7 @@ describe('github-tag-action', () => {
           hash: null,
         },
       ];
-      jest
-        .spyOn(utils, 'getCommits')
-        .mockImplementation(async (sha) => commits);
+      vi.spyOn(utils, 'getCommits').mockImplementation(async (sha) => commits);
 
       const validTags = [
         {
@@ -686,9 +623,7 @@ describe('github-tag-action', () => {
           node_id: 'string',
         },
       ];
-      jest
-        .spyOn(utils, 'getValidTags')
-        .mockImplementation(async () => validTags);
+      vi.spyOn(utils, 'getValidTags').mockImplementation(async () => validTags);
 
       /*
        * When
@@ -718,9 +653,7 @@ describe('github-tag-action', () => {
         },
         { message: 'james: this should make a preminor', hash: null },
       ];
-      jest
-        .spyOn(utils, 'getCommits')
-        .mockImplementation(async (sha) => commits);
+      vi.spyOn(utils, 'getCommits').mockImplementation(async (sha) => commits);
 
       const validTags = [
         {
@@ -731,9 +664,7 @@ describe('github-tag-action', () => {
           node_id: 'string',
         },
       ];
-      jest
-        .spyOn(utils, 'getValidTags')
-        .mockImplementation(async () => validTags);
+      vi.spyOn(utils, 'getValidTags').mockImplementation(async () => validTags);
 
       /*
        * When
@@ -754,7 +685,7 @@ describe('github-tag-action', () => {
 
   describe('other branches', () => {
     beforeEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
       setBranch('development');
       setInput('pre_release_branches', 'prerelease');
       setInput('release_branches', 'release');
@@ -765,9 +696,7 @@ describe('github-tag-action', () => {
        * Given
        */
       const commits = [{ message: 'fix: this is my first fix', hash: null }];
-      jest
-        .spyOn(utils, 'getCommits')
-        .mockImplementation(async (sha) => commits);
+      vi.spyOn(utils, 'getCommits').mockImplementation(async (sha) => commits);
 
       const validTags = [
         {
@@ -778,9 +707,7 @@ describe('github-tag-action', () => {
           node_id: 'string',
         },
       ];
-      jest
-        .spyOn(utils, 'getValidTags')
-        .mockImplementation(async () => validTags);
+      vi.spyOn(utils, 'getValidTags').mockImplementation(async () => validTags);
 
       /*
        * When
@@ -802,9 +729,7 @@ describe('github-tag-action', () => {
       const commits = [
         { message: 'feat: this is my first feature', hash: null },
       ];
-      jest
-        .spyOn(utils, 'getCommits')
-        .mockImplementation(async (sha) => commits);
+      vi.spyOn(utils, 'getCommits').mockImplementation(async (sha) => commits);
 
       const validTags = [
         {
@@ -815,9 +740,7 @@ describe('github-tag-action', () => {
           node_id: 'string',
         },
       ];
-      jest
-        .spyOn(utils, 'getValidTags')
-        .mockImplementation(async () => validTags);
+      vi.spyOn(utils, 'getValidTags').mockImplementation(async () => validTags);
 
       /*
        * When
@@ -843,9 +766,7 @@ describe('github-tag-action', () => {
           hash: null,
         },
       ];
-      jest
-        .spyOn(utils, 'getCommits')
-        .mockImplementation(async (sha) => commits);
+      vi.spyOn(utils, 'getCommits').mockImplementation(async (sha) => commits);
 
       const validTags = [
         {
@@ -856,9 +777,7 @@ describe('github-tag-action', () => {
           node_id: 'string',
         },
       ];
-      jest
-        .spyOn(utils, 'getValidTags')
-        .mockImplementation(async () => validTags);
+      vi.spyOn(utils, 'getValidTags').mockImplementation(async () => validTags);
 
       /*
        * When
