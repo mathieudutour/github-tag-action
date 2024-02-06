@@ -1,12 +1,13 @@
 import { listTags } from '../src/github';
+import { describe, expect, it, vi } from 'vitest';
 
-jest.mock(
+vi.mock(
   '@actions/github',
-  jest.fn().mockImplementation(() => ({
+  vi.fn().mockImplementation(() => ({
     context: { repo: { owner: 'mock-owner', repo: 'mock-repo' } },
-    getOctokit: jest.fn().mockReturnValue({
+    getOctokit: vi.fn().mockReturnValue({
       repos: {
-        listTags: jest.fn().mockImplementation(({ page }: { page: number }) => {
+        listTags: vi.fn().mockImplementation(({ page }: { page: number }) => {
           if (page === 6) {
             return { data: [] };
           }
