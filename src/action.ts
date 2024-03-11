@@ -22,6 +22,7 @@ export default async function main() {
     | 'false';
   const tagPrefix = core.getInput('tag_prefix');
   const customTag = core.getInput('custom_tag');
+  const pathFilter = core.getInput('path_filter');
   const releaseBranches = core.getInput('release_branches');
   const preReleaseBranches = core.getInput('pre_release_branches');
   const appendToPreReleaseTag = core.getInput('append_to_pre_release_tag');
@@ -85,7 +86,7 @@ export default async function main() {
   let newVersion: string;
 
   if (customTag) {
-    commits = await getCommits(latestTag.commit.sha, commitRef);
+    commits = await getCommits(latestTag.commit.sha, commitRef, pathFilter);
 
     core.setOutput('release_type', 'custom');
     newVersion = customTag;
@@ -121,7 +122,7 @@ export default async function main() {
     core.setOutput('previous_version', previousVersion.version);
     core.setOutput('previous_tag', previousTag.name);
 
-    commits = await getCommits(previousTag.commit.sha, commitRef);
+    commits = await getCommits(previousTag.commit.sha, commitRef, pathFilter);
 
     let bump = await analyzeCommits(
       {
