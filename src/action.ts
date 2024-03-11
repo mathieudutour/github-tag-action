@@ -20,6 +20,9 @@ export default async function main() {
   const defaultPreReleaseBump = core.getInput('default_prerelease_bump') as
     | ReleaseType
     | 'false';
+  const defaultDraftBump =
+    (core.getInput('default_draft_bump') as ReleaseType | 'false') ||
+    defaultPreReleaseBump;
   const tagPrefix = core.getInput('tag_prefix');
   const customTag = core.getInput('custom_tag');
   const releaseBranches = core.getInput('release_branches');
@@ -120,6 +123,7 @@ export default async function main() {
     );
     core.setOutput('previous_version', previousVersion.version);
     core.setOutput('previous_tag', previousTag.name);
+    const previousWasPrerelease = previousVersion.prerelease.length != 0;
 
     commits = await getCommits(previousTag.commit.sha, commitRef);
 
@@ -136,6 +140,8 @@ export default async function main() {
     // Determine if we should continue with tag creation based on main vs prerelease branch
     let shouldContinue = true;
     if (isPrerelease) {
+      if (!bump && !previousWasPrerelease && defaultDraftBump === 'false')
+        shouldContinue = false;
       if (!bump && defaultPreReleaseBump === 'false') {
         shouldContinue = false;
       }
@@ -155,9 +161,13 @@ export default async function main() {
 
     // If we don't have an automatic bump for the prerelease, just set our bump as the default
     if (isPrerelease && !bump) {
-      bump = defaultPreReleaseBump;
+      if (!previousWasPrerelease)
+        // previous version is a prerelease -> draft a new version with the default bump and make it a prerelease
+        bump = defaultDraftBump;
+      else bump = defaultPreReleaseBump;
     }
 
+    // TODO: these next 10 lines are horrible!! why we have preminor as bump type at all if it is always striped away?
     // If somebody uses custom release rules on a prerelease branch they might create a 'preprepatch' bump.
     const preReg = /^pre/;
     if (isPrerelease && preReg.test(bump)) {
