@@ -62,7 +62,8 @@ describe('github-tag-action', () => {
       expect(mockCreateTag).toHaveBeenCalledWith(
         'v0.0.1',
         expect.any(Boolean),
-        expect.any(String)
+        expect.any(String),
+        true
       );
       expect(mockSetFailed).not.toBeCalled();
     });
@@ -92,7 +93,8 @@ describe('github-tag-action', () => {
       expect(mockCreateTag).toHaveBeenCalledWith(
         'v0.0.1',
         expect.any(Boolean),
-        expect.any(String)
+        expect.any(String),
+        true
       );
       expect(mockSetFailed).not.toBeCalled();
     });
@@ -169,7 +171,8 @@ describe('github-tag-action', () => {
       expect(mockCreateTag).toHaveBeenCalledWith(
         'v2.0.0',
         expect.any(Boolean),
-        expect.any(String)
+        expect.any(String),
+        true
       );
       expect(mockSetFailed).not.toBeCalled();
     });
@@ -211,7 +214,38 @@ describe('github-tag-action', () => {
       expect(mockCreateTag).toHaveBeenCalledWith(
         'v1.3.0',
         expect.any(Boolean),
-        expect.any(String)
+        expect.any(String),
+        true
+      );
+      expect(mockSetFailed).not.toBeCalled();
+    });
+
+    it('does create a tag, but does not push the tag', async () => {
+      /*
+       * Given
+       */
+      setInput('push_tag', 'false');
+      const commits: any[] = [];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
+
+      const validTags: any[] = [];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+      /*
+       * When
+       */
+      await action();
+      /*
+       * Then
+       */
+      expect(mockCreateTag).toHaveBeenCalledWith(
+        'v0.0.1',
+        expect.any(Boolean),
+        expect.any(String),
+        false
       );
       expect(mockSetFailed).not.toBeCalled();
     });
@@ -257,7 +291,8 @@ describe('github-tag-action', () => {
       expect(mockCreateTag).toHaveBeenCalledWith(
         'v1.2.4',
         expect.any(Boolean),
-        expect.any(String)
+        expect.any(String),
+        true
       );
       expect(mockSetFailed).not.toBeCalled();
     });
@@ -297,7 +332,8 @@ describe('github-tag-action', () => {
       expect(mockCreateTag).toHaveBeenCalledWith(
         'v1.3.0',
         expect.any(Boolean),
-        expect.any(String)
+        expect.any(String),
+        true
       );
       expect(mockSetFailed).not.toBeCalled();
     });
@@ -341,7 +377,8 @@ describe('github-tag-action', () => {
       expect(mockCreateTag).toHaveBeenCalledWith(
         'v2.0.0',
         expect.any(Boolean),
-        expect.any(String)
+        expect.any(String),
+        true
       );
       expect(mockSetFailed).not.toBeCalled();
     });
@@ -395,7 +432,8 @@ describe('github-tag-action', () => {
       expect(mockCreateTag).toHaveBeenCalledWith(
         'v2.2.0',
         expect.any(Boolean),
-        expect.any(String)
+        expect.any(String),
+        true
       );
       expect(mockSetFailed).not.toBeCalled();
     });
@@ -440,7 +478,8 @@ describe('github-tag-action', () => {
       expect(mockCreateTag).toHaveBeenCalledWith(
         'v1.3.0',
         expect.any(Boolean),
-        expect.any(String)
+        expect.any(String),
+        true
       );
       expect(mockSetFailed).not.toBeCalled();
     });
@@ -522,7 +561,8 @@ describe('github-tag-action', () => {
       expect(mockCreateTag).toHaveBeenCalledWith(
         'v1.2.4-prerelease.0',
         expect.any(Boolean),
-        expect.any(String)
+        expect.any(String),
+        true
       );
       expect(mockSetFailed).not.toBeCalled();
     });
@@ -560,7 +600,8 @@ describe('github-tag-action', () => {
       expect(mockCreateTag).toHaveBeenCalledWith(
         'v1.2.4-prerelease.0',
         expect.any(Boolean),
-        expect.any(String)
+        expect.any(String),
+        true
       );
       expect(mockSetFailed).not.toBeCalled();
     });
@@ -600,7 +641,8 @@ describe('github-tag-action', () => {
       expect(mockCreateTag).toHaveBeenCalledWith(
         'v1.3.0-prerelease.0',
         expect.any(Boolean),
-        expect.any(String)
+        expect.any(String),
+        true
       );
       expect(mockSetFailed).not.toBeCalled();
     });
@@ -644,7 +686,8 @@ describe('github-tag-action', () => {
       expect(mockCreateTag).toHaveBeenCalledWith(
         'v2.0.0-prerelease.0',
         expect.any(Boolean),
-        expect.any(String)
+        expect.any(String),
+        true
       );
       expect(mockSetFailed).not.toBeCalled();
     });
@@ -701,7 +744,8 @@ describe('github-tag-action', () => {
       expect(mockCreateTag).toHaveBeenCalledWith(
         'v2.2.0-prerelease.0',
         expect.any(Boolean),
-        expect.any(String)
+        expect.any(String),
+        true
       );
       expect(mockSetFailed).not.toBeCalled();
     });
@@ -746,7 +790,8 @@ describe('github-tag-action', () => {
       expect(mockCreateTag).toHaveBeenCalledWith(
         'v1.3.0-prerelease.0',
         expect.any(Boolean),
-        expect.any(String)
+        expect.any(String),
+        true
       );
       expect(mockSetFailed).not.toBeCalled();
     });

@@ -68,7 +68,8 @@ export async function compareCommits(baseRef: string, headRef: string) {
 export async function createTag(
   newTag: string,
   createAnnotatedTag: boolean,
-  GITHUB_SHA: string
+  GITHUB_SHA: string,
+  pushTag: boolean = true
 ) {
   const octokit = getOctokitSingleton();
   let annotatedTag:
@@ -85,10 +86,14 @@ export async function createTag(
     });
   }
 
-  core.debug(`Pushing new tag to the repo.`);
-  await octokit.git.createRef({
-    ...context.repo,
-    ref: `refs/tags/${newTag}`,
-    sha: annotatedTag ? annotatedTag.data.sha : GITHUB_SHA,
-  });
+  if (pushTag) {
+    core.debug(`Pushing new tag to the repo.`);
+    await octokit.git.createRef({
+      ...context.repo,
+      ref: `refs/tags/${newTag}`,
+      sha: annotatedTag ? annotatedTag.data.sha : GITHUB_SHA,
+    });
+  } else {
+    core.debug(`Tag was not pushed to remote`);
+  }
 }

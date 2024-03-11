@@ -32,6 +32,7 @@ export default async function main() {
   const customReleaseRules = core.getInput('custom_release_rules');
   const shouldFetchAllTags = core.getInput('fetch_all_tags');
   const commitSha = core.getInput('commit_sha');
+  const pushTag = core.getBooleanInput('push_tag');
 
   let mappedReleaseRules;
   if (customReleaseRules) {
@@ -228,5 +229,5 @@ export default async function main() {
     return;
   }
 
-  await createTag(newTag, createAnnotatedTag, commitRef);
+  await createTag(newTag, createAnnotatedTag, commitRef, pushTag);
 }
