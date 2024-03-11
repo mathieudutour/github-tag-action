@@ -42,6 +42,10 @@ jobs:
 - **release_branches** _(optional)_ - Comma separated list of branches (JavaScript regular expression accepted) that will generate the release tags. Other branches and pull-requests generate versions postfixed with the commit hash and do not generate any repository tag. Examples: `master` or `.*` or `release.*,hotfix.*,master`... (default: `master,main`).
 - **pre_release_branches** _(optional)_ - Comma separated list of branches (JavaScript regular expression accepted) that will generate the pre-release tags.
 
+#### Filter commits
+
+- **scopes** _(optional)_ - Comma separated list of scopes (JavaScript regular expression accepted) to consider when tagging, and to include in the changelog. If this option is specified, then commits with scopes not matching this list will not be analyzed nor included in the changelog.
+
 #### Customize the tag
 
 - **default_bump** _(optional)_ - Which type of bump to use when [none is explicitly provided](#bumping) when commiting to a release branch (default: `patch`). You can also set `false` to avoid generating a new tag when none is explicitly provided. Can be `patch, minor or major`.

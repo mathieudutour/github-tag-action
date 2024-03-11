@@ -215,6 +215,48 @@ describe('github-tag-action', () => {
       );
       expect(mockSetFailed).not.toBeCalled();
     });
+
+    it('does skip commits not included in scopes', async () => {
+      /*
+       * Given
+       */
+      setInput('scopes', 'yes');
+      const commits = [
+        { message: 'fix(YES): 1ne', hash: null },
+        { message: 'feat(NO): 2wo', hash: null },
+      ];
+      jest
+        .spyOn(utils, 'getCommits')
+        .mockImplementation(async (sha) => commits);
+
+      const validTags = [
+        {
+          name: 'v1.2.3',
+          commit: { sha: '012345', url: '' },
+          zipball_url: '',
+          tarball_url: 'string',
+          node_id: 'string',
+        },
+      ];
+      jest
+        .spyOn(utils, 'getValidTags')
+        .mockImplementation(async () => validTags);
+
+      /*
+       * When
+       */
+      await action();
+
+      /*
+       * Then
+       */
+      expect(mockCreateTag).toHaveBeenCalledWith(
+        'v1.2.4',
+        expect.any(Boolean),
+        expect.any(String)
+      );
+      expect(mockSetFailed).not.toBeCalled();
+    });
   });
 
   describe('release branches', () => {

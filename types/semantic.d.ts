@@ -1,5 +1,9 @@
 /// <reference types="semver" />
 
+declare module 'conventional-commits-parser' {
+  export function sync(message: string): { scope?: string };
+}
+
 declare module '@semantic-release/commit-analyzer' {
   export function analyzeCommits(
     config: {
