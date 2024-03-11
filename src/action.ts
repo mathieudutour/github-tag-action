@@ -122,6 +122,7 @@ export default async function main() {
     core.setOutput('previous_tag', previousTag.name);
 
     commits = await getCommits(previousTag.commit.sha, commitRef);
+    core.debug('We found ' + commits.length + ' commits to consider!');
 
     let bump = await analyzeCommits(
       {
