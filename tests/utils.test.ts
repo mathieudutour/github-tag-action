@@ -6,6 +6,7 @@ import { defaultChangelogRules } from '../src/defaults';
 
 jest.spyOn(core, 'debug').mockImplementation(() => {});
 jest.spyOn(core, 'warning').mockImplementation(() => {});
+jest.spyOn(github, 'compareCommits');
 
 const regex = /^v/;
 
@@ -296,6 +297,81 @@ describe('utils', () => {
        */
       expect(result).toContainEqual(mappedReleaseRules[0]);
       expect(result).not.toContainEqual(mappedReleaseRules[1]);
+    });
+  });
+
+  describe('getCommits', () => {
+    it('filters by targetPath if defined', async () => {
+      /**
+       * Given
+       */
+      const commits = [
+        {
+          commit: {
+            message: 'feat: change to frontend',
+          },
+          files: [{ filename: 'frontend/package.json' }],
+          sha: '1234',
+        },
+        {
+          commit: {
+            message: 'feat: change to backend',
+          },
+          files: [{ filename: 'backend/main.py' }],
+          sha: '4567',
+        },
+      ];
+      // @ts-ignore
+      jest.spyOn(github, 'compareCommits').mockResolvedValue(commits);
+
+      /**
+       * When
+       */
+      const result = await utils.getCommits('baseRef', 'headRef', 'frontend');
+
+      /**
+       * Then
+       */
+      expect(result).toEqual([
+        { message: 'feat: change to frontend', hash: '1234' },
+      ]);
+    });
+
+    it('does no path filtering if targetPath undefined', async () => {
+      /**
+       * Given
+       */
+      const commits = [
+        {
+          commit: {
+            message: 'feat: change to frontend',
+          },
+          files: [{ filename: 'frontend/package.json' }],
+          sha: '1234',
+        },
+        {
+          commit: {
+            message: 'feat: change to backend',
+          },
+          files: [{ filename: 'backend/main.py' }],
+          sha: '4567',
+        },
+      ];
+      // @ts-ignore
+      jest.spyOn(github, 'compareCommits').mockResolvedValue(commits);
+
+      /**
+       * When
+       */
+      const result = await utils.getCommits('baseRef', 'headRef');
+
+      /**
+       * Then
+       */
+      expect(result).toEqual([
+        { message: 'feat: change to frontend', hash: '1234' },
+        { message: 'feat: change to backend', hash: '4567' },
+      ]);
     });
   });
 });
