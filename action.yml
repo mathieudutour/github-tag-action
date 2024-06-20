@@ -46,6 +46,9 @@ inputs:
   pre_release_branches:
     description: "Comma separated list of branches (bash reg exp accepted) that will generate pre-release tags."
     required: false
+  scopes:
+    description: "Comma separated list of scopes (bash reg exp accepted) to analyze and to include in the changelog."
+    required: false
   commit_sha:
     description: "The commit SHA value to add the tag. If specified, it uses this value instead GITHUB_SHA. It could be useful when a previous step merged a branch into github.ref."
     required: false

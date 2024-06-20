@@ -30,6 +30,7 @@
     "@semantic-release/commit-analyzer": "^8.0.1",
     "@semantic-release/release-notes-generator": "^9.0.1",
     "conventional-changelog-conventionalcommits": "^4.6.1",
+    "conventional-commits-parser": "^3.2.0",
     "semver": "^7.3.5"
   },
   "devDependencies": {

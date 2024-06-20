@@ -18,8 +18,12 @@ export function setCommitSha(sha: string) {
   process.env['GITHUB_SHA'] = sha;
 }
 
-export function setInput(key: string, value: string) {
-  process.env[`INPUT_${key.toUpperCase()}`] = value;
+export function setInput(key: string, value: string | undefined) {
+  if (value) {
+    process.env[`INPUT_${key.toUpperCase()}`] = value;
+  } else {
+    delete process.env[`INPUT_${key.toUpperCase()}`];
+  }
 }
 
 export function setInputs(map: { [key: string]: string }) {
@@ -34,12 +38,10 @@ export function loadDefaultInputs() {
   const actionJson = yaml.load(actionYaml) as {
     inputs: { [key: string]: { default?: string } };
   };
-  const defaultInputs = Object.keys(actionJson['inputs'])
-    .filter((key) => actionJson['inputs'][key].default)
-    .reduce(
-      (obj, key) => ({ ...obj, [key]: actionJson['inputs'][key].default }),
-      {}
-    );
+  const defaultInputs = Object.keys(actionJson['inputs']).reduce(
+    (obj, key) => ({ ...obj, [key]: actionJson['inputs'][key].default }),
+    {}
+  );
   setInputs(defaultInputs);
 }
 
