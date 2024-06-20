@@ -61,6 +61,9 @@ jobs:
     1. `hotfix:patch,pre-feat:preminor`,
     2. `bug:patch:Bug Fixes,chore:patch:Chores`
 
+#### Create a tag without pushing it
+- **push_tag** _(optional)_ - Push the tag to the remote. If false, tag is created but not pushed. (default: `true`)
+
 #### Debugging
 
 - **dry_run** _(optional)_ - Do not perform tagging, just calculate next version and changelog, then exit
