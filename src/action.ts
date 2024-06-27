@@ -17,9 +17,14 @@ import { Await } from './ts';
 
 export default async function main() {
   const defaultBump = core.getInput('default_bump') as ReleaseType | 'false';
+  const forceBump = core.getInput('force_bump') as ReleaseType | 'false' | '';
   const defaultPreReleaseBump = core.getInput('default_prerelease_bump') as
     | ReleaseType
     | 'false';
+  const forcePreReleaseBump = core.getInput('force_prerelease_bump') as
+    | ReleaseType
+    | 'false'
+    | '';
   const tagPrefix = core.getInput('tag_prefix');
   const customTag = core.getInput('custom_tag');
   const releaseBranches = core.getInput('release_branches');
@@ -143,6 +148,14 @@ export default async function main() {
       if (!bump && defaultBump === 'false') {
         shouldContinue = false;
       }
+    }
+
+    // Determine if we should override the bump to a given `force` version
+    if (isPrerelease && forcePreReleaseBump !== '') {
+      bump = forcePreReleaseBump;
+    }
+    if (!isPrerelease && forceBump !== '') {
+      bump = forceBump;
     }
 
     // Default bump is set to false and we did not find an automatic bump
