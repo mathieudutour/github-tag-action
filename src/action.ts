@@ -125,6 +125,7 @@ export default async function main() {
 
     let bump = await analyzeCommits(
       {
+        preset: 'conventionalcommits',
         releaseRules: mappedReleaseRules
           ? // analyzeCommits doesn't appreciate rules with a section /shrug
             mappedReleaseRules.map(({ section, ...rest }) => ({ ...rest }))
