@@ -158,6 +158,9 @@ export default async function main() {
       bump = defaultPreReleaseBump;
     }
 
+    // Force the bump to be "patch"
+    bump = 'patch';
+
     // If somebody uses custom release rules on a prerelease branch they might create a 'preprepatch' bump.
     const preReg = /^pre/;
     if (isPrerelease && preReg.test(bump)) {
