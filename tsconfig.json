@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
-    "target": "ES6",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "target": "es2019",
+    "module": "commonjs",
     "outDir": "./lib",
     "rootDir": "./src",
     "strict": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
   },
   "exclude": ["node_modules", "**/*.test.ts"]
 }
