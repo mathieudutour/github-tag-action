@@ -14,6 +14,16 @@ type Tag = {
   tarball_url: string;
   node_id: string;
 };
+type Ref = {
+  ref: string;
+  node_id: string;
+  url: string;
+  object: {
+    sha: string;
+    type: string;
+    url: string;
+  };
+};
 
 export function getOctokitSingleton() {
   if (octokitSingleton) {
@@ -45,6 +55,31 @@ export async function listTags(
   }
 
   return listTags(shouldFetchAllTags, [...fetchedTags, ...tags.data], page + 1);
+}
+
+// Github API does not support filtering tags by prefix and it only allows getting 100 tags at a time.
+// We need to use listMatchingRefs to get all tags.
+export async function listRefs(
+  tagPrefix: string,
+): Promise<Tag[]> {
+  const octokit = getOctokitSingleton();
+
+  const refs = await octokit.git.listMatchingRefs({
+    ...context.repo,
+    ref: `tags/${tagPrefix}`,
+  });
+  console.log(refs.data);
+
+  return refs.data.map((ref: Ref) => ({
+    name: ref.ref.replace('refs/tags/', ''),
+    commit: {
+      sha: ref.object.sha,
+      url: ref.object.url,
+    },
+    zipball_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/zipball/${ref.ref.replace('refs/tags/', '')}`,
+    tarball_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/tarball/${ref.ref.replace('refs/tags/', '')}`,
+    node_id: ref.node_id,
+  }));
 }
 
 /**

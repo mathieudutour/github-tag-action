@@ -70,8 +70,8 @@ export default async function main() {
   const prefixRegex = new RegExp(`^${tagPrefix}`);
 
   const validTags = await getValidTags(
-    prefixRegex,
-    /true/i.test(shouldFetchAllTags)
+    tagPrefix,
+    prefixRegex
   );
   const latestTag = getLatestTag(validTags, prefixRegex, tagPrefix);
   const latestPrereleaseTag = getLatestPrereleaseTag(

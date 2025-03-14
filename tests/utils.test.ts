@@ -8,6 +8,7 @@ jest.spyOn(core, 'debug').mockImplementation(() => {});
 jest.spyOn(core, 'warning').mockImplementation(() => {});
 
 const regex = /^v/;
+const tagPrefix = 'v';
 
 describe('utils', () => {
   it('extracts branch from ref', () => {
@@ -71,7 +72,7 @@ describe('utils', () => {
     /*
      * When
      */
-    const validTags = await getValidTags(regex, false);
+    const validTags = await getValidTags(tagPrefix, regex);
 
     /*
      * Then
@@ -121,7 +122,7 @@ describe('utils', () => {
     /*
      * When
      */
-    const validTags = await getValidTags(regex, false);
+    const validTags = await getValidTags(tagPrefix, regex);
 
     /*
      * Then
@@ -169,7 +170,7 @@ describe('utils', () => {
     /*
      * When
      */
-    const validTags = await getValidTags(/^app1\//, false);
+    const validTags = await getValidTags(tagPrefix, regex);
     /*
      * Then
      */

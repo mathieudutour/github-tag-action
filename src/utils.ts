@@ -2,17 +2,17 @@ import * as core from '@actions/core';
 import { prerelease, rcompare, valid } from 'semver';
 // @ts-ignore
 import DEFAULT_RELEASE_TYPES from '@semantic-release/commit-analyzer/lib/default-release-types';
-import { compareCommits, listTags } from './github';
+import { compareCommits, listRefs, listTags } from './github';
 import { defaultChangelogRules } from './defaults';
 import { Await } from './ts';
 
 type Tags = Await<ReturnType<typeof listTags>>;
 
 export async function getValidTags(
+  tagPrefix: string,
   prefixRegex: RegExp,
-  shouldFetchAllTags: boolean
 ) {
-  const tags = await listTags(shouldFetchAllTags);
+  const tags = await listRefs(tagPrefix);
 
   const invalidTags = tags.filter(
     (tag) =>
