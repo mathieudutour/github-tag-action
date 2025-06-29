@@ -1,6 +1,7 @@
 import { context, getOctokit } from '@actions/github';
 import * as core from '@actions/core';
 import { Await } from './ts';
+import { createAppAuth } from "@octokit/auth-app";
 
 let octokitSingleton: ReturnType<typeof getOctokit>;
 
@@ -15,13 +16,23 @@ type Tag = {
   node_id: string;
 };
 
-export function getOctokitSingleton() {
-  if (octokitSingleton) {
-    return octokitSingleton;
-  }
-  const githubToken = core.getInput('github_token');
-  octokitSingleton = getOctokit(githubToken);
-  return octokitSingleton;
+export async function getOctokitSingleton() {
+  const auth = createAppAuth({
+    privateKey: process.env.PRIVATE_KEY || '',
+    clientId: process.env.CLIENT_ID || '',
+    clientSecret: process.env.CLIENT_SECRET || '',
+    appId: process.env.APP_ID || '',
+  });
+  
+  const installationAuth = await auth({
+    type:           "installation",
+    installationId: parseInt(process.env.INSTALLATION_ID || '', 10),
+  });
+  
+  // 3️⃣ wire it into Octokit
+  const octokit = getOctokit(installationAuth.token);
+  
+  return octokit;
 }
 
 /**
@@ -32,7 +43,7 @@ export async function listTags(
   fetchedTags: Tag[] = [],
   page = 1
 ): Promise<Tag[]> {
-  const octokit = getOctokitSingleton();
+  const octokit = await getOctokitSingleton();
 
   const tags = await octokit.repos.listTags({
     ...context.repo,
@@ -53,7 +64,7 @@ export async function listTags(
  * @param headRef - new commit
  */
 export async function compareCommits(baseRef: string, headRef: string) {
-  const octokit = getOctokitSingleton();
+  const octokit = await getOctokitSingleton();
   core.debug(`Comparing commits (${baseRef}...${headRef})`);
 
   const commits = await octokit.repos.compareCommits({
@@ -70,7 +81,7 @@ export async function createTag(
   createAnnotatedTag: boolean,
   GITHUB_SHA: string
 ) {
-  const octokit = getOctokitSingleton();
+  const octokit = await getOctokitSingleton();
   let annotatedTag:
     | Await<ReturnType<typeof octokit.git.createTag>>
     | undefined = undefined;
