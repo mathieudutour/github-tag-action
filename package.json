@@ -19,7 +19,7 @@
     "setup"
   ],
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "author": "Mathieu Dutour",
   "license": "MIT",
