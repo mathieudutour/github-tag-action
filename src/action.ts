@@ -1,5 +1,5 @@
 import * as core from '@actions/core';
-import { gte, inc, parse, ReleaseType, SemVer, valid } from 'semver';
+import { gte, inc, parse, valid, type ReleaseType } from 'semver';
 import { analyzeCommits } from '@semantic-release/commit-analyzer';
 import { generateNotes } from '@semantic-release/release-notes-generator';
 import {
@@ -13,7 +13,19 @@ import {
   mergeWithDefaultChangelogRules,
 } from './utils';
 import { createTag } from './github';
-import { Await } from './ts';
+
+const VALID_RELEASE_TYPES: ReadonlySet<ReleaseType> = new Set([
+  'major',
+  'premajor',
+  'minor',
+  'preminor',
+  'patch',
+  'prepatch',
+  'prerelease',
+]);
+
+const isReleaseType = (value: string): value is ReleaseType =>
+  VALID_RELEASE_TYPES.has(value as ReleaseType);
 
 export default async function main() {
   const defaultBump = core.getInput('default_bump') as ReleaseType | 'false';
@@ -80,7 +92,7 @@ export default async function main() {
     prefixRegex
   );
 
-  let commits: Await<ReturnType<typeof getCommits>>;
+  let commits: Awaited<ReturnType<typeof getCommits>>;
 
   let newVersion: string;
 
@@ -90,8 +102,7 @@ export default async function main() {
     core.setOutput('release_type', 'custom');
     newVersion = customTag;
   } else {
-    let previousTag: ReturnType<typeof getLatestTag> | null;
-    let previousVersion: SemVer | null;
+    let previousTag: ReturnType<typeof getLatestTag>;
     if (!latestPrereleaseTag) {
       previousTag = latestTag;
     } else {
@@ -103,12 +114,7 @@ export default async function main() {
         : latestPrereleaseTag;
     }
 
-    if (!previousTag) {
-      core.setFailed('Could not find previous tag.');
-      return;
-    }
-
-    previousVersion = parse(previousTag.name.replace(prefixRegex, ''));
+    const previousVersion = parse(previousTag.name.replace(prefixRegex, ''));
 
     if (!previousVersion) {
       core.setFailed('Could not parse previous tag.');
@@ -127,7 +133,9 @@ export default async function main() {
       {
         releaseRules: mappedReleaseRules
           ? // analyzeCommits doesn't appreciate rules with a section /shrug
-            mappedReleaseRules.map(({ section, ...rest }) => ({ ...rest }))
+            mappedReleaseRules.map(({ section: _section, ...rest }) => ({
+              ...rest,
+            }))
           : undefined,
       },
       { commits, logger: { log: console.info.bind(console) } }
@@ -159,16 +167,20 @@ export default async function main() {
     }
 
     // If somebody uses custom release rules on a prerelease branch they might create a 'preprepatch' bump.
-    const preReg = /^pre/;
-    if (isPrerelease && preReg.test(bump)) {
-      bump = bump.replace(preReg, '');
+    if (isPrerelease && typeof bump === 'string' && bump.startsWith('pre')) {
+      bump = bump.slice('pre'.length);
     }
 
-    const releaseType: ReleaseType = isPrerelease
-      ? `pre${bump}`
-      : bump || defaultBump;
-    core.setOutput('release_type', releaseType);
+    const candidateReleaseType = isPrerelease
+      ? `pre${bump ?? ''}`
+      : (bump ?? defaultBump);
 
+    if (!isReleaseType(candidateReleaseType)) {
+      core.setFailed(`Invalid release type: ${candidateReleaseType}.`);
+      return;
+    }
+
+    const releaseType: ReleaseType = candidateReleaseType;
     const incrementedVersion = inc(previousVersion, releaseType, identifier);
 
     if (!incrementedVersion) {
@@ -181,6 +193,10 @@ export default async function main() {
       return;
     }
 
+    // Only surface `release_type` after we've validated both the type and
+    // that it produced a valid version; this avoids emitting bogus strings
+    // to downstream jobs if the bump/default_bump combination is invalid.
+    core.setOutput('release_type', releaseType);
     newVersion = incrementedVersion;
   }
 

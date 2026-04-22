@@ -2,6 +2,18 @@
 
 A GitHub Action to automatically bump and tag master, on merge, with the latest SemVer formatted version. Works on any platform.
 
+## Requirements
+
+This action runs on the **Node.js 24** Actions runtime (`runs.using: node24`
+in [`action.yml`](./action.yml)). GitHub-hosted runners have shipped with
+Node 24 since late 2025; self-hosted runners must be on runner version
+`v2.328.0` or newer. Node 24 is required in part because several of the
+action's runtime dependencies (`@semantic-release/commit-analyzer`,
+`@semantic-release/release-notes-generator`,
+`conventional-changelog-conventionalcommits`) are pure ESM and rely on
+Node's `require(esm)` interop. No additional setup is needed in consumer
+workflows — GitHub executes the bundled `lib/main.js` entrypoint directly.
+
 ## Usage
 
 ```yaml
@@ -14,7 +26,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
       - name: Bump version and push tag
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.1

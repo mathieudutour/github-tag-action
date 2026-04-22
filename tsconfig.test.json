@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noUncheckedIndexedAccess": false,
+    "rootDir": ".",
+    "noEmit": true
+  },
+  "include": ["src/**/*", "tests/**/*", "types/**/*"],
+  "exclude": ["node_modules", "lib"]
+}

@@ -1,68 +1,68 @@
-name: "GitHub Tag"
-description: "Bump and push git tag on merge"
-author: "Mathieu Dutour"
+name: 'GitHub Tag'
+description: 'Bump and push git tag on merge'
+author: 'Mathieu Dutour'
 outputs:
   new_tag:
-    description: "Generated tag"
+    description: 'Generated tag'
   new_version:
-    description: "Generated tag without the prefix"
+    description: 'Generated tag without the prefix'
   previous_tag:
-    description: "Previous tag (or `0.0.0`)"
+    description: 'Previous tag (or `0.0.0`)'
   release_type:
-    description: "The computed release type (`major`, `minor`, `patch` or `custom` - can be prefixed with `pre`)"
+    description: 'The computed release type (`major`, `minor`, `patch` or `custom` - can be prefixed with `pre`)'
   changelog:
-    description: "The conventional changelog since the previous tag"
+    description: 'The conventional changelog since the previous tag'
 inputs:
   github_token:
-    description: "Required for permission to tag the repo."
+    description: 'Required for permission to tag the repo.'
     required: true
   default_bump:
-    description: "Which type of bump to use when none explicitly provided when commiting to a release branch (default: `patch`)."
+    description: 'Which type of bump to use when none explicitly provided when commiting to a release branch (default: `patch`).'
     required: false
-    default: "patch"
+    default: 'patch'
   default_prerelease_bump:
-    description: "Which type of bump to use when none explicitly provided when commiting to a prerelease branch (default: `prerelease`)."
+    description: 'Which type of bump to use when none explicitly provided when commiting to a prerelease branch (default: `prerelease`).'
     required: false
-    default: "prerelease"
+    default: 'prerelease'
   tag_prefix:
-    description: "A prefix to the tag name (default: `v`)."
+    description: 'A prefix to the tag name (default: `v`).'
     required: false
-    default: "v"
+    default: 'v'
   append_to_pre_release_tag:
-    description: "A suffix to a pre-release tag name (default: `<branch>`)."
+    description: 'A suffix to a pre-release tag name (default: `<branch>`).'
     required: false
   custom_tag:
-    description: "Custom tag name. If specified, it overrides bump settings."
+    description: 'Custom tag name. If specified, it overrides bump settings.'
     required: false
   custom_release_rules:
-    description: "Comma separated list of release rules. Format: `<keyword>:<release_type>`. Example: `hotfix:patch,pre-feat:preminor`."
+    description: 'Comma separated list of release rules. Format: `<keyword>:<release_type>`. Example: `hotfix:patch,pre-feat:preminor`.'
     required: false
   release_branches:
-    description: "Comma separated list of branches (bash reg exp accepted) that will generate the release tags. Other branches and pull-requests generate versions postfixed with the commit hash and do not generate any tag. Examples: `master` or `.*` or `release.*,hotfix.*,master`..."
+    description: 'Comma separated list of branches (bash reg exp accepted) that will generate the release tags. Other branches and pull-requests generate versions postfixed with the commit hash and do not generate any tag. Examples: `master` or `.*` or `release.*,hotfix.*,master`...'
     required: false
-    default: "master,main"
+    default: 'master,main'
   pre_release_branches:
-    description: "Comma separated list of branches (bash reg exp accepted) that will generate pre-release tags."
+    description: 'Comma separated list of branches (bash reg exp accepted) that will generate pre-release tags.'
     required: false
   commit_sha:
-    description: "The commit SHA value to add the tag. If specified, it uses this value instead GITHUB_SHA. It could be useful when a previous step merged a branch into github.ref."
+    description: 'The commit SHA value to add the tag. If specified, it uses this value instead GITHUB_SHA. It could be useful when a previous step merged a branch into github.ref.'
     required: false
   create_annotated_tag:
-    description: "Boolean to create an annotated tag rather than lightweight."
+    description: 'Boolean to create an annotated tag rather than lightweight.'
     required: false
-    default: "false"
+    default: 'false'
   fetch_all_tags:
-    description: "Boolean to fetch all tags for a repo (if false, only the last 100 will be fetched)."
+    description: 'Boolean to fetch all tags for a repo (if false, only the last 100 will be fetched).'
     required: false
-    default: "false"
+    default: 'false'
   dry_run:
-    description: "Do not perform tagging, just calculate next version and changelog, then exit."
+    description: 'Do not perform tagging, just calculate next version and changelog, then exit.'
     required: false
-    default: "false"
+    default: 'false'
 
 runs:
-  using: "node16"
-  main: "lib/main.js"
+  using: 'node24'
+  main: 'lib/main.js'
 branding:
-  icon: "git-merge"
-  color: "purple"
+  icon: 'git-merge'
+  color: 'purple'

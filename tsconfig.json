@@ -1,11 +1,34 @@
 {
+  // NOTE: We emit CommonJS (`module: commonjs`) because the action entrypoint
+  // `lib/main.js` is invoked directly by the GitHub Actions runner. We stay on
+  // `moduleResolution: "node"` rather than `"node16"` / `"nodenext"` because
+  // the compiled output is CJS-only and the package is *not* `"type": "module"`.
+  //
+  // Footgun: if this project ever flips `package.json` `"type"` to `"module"`,
+  // or introduces ESM-only local files, revisit `moduleResolution` — `"node"`
+  // does not honour package `exports` maps as strictly as `"node16"` /
+  // `"nodenext"`, and you may need to switch both `module` and
+  // `moduleResolution` together. The ESM-only runtime deps (`@semantic-release/*`)
+  // currently work because Node 24's `require(esm)` handles them at runtime.
   "compilerOptions": {
-    "target": "es6",
-    "module": "commonjs",                     /* Concatenate and emit output to single file. */
-    "outDir": "./lib",                        /* Redirect output structure to the directory. */
+    "target": "ES2023",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "lib": ["ES2023"],
+    "outDir": "./lib",
     "rootDir": "./src",
     "strict": true,
-    "esModuleInterop": true
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "declaration": false,
+    "typeRoots": ["./node_modules/@types", "./types"]
   },
-  "exclude": ["node_modules", "**/*.test.ts"]
+  "include": ["src/**/*", "types/**/*"],
+  "exclude": ["node_modules", "lib", "**/*.test.ts"]
 }
