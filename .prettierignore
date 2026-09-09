@@ -3,6 +3,7 @@
 /lib/
 /dist/
 /docs/
+/codex-changelog/
 /*.json
 /*.js
 /*.cjs
