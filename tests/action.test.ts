@@ -64,7 +64,7 @@ describe('github-tag-action', () => {
         expect.any(Boolean),
         expect.any(String)
       );
-      expect(mockSetFailed).not.toBeCalled();
+      expect(mockSetFailed).not.toHaveBeenCalled();
     });
 
     it('does create patch tag without commits', async () => {
@@ -94,7 +94,7 @@ describe('github-tag-action', () => {
         expect.any(Boolean),
         expect.any(String)
       );
-      expect(mockSetFailed).not.toBeCalled();
+      expect(mockSetFailed).not.toHaveBeenCalled();
     });
 
     it('does not create tag without commits and default_bump set to false', async () => {
@@ -128,8 +128,8 @@ describe('github-tag-action', () => {
       /*
        * Then
        */
-      expect(mockCreateTag).not.toBeCalled();
-      expect(mockSetFailed).not.toBeCalled();
+      expect(mockCreateTag).not.toHaveBeenCalled();
+      expect(mockSetFailed).not.toHaveBeenCalled();
     });
 
     it('does create tag using custom release types', async () => {
@@ -171,7 +171,7 @@ describe('github-tag-action', () => {
         expect.any(Boolean),
         expect.any(String)
       );
-      expect(mockSetFailed).not.toBeCalled();
+      expect(mockSetFailed).not.toHaveBeenCalled();
     });
 
     it('does create tag using custom release types but non-custom commit message', async () => {
@@ -213,7 +213,7 @@ describe('github-tag-action', () => {
         expect.any(Boolean),
         expect.any(String)
       );
-      expect(mockSetFailed).not.toBeCalled();
+      expect(mockSetFailed).not.toHaveBeenCalled();
     });
   });
 
@@ -259,7 +259,7 @@ describe('github-tag-action', () => {
         expect.any(Boolean),
         expect.any(String)
       );
-      expect(mockSetFailed).not.toBeCalled();
+      expect(mockSetFailed).not.toHaveBeenCalled();
     });
 
     it('does create minor tag', async () => {
@@ -299,7 +299,7 @@ describe('github-tag-action', () => {
         expect.any(Boolean),
         expect.any(String)
       );
-      expect(mockSetFailed).not.toBeCalled();
+      expect(mockSetFailed).not.toHaveBeenCalled();
     });
 
     it('does create major tag', async () => {
@@ -343,7 +343,7 @@ describe('github-tag-action', () => {
         expect.any(Boolean),
         expect.any(String)
       );
-      expect(mockSetFailed).not.toBeCalled();
+      expect(mockSetFailed).not.toHaveBeenCalled();
     });
 
     it('does create tag when pre-release tag is newer', async () => {
@@ -397,7 +397,7 @@ describe('github-tag-action', () => {
         expect.any(Boolean),
         expect.any(String)
       );
-      expect(mockSetFailed).not.toBeCalled();
+      expect(mockSetFailed).not.toHaveBeenCalled();
     });
 
     it('does create tag with custom release rules', async () => {
@@ -442,7 +442,7 @@ describe('github-tag-action', () => {
         expect.any(Boolean),
         expect.any(String)
       );
-      expect(mockSetFailed).not.toBeCalled();
+      expect(mockSetFailed).not.toHaveBeenCalled();
     });
   });
 
@@ -484,8 +484,8 @@ describe('github-tag-action', () => {
       /*
        * Then
        */
-      expect(mockCreateTag).not.toBeCalled();
-      expect(mockSetFailed).not.toBeCalled();
+      expect(mockCreateTag).not.toHaveBeenCalled();
+      expect(mockSetFailed).not.toHaveBeenCalled();
     });
 
     it('does create prerelease tag', async () => {
@@ -524,7 +524,7 @@ describe('github-tag-action', () => {
         expect.any(Boolean),
         expect.any(String)
       );
-      expect(mockSetFailed).not.toBeCalled();
+      expect(mockSetFailed).not.toHaveBeenCalled();
     });
 
     it('does create prepatch tag', async () => {
@@ -562,7 +562,7 @@ describe('github-tag-action', () => {
         expect.any(Boolean),
         expect.any(String)
       );
-      expect(mockSetFailed).not.toBeCalled();
+      expect(mockSetFailed).not.toHaveBeenCalled();
     });
 
     it('does create preminor tag', async () => {
@@ -602,7 +602,7 @@ describe('github-tag-action', () => {
         expect.any(Boolean),
         expect.any(String)
       );
-      expect(mockSetFailed).not.toBeCalled();
+      expect(mockSetFailed).not.toHaveBeenCalled();
     });
 
     it('does create premajor tag', async () => {
@@ -646,7 +646,7 @@ describe('github-tag-action', () => {
         expect.any(Boolean),
         expect.any(String)
       );
-      expect(mockSetFailed).not.toBeCalled();
+      expect(mockSetFailed).not.toHaveBeenCalled();
     });
 
     it('does create tag when release tag is newer', async () => {
@@ -703,7 +703,7 @@ describe('github-tag-action', () => {
         expect.any(Boolean),
         expect.any(String)
       );
-      expect(mockSetFailed).not.toBeCalled();
+      expect(mockSetFailed).not.toHaveBeenCalled();
     });
 
     it('does create tag with custom release rules', async () => {
@@ -748,7 +748,7 @@ describe('github-tag-action', () => {
         expect.any(Boolean),
         expect.any(String)
       );
-      expect(mockSetFailed).not.toBeCalled();
+      expect(mockSetFailed).not.toHaveBeenCalled();
     });
   });
 
@@ -791,8 +791,8 @@ describe('github-tag-action', () => {
        * Then
        */
       expect(mockSetOutput).toHaveBeenCalledWith('new_version', '1.2.4');
-      expect(mockCreateTag).not.toBeCalled();
-      expect(mockSetFailed).not.toBeCalled();
+      expect(mockCreateTag).not.toHaveBeenCalled();
+      expect(mockSetFailed).not.toHaveBeenCalled();
     });
 
     it('does output minor tag', async () => {
@@ -828,8 +828,8 @@ describe('github-tag-action', () => {
        * Then
        */
       expect(mockSetOutput).toHaveBeenCalledWith('new_version', '1.3.0');
-      expect(mockCreateTag).not.toBeCalled();
-      expect(mockSetFailed).not.toBeCalled();
+      expect(mockCreateTag).not.toHaveBeenCalled();
+      expect(mockSetFailed).not.toHaveBeenCalled();
     });
 
     it('does output major tag', async () => {
@@ -869,8 +869,8 @@ describe('github-tag-action', () => {
        * Then
        */
       expect(mockSetOutput).toHaveBeenCalledWith('new_version', '2.0.0');
-      expect(mockCreateTag).not.toBeCalled();
-      expect(mockSetFailed).not.toBeCalled();
+      expect(mockCreateTag).not.toHaveBeenCalled();
+      expect(mockSetFailed).not.toHaveBeenCalled();
     });
   });
 });

@@ -42,8 +42,8 @@ export async function getCommits(
   const commits = await compareCommits(baseRef, headRef);
 
   return commits
-    .filter((commit) => !!commit.commit.message)
-    .map((commit) => ({
+    .filter((commit: typeof commits[number]) => !!commit.commit.message)
+    .map((commit: typeof commits[number]) => ({
       message: commit.commit.message,
       hash: commit.sha,
     }));
