@@ -1,2 +1,5 @@
+# Keep text files consistent with Prettier on every runner platform.
+* text=auto eol=lf
+
 # Preserve generated assets byte-for-byte across runner platforms.
 /dist/** text eol=lf linguist-generated=true -whitespace
