@@ -1,70 +1,161 @@
-name: "GitHub Tag"
-description: "Bump and push git tag on merge"
-author: "Mathieu Dutour"
+name: 'GitHub Tag'
+description: 'Bump and push git tag on merge'
+author: 'Mathieu Dutour'
 outputs:
+  prerelease:
+    description: 'Whether the calculated version is a prerelease'
+  latest_release_tag:
+    description: 'Latest stable tag in the selected tag stream'
+  latest_release_version:
+    description: 'Latest stable version without the tag prefix'
+  changelog_url:
+    description: 'Comparison URL, or commit history URL for the initial release'
   new_tag:
-    description: "Generated tag"
+    description: 'Generated tag'
   new_version:
-    description: "Generated tag without the prefix"
+    description: 'Generated tag without the prefix'
   previous_tag:
-    description: "Previous tag (or `0.0.0`)"
+    description: 'Previous tag (or `0.0.0`)'
   previous_version:
-    description: "The value of the previous tag (or 0.0.0 if none) without the prefix. Note that if custom_tag is set, this will be undefined."
+    description: 'The value of the previous tag (or 0.0.0 if none) without the prefix. Available with custom_tag as well.'
   release_type:
-    description: "The computed release type (`major`, `minor`, `patch` or `custom` - can be prefixed with `pre`)"
+    description: 'The computed release type (`major`, `minor`, `patch` or `custom` - can be prefixed with `pre`)'
   changelog:
-    description: "The conventional changelog since the previous tag"
+    description: 'The conventional changelog since the previous tag'
 inputs:
+  previous_version:
+    description: 'Explicit semantic baseline; pair with previous_tag to analyze a non-semantic existing Git tag.'
+    required: false
+  commit_analyzer_preset:
+    description: 'Commit parser used for both version analysis and changelog: conventionalcommits or angular.'
+    required: false
+    default: 'conventionalcommits'
+  preset_config:
+    description: 'JSON object of conventional changelog preset options, including issuePrefixes and issueUrlFormat.'
+    required: false
+  path_filter:
+    description: 'Comma-separated repository-relative directories or file globs. Only commits changing matching files are considered.'
+    required: false
+  scopes:
+    description: 'Comma-separated conventional commit scope globs to include.'
+    required: false
+  ignore_keywords:
+    description: 'Comma-separated literal keywords that exclude a commit from both bump and changelog.'
+    required: false
+    default: '[no-release],[skip-release]'
+  parse_squash_commits:
+    description: 'Also analyze conventional subjects in squash-commit bullet lists. Opt-in; use conventional PR titles by default.'
+    required: false
+    default: 'false'
+  tag_search_pattern:
+    description: 'Glob pattern selecting the tag stream, e.g. v1.*.'
+    required: false
+  prefix_match_tag:
+    description: 'Reject an extra v prefix after tag_prefix, including when tag_prefix is empty.'
+    required: false
+    default: 'false'
+  force_bump:
+    description: 'Explicit release bump overriding commit analysis, including with no new commits.'
+    required: false
+  force_prerelease_bump:
+    description: 'Explicit prerelease bump overriding analysis and RC progression.'
+    required: false
+  default_draft_bump:
+    description: 'Initial prerelease bump; defaults to default_bump, or patch when default_bump is false.'
+    required: false
+  previous_tag:
+    description: 'Explicit previous Git tag; use previous_version as well for a non-semantic tag.'
+    required: false
+  initial_version:
+    description: 'Semantic baseline used when there are no matching stable tags.'
+    required: false
+    default: '0.0.0'
+  custom_tag_prerelease:
+    description: 'Treat custom_tag as the target semantic version and append/increment the prerelease identifier.'
+    required: false
+    default: 'false'
+  force_update:
+    description: 'Allow moving an existing tag to the selected commit.'
+    required: false
+    default: 'false'
+  rolling_tags:
+    description: 'Update major and major.minor aliases after publishing a stable semantic version.'
+    required: false
+    default: 'false'
+  push:
+    description: 'Publish tags to GitHub. False creates the calculated tag only in the local checkout.'
+    required: false
+    default: 'true'
+  create_local_tag:
+    description: 'Also create the calculated tag in the local checkout.'
+    required: false
+    default: 'false'
+  working_directory:
+    description: 'Checkout directory used for local Git operations and compare fallback.'
+    required: false
+  repository:
+    description: 'Target repository as owner/repo; defaults to GITHUB_REPOSITORY.'
+    required: false
+  repository_url:
+    description: 'Repository URL used in the changelog; defaults to the selected repository on GITHUB_SERVER_URL.'
+    required: false
+  ref:
+    description: 'Branch/ref override for workflow_dispatch or issue_comment; commit_sha takes precedence for the target commit.'
+    required: false
+  soft_fail:
+    description: 'Warn instead of failing on errors; clears calculated release outputs so downstream steps can skip.'
+    required: false
+    default: 'false'
   github_token:
-    description: "Required for permission to tag the repo."
+    description: 'Required for permission to tag the repo.'
     required: true
   default_bump:
-    description: "Which type of bump to use when none explicitly provided when commiting to a release branch (default: `patch`)."
+    description: 'Which type of bump to use when none explicitly provided when commiting to a release branch (default: `patch`).'
     required: false
-    default: "patch"
+    default: 'patch'
   default_prerelease_bump:
-    description: "Which type of bump to use when none explicitly provided when commiting to a prerelease branch (default: `prerelease`)."
+    description: 'Which type of bump to use when none explicitly provided when commiting to a prerelease branch (default: `prerelease`).'
     required: false
-    default: "prerelease"
+    default: 'prerelease'
   tag_prefix:
-    description: "A prefix to the tag name (default: `v`)."
+    description: 'A prefix to the tag name (default: `v`).'
     required: false
-    default: "v"
+    default: 'v'
   append_to_pre_release_tag:
-    description: "A suffix to a pre-release tag name (default: `<branch>`)."
+    description: 'A suffix to a pre-release tag name (default: `<branch>`).'
     required: false
   custom_tag:
-    description: "Custom tag name. If specified, it overrides bump settings."
+    description: 'Custom tag name. If specified, it overrides bump settings.'
     required: false
   custom_release_rules:
-    description: "Comma separated list of release rules. Format: `<keyword>:<release_type>`. Example: `hotfix:patch,pre-feat:preminor`."
+    description: 'Comma separated list of release rules. Format: `<keyword>:<release_type>`. Example: `hotfix:patch,pre-feat:preminor`.'
     required: false
   release_branches:
-    description: "Comma separated list of branches (bash reg exp accepted) that will generate the release tags. Other branches and pull-requests generate versions postfixed with the commit hash and do not generate any tag. Examples: `master` or `.*` or `release.*,hotfix.*,master`..."
+    description: 'Comma separated list of branches (JavaScript regular expressions accepted) that will generate the release tags. Other branches and pull-requests generate versions postfixed with the commit hash and do not generate any tag. Examples: `master` or `.*` or `release.*,hotfix.*,master`...'
     required: false
-    default: "master,main"
+    default: '^master$,^main$'
   pre_release_branches:
-    description: "Comma separated list of branches (bash reg exp accepted) that will generate pre-release tags."
+    description: 'Comma separated list of branches (JavaScript regular expressions accepted) that will generate pre-release tags.'
     required: false
   commit_sha:
-    description: "The commit SHA value to add the tag. If specified, it uses this value instead GITHUB_SHA. It could be useful when a previous step merged a branch into github.ref."
+    description: 'The commit SHA value to add the tag. If specified, it uses this value instead GITHUB_SHA. It could be useful when a previous step merged a branch into github.ref.'
     required: false
   create_annotated_tag:
-    description: "Boolean to create an annotated tag rather than lightweight."
+    description: 'Boolean to create an annotated tag rather than lightweight.'
     required: false
-    default: "false"
+    default: 'false'
   fetch_all_tags:
-    description: "Boolean to fetch all tags for a repo (if false, only the last 100 will be fetched)."
+    description: 'Fetch all tag pages. False fails if a full page may conceal more tags.'
     required: false
-    default: "false"
+    default: 'true'
   dry_run:
-    description: "Do not perform tagging, just calculate next version and changelog, then exit."
+    description: 'Do not perform tagging, just calculate next version and changelog, then exit.'
     required: false
-    default: "false"
+    default: 'false'
 
 runs:
-  using: "node20"
-  main: "lib/main.js"
+  using: 'node24'
+  main: 'dist/index.js'
 branding:
-  icon: "git-merge"
-  color: "purple"
+  icon: 'git-merge'
+  color: 'purple'

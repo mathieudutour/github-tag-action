@@ -1,45 +1,18 @@
-# How to publish a new version of the action
+# Publishing the action
 
-## Publish to a distribution branch
+Run on Node 24:
 
-Actions are run from GitHub repos. We will create a releases branch and only checkin production modules (core in this case).
-
-Comment out node_modules in .gitignore and create a releases/v1 branch
-
-```bash
-# comment out in distribution branches
-# node_modules/
-# lib/
+```sh
+npm ci
+npm test -- --runInBand
+npm run check
+npm run typecheck
+npm run build
+npm run smoke
 ```
 
-```bash
-$ git checkout -b releases/v1
-$ npm install
-$ npm run build
-$ npm prune --production
-$ git add .
-$ git commit -a -m "prod dependencies"
-$ git push
-```
+Commit the generated `dist/` directory (JavaScript, templates, and license notices) with the source. `action.yml` executes `dist/index.js`; consumers must not need `npm install`, `lib/`, or `node_modules/`. CI rebuilds and compares the distribution to catch stale generated code.
 
-Your action is now published! :rocket:
+The smoke test copies only `dist/` into an isolated temporary directory and exercises it against a local API and temporary Git checkout. It publishes nothing to GitHub and requires no secrets. Before releasing, also validate a workflow in a disposable GitHub repository with the intended permissions, runner, proxy settings, and branch events.
 
-See the [versioning documentation](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md)
-
-## Validate
-
-You can now validate the action by referencing the releases/v1 branch
-
-```yaml
-uses: mathieudutour/github-tag-action@releases/v1
-```
-
-See the [actions tab](https://github.com/actions/javascript-action/actions) for runs of this action! :rocket:
-
-## Create a tag
-
-After testing you can [create a tag](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md) to reference the stable and tested action
-
-```yaml
-uses: mathieudutour/github-tag-action@v1
-```
+Publish a new major version for the behavior changes in CHANGELOG.md. Do not move existing v6 tags to this code. Preparing this checkout does not publish a release or resolve open GitHub issues automatically.

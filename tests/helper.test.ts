@@ -27,6 +27,8 @@ export function setInputs(map: { [key: string]: string }) {
 }
 
 export function loadDefaultInputs() {
+  for (const key of Object.keys(process.env))
+    if (key.startsWith('INPUT_')) delete process.env[key];
   const actionYaml = fs.readFileSync(
     path.join(process.cwd(), 'action.yml'),
     'utf-8'

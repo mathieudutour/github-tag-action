@@ -2,7 +2,13 @@ import * as core from '@actions/core';
 import { prerelease, rcompare, valid } from 'semver';
 // @ts-ignore
 import DEFAULT_RELEASE_TYPES from '@semantic-release/commit-analyzer/lib/default-release-types';
-import { compareCommits, listTags } from './github';
+import {
+  compareCommits,
+  listCommits,
+  getCommitFiles,
+  listTags,
+} from './github';
+import { minimatch } from 'minimatch';
 import { defaultChangelogRules } from './defaults';
 import { Await } from './ts';
 
@@ -10,16 +16,22 @@ type Tags = Await<ReturnType<typeof listTags>>;
 
 export async function getValidTags(
   prefixRegex: RegExp,
-  shouldFetchAllTags: boolean
+  shouldFetchAllTags: boolean,
+  tagSearchPattern = '',
+  strictPrefix = false
 ) {
-  const tags = await listTags(shouldFetchAllTags);
+  const tags = (await listTags(shouldFetchAllTags)).filter(
+    (tag) =>
+      (!tagSearchPattern || minimatch(tag.name, tagSearchPattern)) &&
+      (!strictPrefix || !tag.name.replace(prefixRegex, '').startsWith('v'))
+  );
 
   const invalidTags = tags.filter(
     (tag) =>
       !prefixRegex.test(tag.name) || !valid(tag.name.replace(prefixRegex, ''))
   );
 
-  invalidTags.forEach((name) => core.debug(`Found Invalid Tag: ${name}.`));
+  invalidTags.forEach((tag) => core.debug(`Found Invalid Tag: ${tag.name}.`));
 
   const validTags = tags
     .filter(
@@ -39,7 +51,9 @@ export async function getCommits(
   baseRef: string,
   headRef: string
 ): Promise<{ message: string; hash: string | null }[]> {
-  const commits = await compareCommits(baseRef, headRef);
+  const commits = baseRef
+    ? await compareCommits(baseRef, headRef)
+    : await listCommits(headRef);
 
   return commits
     .filter((commit) => !!commit.commit.message)
@@ -54,7 +68,15 @@ export function getBranchFromRef(ref: string) {
 }
 
 export function isPr(ref: string) {
-  return ref.includes('refs/pull/');
+  return (
+    ref.startsWith('refs/pull/') ||
+    [
+      'pull_request',
+      'pull_request_target',
+      'pull_request_review',
+      'pull_request_review_comment',
+    ].includes(process.env.GITHUB_EVENT_NAME || '')
+  );
 }
 
 export function getLatestTag(
@@ -70,7 +92,7 @@ export function getLatestTag(
     ) || {
       name: `${tagPrefix}0.0.0`,
       commit: {
-        sha: 'HEAD',
+        sha: '',
       },
     }
   );
@@ -83,54 +105,35 @@ export function getLatestPrereleaseTag(
 ) {
   return tags
     .filter((tag) => prerelease(tag.name.replace(prefixRegex, '')))
-    .find((tag) => tag.name.replace(prefixRegex, '').match(identifier));
+    .find(
+      (tag) =>
+        String(prerelease(tag.name.replace(prefixRegex, ''))?.[0]) ===
+        identifier
+    );
 }
 
 export function mapCustomReleaseRules(customReleaseTypes: string) {
-  const releaseRuleSeparator = ',';
-  const releaseTypeSeparator = ':';
-
   return customReleaseTypes
-    .split(releaseRuleSeparator)
-    .filter((customReleaseRule) => {
-      const parts = customReleaseRule.split(releaseTypeSeparator);
-
-      if (parts.length < 2) {
-        core.warning(
-          `${customReleaseRule} is not a valid custom release definition.`
-        );
-        return false;
+    .split(',')
+    .filter((rule) => rule.trim())
+    .flatMap((rule) => {
+      const parts = rule
+        .trim()
+        .split(/(?<!\\):/)
+        .map((part) => part.replace(/\\:/g, ':').trim());
+      const [type, release, section] = parts;
+      if (!type || !DEFAULT_RELEASE_TYPES.includes(release)) {
+        core.warning(`${rule} is not a valid custom release definition.`);
+        return [];
       }
-
-      const defaultRule = defaultChangelogRules[parts[0].toLowerCase()];
-      if (customReleaseRule.length !== 3) {
-        core.debug(
-          `${customReleaseRule} doesn't mention the section for the changelog.`
-        );
-        core.debug(
-          defaultRule
-            ? `Default section (${defaultRule.section}) will be used instead.`
-            : "The commits matching this rule won't be included in the changelog."
-        );
-      }
-
-      if (!DEFAULT_RELEASE_TYPES.includes(parts[1])) {
-        core.warning(`${parts[1]} is not a valid release type.`);
-        return false;
-      }
-
-      return true;
-    })
-    .map((customReleaseRule) => {
-      const [type, release, section] =
-        customReleaseRule.split(releaseTypeSeparator);
-      const defaultRule = defaultChangelogRules[type.toLowerCase()];
-
-      return {
-        type,
-        release,
-        section: section || defaultRule?.section,
-      };
+      return [
+        {
+          type,
+          release,
+          section:
+            section || defaultChangelogRules[type.toLowerCase()]?.section,
+        },
+      ];
     });
 }
 
@@ -146,4 +149,70 @@ export function mergeWithDefaultChangelogRules(
   );
 
   return Object.values(mergedRules).filter((rule) => !!rule.section);
+}
+
+export function matchesBranch(branch: string, patterns: string) {
+  return patterns
+    .split(',')
+    .map((pattern) => pattern.trim())
+    .filter(Boolean)
+    .some((pattern) => new RegExp(`^(?:${pattern})$`).test(branch));
+}
+
+export function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+export type AnalyzedCommit = { message: string; hash: string | null };
+export async function filterCommits(
+  commits: AnalyzedCommit[],
+  paths: string[],
+  scopes: string[],
+  ignore: string[],
+  squash: boolean
+) {
+  const result: AnalyzedCommit[] = [];
+  for (const commit of commits) {
+    if (ignore.some((keyword) => commit.message.includes(keyword))) continue;
+    if (paths.length) {
+      if (!commit.hash)
+        throw new Error('Path filtering requires a commit SHA.');
+      const files = await getCommitFiles(commit.hash);
+      if (
+        !files.some((file) =>
+          paths.some(
+            (path) =>
+              file === path.replace(/\/$/, '') ||
+              file.startsWith(`${path.replace(/\/$/, '')}/`) ||
+              minimatch(file, path, { dot: true })
+          )
+        )
+      )
+        continue;
+    }
+    // Opt-in: GitHub squash bodies may contain conventional subjects as bullets.
+    const messages = squash
+      ? [
+          commit.message,
+          ...commit.message
+            .split('\n')
+            .slice(1)
+            .flatMap((line) => {
+              const match = line.match(/^\s*[*-] (.+?(?:\([^)]*\))?!?: .+)$/u);
+              return match ? [match[1]] : [];
+            }),
+        ]
+      : [commit.message];
+    for (const message of [...new Set(messages)]) {
+      if (ignore.some((keyword) => message.includes(keyword))) continue;
+      const scope = message.match(/^[^\n]+?\(([^)]+)\)!?: /)?.[1];
+      if (
+        scopes.length &&
+        (!scope || !scopes.some((pattern) => minimatch(scope, pattern)))
+      )
+        continue;
+      result.push({ ...commit, message });
+    }
+  }
+  return result;
 }

@@ -1,5 +1,5 @@
 import * as core from '@actions/core';
-import { gte, inc, parse, ReleaseType, SemVer, valid } from 'semver';
+import { gt, inc, parse, prerelease, ReleaseType, valid } from 'semver';
 import { analyzeCommits } from '@semantic-release/commit-analyzer';
 import { generateNotes } from '@semantic-release/release-notes-generator';
 import {
@@ -10,223 +10,251 @@ import {
   getLatestTag,
   getValidTags,
   mapCustomReleaseRules,
-  mergeWithDefaultChangelogRules,
+  matchesBranch,
+  escapeRegExp,
+  filterCommits,
 } from './utils';
-import { createTag } from './github';
-import { Await } from './ts';
+import {
+  createTag,
+  createLocalTag,
+  getRepository,
+  resolveCommitRef,
+} from './github';
+import { nextVersion } from './version';
+import { commitConfig } from './commits';
+
+function bool(name: string, fallback = false) {
+  const input = core.getInput(name);
+  if (!input) return fallback;
+  if (!/^(true|false)$/i.test(input))
+    throw new Error(`${name} must be true or false.`);
+  return input.toLowerCase() === 'true';
+}
+function csv(name: string) {
+  return core
+    .getInput(name)
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+function bumpInput(name: string, fallback: string) {
+  const value = core.getInput(name) || fallback;
+  if (
+    ![
+      'false',
+      'major',
+      'minor',
+      'patch',
+      'premajor',
+      'preminor',
+      'prepatch',
+      'prerelease',
+    ].includes(value)
+  )
+    throw new Error(`${name} is not a valid bump type.`);
+  return value as ReleaseType | 'false';
+}
 
 export default async function main() {
-  const defaultBump = core.getInput('default_bump') as ReleaseType | 'false';
-  const defaultPreReleaseBump = core.getInput('default_prerelease_bump') as
-    | ReleaseType
-    | 'false';
+  // Always ignore tag-triggered runs, even when a ref override is configured.
+  if (process.env.GITHUB_REF?.startsWith('refs/tags/')) {
+    core.info('Tag event: skipping to prevent recursive releases.');
+    return;
+  }
+  const ref = core.getInput('ref') || process.env.GITHUB_REF;
+  let commitRef =
+    core.getInput('commit_sha') ||
+    core.getInput('ref') ||
+    process.env.GITHUB_SHA;
+  if (!ref || !commitRef)
+    throw new Error('Missing ref/GITHUB_REF or commit_sha/GITHUB_SHA.');
+  if (!/^[a-f0-9]{7,40}$/i.test(commitRef))
+    commitRef = await resolveCommitRef(commitRef);
+  const branch = getBranchFromRef(ref);
+  const pullRequest = isPr(ref);
+  const release =
+    !pullRequest && matchesBranch(branch, core.getInput('release_branches'));
+  const pre =
+    !release &&
+    !pullRequest &&
+    matchesBranch(branch, core.getInput('pre_release_branches'));
+  const preview = !release && !pre;
   const tagPrefix = core.getInput('tag_prefix');
-  const customTag = core.getInput('custom_tag');
-  const releaseBranches = core.getInput('release_branches');
-  const preReleaseBranches = core.getInput('pre_release_branches');
-  const appendToPreReleaseTag = core.getInput('append_to_pre_release_tag');
-  const createAnnotatedTag = /true/i.test(
-    core.getInput('create_annotated_tag')
-  );
-  const dryRun = core.getInput('dry_run');
-  const customReleaseRules = core.getInput('custom_release_rules');
-  const shouldFetchAllTags = core.getInput('fetch_all_tags');
-  const commitSha = core.getInput('commit_sha');
-
-  let mappedReleaseRules;
-  if (customReleaseRules) {
-    mappedReleaseRules = mapCustomReleaseRules(customReleaseRules);
-  }
-
-  const { GITHUB_REF, GITHUB_SHA } = process.env;
-
-  if (!GITHUB_REF) {
-    core.setFailed('Missing GITHUB_REF.');
-    return;
-  }
-
-  const commitRef = commitSha || GITHUB_SHA;
-  if (!commitRef) {
-    core.setFailed('Missing commit_sha or GITHUB_SHA.');
-    return;
-  }
-
-  const currentBranch = getBranchFromRef(GITHUB_REF);
-  const isReleaseBranch = releaseBranches
-    .split(',')
-    .some((branch) => currentBranch.match(branch));
-  const isPreReleaseBranch = preReleaseBranches
-    .split(',')
-    .some((branch) => currentBranch.match(branch));
-  const isPullRequest = isPr(GITHUB_REF);
-  const isPrerelease = !isReleaseBranch && !isPullRequest && isPreReleaseBranch;
-
-  // Sanitize identifier according to
-  // https://semver.org/#backusnaur-form-grammar-for-valid-semver-versions
+  const prefixRegex = new RegExp(`^${escapeRegExp(tagPrefix)}`);
   const identifier = (
-    appendToPreReleaseTag ? appendToPreReleaseTag : currentBranch
+    core.getInput('append_to_pre_release_tag') || branch
   ).replace(/[^a-zA-Z0-9-]/g, '-');
-
-  const prefixRegex = new RegExp(`^${tagPrefix}`);
-
-  const validTags = await getValidTags(
+  const tags = await getValidTags(
     prefixRegex,
-    /true/i.test(shouldFetchAllTags)
+    bool('fetch_all_tags', true),
+    core.getInput('tag_search_pattern'),
+    bool('prefix_match_tag')
   );
-  const latestTag = getLatestTag(validTags, prefixRegex, tagPrefix);
-  const latestPrereleaseTag = getLatestPrereleaseTag(
-    validTags,
-    identifier,
-    prefixRegex
-  );
-
-  let commits: Await<ReturnType<typeof getCommits>>;
-
-  let newVersion: string;
-
-  if (customTag) {
-    commits = await getCommits(latestTag.commit.sha, commitRef);
-
-    core.setOutput('release_type', 'custom');
-    newVersion = customTag;
-  } else {
-    let previousTag: ReturnType<typeof getLatestTag> | null;
-    let previousVersion: SemVer | null;
-    if (!latestPrereleaseTag) {
-      previousTag = latestTag;
-    } else {
-      previousTag = gte(
-        latestTag.name.replace(prefixRegex, ''),
-        latestPrereleaseTag.name.replace(prefixRegex, '')
-      )
-        ? latestTag
-        : latestPrereleaseTag;
-    }
-
-    if (!previousTag) {
-      core.setFailed('Could not find previous tag.');
-      return;
-    }
-
-    previousVersion = parse(previousTag.name.replace(prefixRegex, ''));
-
-    if (!previousVersion) {
-      core.setFailed('Could not parse previous tag.');
-      return;
-    }
-
-    core.info(
-      `Previous tag was ${previousTag.name}, previous version was ${previousVersion.version}.`
+  const initial = core.getInput('initial_version') || '0.0.0';
+  if (!valid(initial))
+    throw new Error('initial_version must be a semantic version.');
+  const latest = getLatestTag(tags, prefixRegex, tagPrefix);
+  const stableVersion = latest.commit.sha
+    ? latest.name.replace(prefixRegex, '')
+    : initial;
+  const latestPre = pre
+    ? getLatestPrereleaseTag(tags, identifier, prefixRegex)
+    : undefined;
+  let previous =
+    latestPre && gt(latestPre.name.replace(prefixRegex, ''), stableVersion)
+      ? latestPre
+      : latest;
+  const previousInput = core.getInput('previous_tag');
+  if (previousInput)
+    previous = { name: previousInput, commit: { sha: previousInput } };
+  const previousVersion =
+    core.getInput('previous_version') ||
+    (previous.commit.sha ? previous.name.replace(prefixRegex, '') : initial);
+  if (!valid(previousVersion))
+    throw new Error(
+      'previous_tag (after removing tag_prefix) and initial_version must be semantic versions.'
     );
-    core.setOutput('previous_version', previousVersion.version);
-    core.setOutput('previous_tag', previousTag.name);
-
-    commits = await getCommits(previousTag.commit.sha, commitRef);
-
-    let bump = await analyzeCommits(
+  core.setOutput(
+    'previous_tag',
+    previous.commit.sha ? previous.name : `${tagPrefix}${initial}`
+  );
+  core.setOutput('previous_version', previousVersion);
+  core.setOutput('latest_release_tag', latest.name);
+  core.setOutput('latest_release_version', stableVersion);
+  const rawCommits = await getCommits(previous.commit.sha, commitRef);
+  const commits = await filterCommits(
+    rawCommits,
+    csv('path_filter'),
+    csv('scopes'),
+    csv('ignore_keywords'),
+    bool('parse_squash_commits')
+  );
+  const rules = mapCustomReleaseRules(core.getInput('custom_release_rules'));
+  const config = await commitConfig(rules);
+  let version = core.getInput('custom_tag');
+  let releaseType = 'custom';
+  const force = pre
+    ? core.getInput('force_prerelease_bump')
+    : core.getInput('force_bump');
+  if (!version) {
+    if (!commits.length && !force) {
+      core.info('No eligible commits. Skipping version creation.');
+      return;
+    }
+    const analyzed = await analyzeCommits(
       {
-        releaseRules: mappedReleaseRules
-          ? // analyzeCommits doesn't appreciate rules with a section /shrug
-            mappedReleaseRules.map(({ section, ...rest }) => ({ ...rest }))
-          : undefined,
+        parserOpts: config.parserOpts,
+        releaseRules: rules.map(({ section, ...rule }) => rule),
       },
-      { commits, logger: { log: console.info.bind(console) } }
+      { commits, logger: { log: core.info } }
     );
-
-    // Determine if we should continue with tag creation based on main vs prerelease branch
-    let shouldContinue = true;
-    if (isPrerelease) {
-      if (!bump && defaultPreReleaseBump === 'false') {
-        shouldContinue = false;
-      }
-    } else {
-      if (!bump && defaultBump === 'false') {
-        shouldContinue = false;
-      }
-    }
-
-    // Default bump is set to false and we did not find an automatic bump
-    if (!shouldContinue) {
-      core.debug(
-        'No commit specifies the version bump. Skipping the tag creation.'
+    const defaultBump = bumpInput('default_bump', 'patch');
+    const defaultPre = bumpInput('default_prerelease_bump', 'prerelease');
+    let bump = (
+      force
+        ? bumpInput(pre ? 'force_prerelease_bump' : 'force_bump', 'false')
+        : analyzed || (pre ? defaultPre : defaultBump)
+    ) as ReleaseType | 'false';
+    if (bump === 'false') return;
+    if (pre && !prerelease(previousVersion) && bump === 'prerelease')
+      bump = bumpInput(
+        'default_draft_bump',
+        defaultBump === 'false' ? 'patch' : defaultBump
       );
-      return;
-    }
-
-    // If we don't have an automatic bump for the prerelease, just set our bump as the default
-    if (isPrerelease && !bump) {
-      bump = defaultPreReleaseBump;
-    }
-
-    // If somebody uses custom release rules on a prerelease branch they might create a 'preprepatch' bump.
-    const preReg = /^pre/;
-    if (isPrerelease && preReg.test(bump)) {
-      bump = bump.replace(preReg, '');
-    }
-
-    const releaseType: ReleaseType = isPrerelease
-      ? `pre${bump}`
-      : bump || defaultBump;
-    core.setOutput('release_type', releaseType);
-
-    const incrementedVersion = inc(previousVersion, releaseType, identifier);
-
-    if (!incrementedVersion) {
-      core.setFailed('Could not increment version.');
-      return;
-    }
-
-    if (!valid(incrementedVersion)) {
-      core.setFailed(`${incrementedVersion} is not a valid semver.`);
-      return;
-    }
-
-    newVersion = incrementedVersion;
-  }
-
-  core.info(`New version is ${newVersion}.`);
-  core.setOutput('new_version', newVersion);
-
-  const newTag = `${tagPrefix}${newVersion}`;
-  core.info(`New tag after applying prefix is ${newTag}.`);
-  core.setOutput('new_tag', newTag);
-
-  const changelog = await generateNotes(
-    {
-      preset: 'conventionalcommits',
-      presetConfig: {
-        types: mergeWithDefaultChangelogRules(mappedReleaseRules),
-      },
-    },
-    {
-      commits,
-      logger: { log: console.info.bind(console) },
-      options: {
-        repositoryUrl: `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}`,
-      },
-      lastRelease: { gitTag: latestTag.name },
-      nextRelease: { gitTag: newTag, version: newVersion },
-    }
-  );
-  core.info(`Changelog is ${changelog}.`);
-  core.setOutput('changelog', changelog);
-
-  if (!isReleaseBranch && !isPreReleaseBranch) {
-    core.info(
-      'This branch is neither a release nor a pre-release branch. Skipping the tag creation.'
+    if (bump === 'false') return;
+    releaseType = pre ? (bump.startsWith('pre') ? bump : `pre${bump}`) : bump;
+    const next = nextVersion(
+      previousVersion,
+      previous.commit.sha ? stableVersion : initial,
+      bump,
+      pre ? identifier : undefined,
+      !!force
     );
-    return;
+    if (!next) throw new Error('Could not increment version.');
+    version = next;
+    const oldCore = parse(previousVersion)!;
+    const newCore = parse(version)!;
+    if (
+      pre &&
+      oldCore.prerelease.length &&
+      oldCore.major === newCore.major &&
+      oldCore.minor === newCore.minor &&
+      oldCore.patch === newCore.patch
+    )
+      releaseType = 'prerelease';
+    if (preview) {
+      const sha = commitRef;
+      const parsed = parse(version)!;
+      version = `${parsed.major}.${parsed.minor}.${parsed.patch}-${sha.slice(
+        0,
+        7
+      )}`;
+    }
+  } else if (bool('custom_tag_prerelease')) {
+    if (!valid(version))
+      throw new Error('custom_tag_prerelease requires a semantic custom_tag.');
+    const existing = getLatestPrereleaseTag(tags, identifier, prefixRegex);
+    const candidate = existing?.name.replace(prefixRegex, '');
+    const base = parse(version)!;
+    const prior = candidate && parse(candidate);
+    version =
+      prior &&
+      prior.major === base.major &&
+      prior.minor === base.minor &&
+      prior.patch === base.patch
+        ? inc(candidate!, 'prerelease', identifier)!
+        : `${base.major}.${base.minor}.${base.patch}-${identifier}.0`;
   }
-
-  if (validTags.map((tag) => tag.name).includes(newTag)) {
-    core.info('This tag already exists. Skipping the tag creation.');
-    return;
+  const newTag = `${tagPrefix}${version}`;
+  const { owner, repo } = getRepository();
+  const repositoryUrl =
+    core.getInput('repository_url') ||
+    `${process.env.GITHUB_SERVER_URL || 'https://github.com'}/${owner}/${repo}`;
+  const changelog = await generateNotes(config, {
+    commits,
+    logger: { log: core.info },
+    options: { repositoryUrl },
+    lastRelease: { gitTag: previous.commit.sha ? previous.name : '' },
+    nextRelease: { gitTag: newTag, version },
+  });
+  core.setOutput('release_type', releaseType);
+  core.setOutput('new_version', version);
+  core.setOutput('new_tag', newTag);
+  core.setOutput('prerelease', !!(valid(version) && prerelease(version)));
+  core.setOutput('changelog', changelog);
+  core.setOutput(
+    'changelog_url',
+    previous.commit.sha
+      ? `${repositoryUrl}/compare/${encodeURIComponent(
+          previous.name
+        )}...${encodeURIComponent(newTag)}`
+      : `${repositoryUrl}/commits/${encodeURIComponent(newTag)}`
+  );
+  if (bool('dry_run')) return;
+  const push = bool('push', true);
+  const forceUpdate = bool('force_update');
+  const existing = tags.find((tag) => tag.name === newTag);
+  const targetSha = existing && !forceUpdate ? existing.commit.sha : commitRef;
+  if (!preview && push) {
+    if (!existing || forceUpdate) {
+      if (forceUpdate)
+        await createTag(newTag, bool('create_annotated_tag'), commitRef, true);
+      else await createTag(newTag, bool('create_annotated_tag'), commitRef);
+    }
+    if (bool('rolling_tags') && valid(version) && !prerelease(version)) {
+      const parsed = parse(version)!;
+      for (const alias of [
+        `${tagPrefix}${parsed.major}`,
+        `${tagPrefix}${parsed.major}.${parsed.minor}`,
+      ])
+        await createTag(alias, false, targetSha, true);
+    }
   }
-
-  if (/true/i.test(dryRun)) {
-    core.info('Dry run: not performing tag action.');
-    return;
-  }
-
-  await createTag(newTag, createAnnotatedTag, commitRef);
+  if (bool('create_local_tag') || !push)
+    await createLocalTag(
+      newTag,
+      targetSha,
+      bool('create_annotated_tag'),
+      forceUpdate
+    );
 }

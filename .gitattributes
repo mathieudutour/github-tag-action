@@ -1,0 +1,2 @@
+# Preserve generated assets byte-for-byte across runner platforms.
+/dist/** text eol=lf linguist-generated=true -whitespace

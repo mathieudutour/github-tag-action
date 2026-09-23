@@ -1,19 +1,30 @@
-name: "Test typescript-action"
+name: Test action
 on:
   pull_request:
   push:
-    branches:
-      - master
-
+    branches: [master]
+permissions:
+  contents: read
 jobs:
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version-file: package.json
+          node-version: '24'
+          cache: npm
       - run: npm ci
-      - run: npm run test
+      - run: npm test -- --runInBand
       - run: npm run check
+      - run: npm run typecheck
       - run: npm run build
+      - run: npm run smoke
+      - name: Verify committed distribution
+        shell: bash
+        run: |
+          git diff --exit-code -- dist
+          test -z "$(git ls-files --others --exclude-standard -- dist)"

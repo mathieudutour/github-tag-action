@@ -1,8 +1,5 @@
-/.github/
-/.vscode/
-/lib/
-/docs/
-/*.json
-/*.js
-/*.yml
-/*.md
+node_modules/
+lib/
+dist/
+package-lock.json
+.vscode/
