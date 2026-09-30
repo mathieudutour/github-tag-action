@@ -136,7 +136,18 @@ If eligible commits exist but none selects a bump, **default_bump** is used. Wit
 
 #### Commit and tag selection
 
-- **path_filter** — Comma-separated repository-relative directories or file globs, such as `packages/web,shared/**`. Both old and new paths of renamed files count. Each commit's files are fetched separately. A truncated file list fails instead of silently omitting changes.
+- **path_filter** — Repository-relative directories or file globs. Both old and new paths of renamed files count. Each commit's files are fetched separately. A truncated file list fails instead of silently omitting changes. Non-glob paths are treated as an exact and parent match glob, i.e. `packages/web` is treated as `packages/web{,/**}` (matching the path itself and anything under it).
+
+  A value containing a newline is parsed as an ordered pattern list: a leading `!` excludes files matched by an earlier pattern, and later patterns override earlier ones for files they match. For example, to include everything under `packages/web` except Markdown files:
+
+  ```yaml
+  path_filter: |
+    packages/web/**
+    !**/*.md
+  ```
+
+  A single-line value (no newline) is split on commas instead, e.g. `packages/web,shared/**` — kept for backward compatibility; the resulting patterns still get the same ordering/negation semantics described above. Only glob syntax that legitimately contains a literal comma (such as brace expansion, e.g. `src/{a,b}/**`) is a problem, since it gets split into invalid fragments. Set **path_filter_glob_syntax: true** to always use the ordered (newline-split) form instead.
+
 - **scopes** — Comma-separated conventional commit scope globs. When combined with paths, both filters must match.
 - **ignore_keywords** — Comma-separated literal strings excluding entire commits from both the bump and changelog. Default: `[no-release],[skip-release]`. Set an empty string to disable.
 - **parse_squash_commits** — Opt in to analyzing conventional subjects in `* ...` or `- ...` squash-message bullets in addition to the original commit. Default: `false`. Conventional PR titles remain the recommended default. This does not recover commits removed by squash/rebase or infer missing footers for individual bullets.

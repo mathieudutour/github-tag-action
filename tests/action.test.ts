@@ -31,6 +31,7 @@ const mockSetFailed = jest.spyOn(core, 'setFailed');
 describe('github-tag-action', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    delete process.env.GITHUB_EVENT_NAME;
     setBranch('master');
     setCommitSha('79e0ea271c26aa152beef77c3275ff7b8f8d8274');
     loadDefaultInputs();

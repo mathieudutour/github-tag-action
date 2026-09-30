@@ -34,8 +34,12 @@ inputs:
     description: 'JSON object of conventional changelog preset options, including issuePrefixes and issueUrlFormat.'
     required: false
   path_filter:
-    description: 'Comma-separated repository-relative directories or file globs. Only commits changing matching files are considered.'
+    description: 'Repository-relative directories or file globs. Only commits changing matching files are considered. Non-glob paths are treated as an exact and parent match glob, i.e. `packages/web` is treated as `packages/web{,/**}` (matching the path itself and anything under it). Multiple lines are treated as an ordered pattern list (a leading ! excludes files matched by an earlier pattern; later patterns override earlier ones). A single-line value is split on commas instead, for backward compatibility; the resulting patterns still get the same ordering/negation semantics - only glob syntax containing a literal comma (e.g. `src/{a,b}/**`) breaks under this split. See path_filter_glob_syntax to always use the ordered form.'
     required: false
+  path_filter_glob_syntax:
+    description: 'Always parse path_filter as a single ordered pattern list (never comma-split), even for single-line input. Needed when a single-line path_filter legitimately contains a literal comma as part of a glob, e.g. `src/{a,b}/**`, which would otherwise be misread as two separate legacy comma-separated patterns.'
+    required: false
+    default: 'false'
   scopes:
     description: 'Comma-separated conventional commit scope globs to include.'
     required: false

@@ -30,23 +30,24 @@
     "@actions/exec": "^1.1.0",
     "@semantic-release/commit-analyzer": "^8.0.1",
     "@semantic-release/release-notes-generator": "^9.0.1",
-    "conventional-changelog-conventionalcommits": "^4.6.1",
-    "semver": "^7.3.5",
-    "minimatch": "^10.2.4",
     "conventional-changelog-angular": "^5.0.13",
+    "conventional-changelog-conventionalcommits": "^4.6.1",
+    "micromatch": "^4.0.8",
+    "semver": "^7.3.5",
     "undici": "^7.24.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
     "@types/js-yaml": "^4.0.4",
+    "@types/micromatch": "^4.0.10",
     "@types/node": "^24.0.0",
     "@types/semver": "^7.3.9",
+    "@vercel/ncc": "^0.38.4",
     "jest": "^29.7.0",
     "jest-circus": "^29.7.0",
     "js-yaml": "^4.1.0",
     "prettier": "2.4.1",
     "ts-jest": "^29.4.0",
-    "typescript": "^5.9.3",
-    "@vercel/ncc": "^0.38.4"
+    "typescript": "^5.9.3"
   }
 }

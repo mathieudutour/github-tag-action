@@ -8,7 +8,7 @@ import {
   getCommitFiles,
   listTags,
 } from './github';
-import { minimatch } from 'minimatch';
+import micromatch from 'micromatch';
 import { defaultChangelogRules } from './defaults';
 import { Await } from './ts';
 
@@ -22,7 +22,7 @@ export async function getValidTags(
 ) {
   const tags = (await listTags(shouldFetchAllTags)).filter(
     (tag) =>
-      (!tagSearchPattern || minimatch(tag.name, tagSearchPattern)) &&
+      (!tagSearchPattern || micromatch.isMatch(tag.name, tagSearchPattern)) &&
       (!strictPrefix || !tag.name.replace(prefixRegex, '').startsWith('v'))
   );
 
@@ -163,6 +163,57 @@ export function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+// path_filter tokenization: newline-separated input is split one pattern
+// per line. A single-line input with no newline is split on commas instead,
+// for backward compatibility. forceGlobSyntax always takes the
+// newline/ordered path, even for single-line input - needed when a
+// single-line value legitimately contains a literal comma as part of a
+// glob, e.g. `src/{a,b}/**`, which would otherwise be split into invalid
+// fragments. See matchesPathFilter for how the resulting patterns are
+// evaluated.
+export function parsePathFilter(raw: string, forceGlobSyntax = false) {
+  if (!raw) return [];
+  if (forceGlobSyntax || raw.includes('\n'))
+    return raw
+      .split('\n')
+      .map((value) => value.trim())
+      .filter(Boolean);
+  return raw
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
+function normalizePattern(pattern: string): string {
+  const isNegated = pattern.startsWith('!');
+  const raw = isNegated ? pattern.slice(1) : pattern;
+  const stripped = raw.replace(/[\\/]+$/, '');
+  if (!stripped) return pattern;
+  const scan = micromatch.scan(raw);
+  if (!scan.isGlob) {
+    return isNegated ? `!${stripped}{,/**}` : `${stripped}{,/**}`;
+  }
+  return pattern;
+}
+
+// Evaluates an ordered pattern list via micromatch: later patterns override
+// earlier ones for files they match, and a leading `!` excludes rather than
+// matches. An all-negation list has an implicit include-all baseline; any
+// positive pattern present anywhere in the list flips the baseline to
+// exclude-all. Non-glob paths are treated as an exact and parent match glob
+// (i.e. `packages/web` is treated as `packages/web{,/**}`) to preserve
+// legacy path_filter convenience.
+export function matchesPathFilter(
+  file: string | string[],
+  patterns: string[]
+): boolean {
+  if (!patterns.length) return true;
+  const list = Array.isArray(file) ? file : [file];
+  return (
+    micromatch(list, patterns.map(normalizePattern), { dot: true }).length > 0
+  );
+}
+
 export type AnalyzedCommit = { message: string; hash: string | null };
 export async function filterCommits(
   commits: AnalyzedCommit[],
@@ -178,17 +229,7 @@ export async function filterCommits(
       if (!commit.hash)
         throw new Error('Path filtering requires a commit SHA.');
       const files = await getCommitFiles(commit.hash);
-      if (
-        !files.some((file) =>
-          paths.some(
-            (path) =>
-              file === path.replace(/\/$/, '') ||
-              file.startsWith(`${path.replace(/\/$/, '')}/`) ||
-              minimatch(file, path, { dot: true })
-          )
-        )
-      )
-        continue;
+      if (!matchesPathFilter(files, paths)) continue;
     }
     // Opt-in: GitHub squash bodies may contain conventional subjects as bullets.
     const messages = squash
@@ -208,7 +249,8 @@ export async function filterCommits(
       const scope = message.match(/^[^\n]+?\(([^)]+)\)!?: /)?.[1];
       if (
         scopes.length &&
-        (!scope || !scopes.some((pattern) => minimatch(scope, pattern)))
+        (!scope ||
+          !scopes.some((pattern) => micromatch.isMatch(scope, pattern)))
       )
         continue;
       result.push({ ...commit, message });
