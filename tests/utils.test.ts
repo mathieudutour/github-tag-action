@@ -298,4 +298,148 @@ describe('utils', () => {
       expect(result).not.toContainEqual(mappedReleaseRules[1]);
     });
   });
+
+  describe('filterCommits squash handling', () => {
+    const headerPattern = /^(\w*)(?:\((.*)\))?!?: (.*)$/;
+    const noPaths: string[] = [];
+    const noScopes: string[] = [];
+    const noIgnore: string[] = [];
+
+    it('leaves an ordinary non-squash commit untouched regardless of squash flag', async () => {
+      const commits = [
+        { message: 'fix: correct rounding error', hash: 'sha1' },
+      ];
+      const result = await utils.filterCommits(
+        commits,
+        noPaths,
+        noScopes,
+        noIgnore,
+        'fallback',
+        headerPattern
+      );
+      expect(result).toEqual(commits);
+    });
+
+    it('defers to the header when it already parses, ignoring bullets entirely', async () => {
+      const message = [
+        'fix: processing step execution bugs (#252)',
+        '',
+        '* fix: dispatch stepCompleted when external processing step completes',
+        '',
+        '* feat(process): tidy up processing step logic',
+      ].join('\n');
+      const commits = [{ message, hash: 'sha1' }];
+
+      const result = await utils.filterCommits(
+        commits,
+        noPaths,
+        noScopes,
+        noIgnore,
+        'fallback',
+        headerPattern
+      );
+
+      expect(result).toEqual([{ message, hash: 'sha1' }]);
+    });
+
+    it('falls back to bulleted sub-commits when the header does not parse', async () => {
+      const message = [
+        'Add feature X (#123)',
+        '',
+        '* feat: implement X',
+        '',
+        '* chore: bump vitest to match coverage',
+        '',
+        '* fix: align node engine range with vitest 5',
+      ].join('\n');
+      const commits = [{ message, hash: 'sha1' }];
+
+      const result = await utils.filterCommits(
+        commits,
+        noPaths,
+        noScopes,
+        noIgnore,
+        'fallback',
+        headerPattern
+      );
+
+      expect(result).toEqual([
+        { message, hash: 'sha1' },
+        { message: 'feat: implement X', hash: 'sha1' },
+        { message: 'chore: bump vitest to match coverage', hash: 'sha1' },
+        { message: 'fix: align node engine range with vitest 5', hash: 'sha1' },
+      ]);
+    });
+
+    it('strips git autosquash artifacts (amend!/fixup!/squash!) from extracted bullets', async () => {
+      const message = [
+        'Add feature X (#123)',
+        '',
+        '* feat: implement X',
+        '',
+        '* amend! feat: implement X',
+        '',
+        '* fixup! feat: implement X',
+        '',
+        '* squash! feat: implement X',
+      ].join('\n');
+      const commits = [{ message, hash: 'sha1' }];
+
+      const result = await utils.filterCommits(
+        commits,
+        noPaths,
+        noScopes,
+        noIgnore,
+        'fallback',
+        headerPattern
+      );
+
+      expect(result).toEqual([
+        { message, hash: 'sha1' },
+        { message: 'feat: implement X', hash: 'sha1' },
+      ]);
+    });
+
+    it('does not extract bullets at all when squash is false, even with an unparseable header', async () => {
+      const message = 'Add feature X (#123)\n\n* feat: implement X';
+      const commits = [{ message, hash: 'sha1' }];
+
+      const result = await utils.filterCommits(
+        commits,
+        noPaths,
+        noScopes,
+        noIgnore,
+        'off',
+        headerPattern
+      );
+
+      expect(result).toEqual([{ message, hash: 'sha1' }]);
+    });
+
+    it('full mode analyzes the header and bullets even when the header parses', async () => {
+      const message = 'fix: handle X (#1)\n\n* feat: add Y';
+      const result = await utils.filterCommits(
+        [{ message, hash: 'sha1' }],
+        noPaths,
+        noScopes,
+        noIgnore,
+        'full',
+        headerPattern
+      );
+      expect(result).toEqual([
+        { message, hash: 'sha1' },
+        { message: 'feat: add Y', hash: 'sha1' },
+      ]);
+    });
+
+    it('parses squash mode names and legacy booleans', () => {
+      expect(utils.parseSquashMode('')).toBe('off');
+      expect(utils.parseSquashMode('false')).toBe('off');
+      expect(utils.parseSquashMode('true')).toBe('full');
+      expect(utils.parseSquashMode('Fallback')).toBe('fallback');
+      expect(utils.parseSquashMode('full')).toBe('full');
+      expect(utils.parseSquashMode('off')).toBe('off');
+      expect(() => utils.parseSquashMode('bogus')).toThrow();
+    });
+  });
 });

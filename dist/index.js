@@ -42,6 +42,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports["default"] = main;
 const core = __importStar(__nccwpck_require__(7484));
+const util_1 = __nccwpck_require__(9023);
 const semver_1 = __nccwpck_require__(2088);
 const commit_analyzer_1 = __nccwpck_require__(9145);
 const release_notes_generator_1 = __nccwpck_require__(4406);
@@ -79,6 +80,8 @@ function bumpInput(name, fallback) {
         throw new Error(`${name} is not a valid bump type.`);
     return value;
 }
+// semantic-release plugins call log() printf-style, which core.info does not format.
+const logger = { log: (...args) => core.info((0, util_1.format)(...args)) };
 async function main() {
     // Always ignore tag-triggered runs, even when a ref override is configured.
     if (process.env.GITHUB_REF?.startsWith('refs/tags/')) {
@@ -129,9 +132,9 @@ async function main() {
     core.setOutput('latest_release_tag', latest.name);
     core.setOutput('latest_release_version', stableVersion);
     const rawCommits = await (0, utils_1.getCommits)(previous.commit.sha, commitRef);
-    const commits = await (0, utils_1.filterCommits)(rawCommits, csv('path_filter'), csv('scopes'), csv('ignore_keywords'), bool('parse_squash_commits'));
     const rules = (0, utils_1.mapCustomReleaseRules)(core.getInput('custom_release_rules'));
     const config = await (0, commits_1.commitConfig)(rules);
+    const commits = await (0, utils_1.filterCommits)(rawCommits, csv('path_filter'), csv('scopes'), csv('ignore_keywords'), (0, utils_1.parseSquashMode)(core.getInput('parse_squash_commits')), config.parserOpts.headerPattern);
     let version = core.getInput('custom_tag');
     let releaseType = 'custom';
     const force = pre
@@ -145,7 +148,7 @@ async function main() {
         const analyzed = await (0, commit_analyzer_1.analyzeCommits)({
             parserOpts: config.parserOpts,
             releaseRules: rules.map(({ section, ...rule }) => rule),
-        }, { commits, logger: { log: core.info } });
+        }, { commits, logger });
         const defaultBump = bumpInput('default_bump', 'patch');
         const defaultPre = bumpInput('default_prerelease_bump', 'prerelease');
         let bump = (force
@@ -197,7 +200,7 @@ async function main() {
         `${process.env.GITHUB_SERVER_URL || 'https://github.com'}/${owner}/${repo}`;
     const changelog = await (0, release_notes_generator_1.generateNotes)(config, {
         commits,
-        logger: { log: core.info },
+        logger,
         options: { repositoryUrl },
         lastRelease: { gitTag: previous.commit.sha ? previous.name : '' },
         nextRelease: { gitTag: newTag, version },
@@ -726,6 +729,7 @@ exports.mapCustomReleaseRules = mapCustomReleaseRules;
 exports.mergeWithDefaultChangelogRules = mergeWithDefaultChangelogRules;
 exports.matchesBranch = matchesBranch;
 exports.escapeRegExp = escapeRegExp;
+exports.parseSquashMode = parseSquashMode;
 exports.filterCommits = filterCommits;
 const core = __importStar(__nccwpck_require__(7484));
 const semver_1 = __nccwpck_require__(2088);
@@ -823,7 +827,19 @@ function matchesBranch(branch, patterns) {
 function escapeRegExp(value) {
     return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
-async function filterCommits(commits, paths, scopes, ignore, squash) {
+// git autosquash markers are not conventional commits; skip them as bullets.
+const AUTOSQUASH_PREFIX = /^(amend|fixup|squash)!\s/i;
+function parseSquashMode(value) {
+    const mode = value.trim().toLowerCase();
+    if (mode === '' || mode === 'false' || mode === 'off')
+        return 'off';
+    if (mode === 'fallback')
+        return 'fallback';
+    if (mode === 'true' || mode === 'full')
+        return 'full';
+    throw new Error('parse_squash_commits must be off, fallback, full, true or false.');
+}
+async function filterCommits(commits, paths, scopes, ignore, squash, headerPattern) {
     const result = [];
     for (const commit of commits) {
         if (ignore.some((keyword) => commit.message.includes(keyword)))
@@ -837,8 +853,9 @@ async function filterCommits(commits, paths, scopes, ignore, squash) {
                 (0, minimatch_1.minimatch)(file, path, { dot: true }))))
                 continue;
         }
-        // Opt-in: GitHub squash bodies may contain conventional subjects as bullets.
-        const messages = squash
+        const headerLine = commit.message.split('\n', 1)[0];
+        const messages = squash === 'full' ||
+            (squash === 'fallback' && !headerPattern.test(headerLine))
             ? [
                 commit.message,
                 ...commit.message
@@ -846,7 +863,9 @@ async function filterCommits(commits, paths, scopes, ignore, squash) {
                     .slice(1)
                     .flatMap((line) => {
                     const match = line.match(/^\s*[*-] (.+?(?:\([^)]*\))?!?: .+)$/u);
-                    return match ? [match[1]] : [];
+                    if (!match || AUTOSQUASH_PREFIX.test(match[1]))
+                        return [];
+                    return [match[1]];
                 }),
             ]
             : [commit.message];

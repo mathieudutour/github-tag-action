@@ -139,7 +139,12 @@ If eligible commits exist but none selects a bump, **default_bump** is used. Wit
 - **path_filter** — Comma-separated repository-relative directories or file globs, such as `packages/web,shared/**`. Both old and new paths of renamed files count. Each commit's files are fetched separately. A truncated file list fails instead of silently omitting changes.
 - **scopes** — Comma-separated conventional commit scope globs. When combined with paths, both filters must match.
 - **ignore_keywords** — Comma-separated literal strings excluding entire commits from both the bump and changelog. Default: `[no-release],[skip-release]`. Set an empty string to disable.
-- **parse_squash_commits** — Opt in to analyzing conventional subjects in `* ...` or `- ...` squash-message bullets in addition to the original commit. Default: `false`. Conventional PR titles remain the recommended default. This does not recover commits removed by squash/rebase or infer missing footers for individual bullets.
+- **parse_squash_commits** — How to treat conventional subjects in the `* ...` or `- ...` bullets of a squash-merge commit body (GitHub's default squash format). Conventional PR titles remain the recommended default. This does not recover commits removed by squash/rebase or infer missing footers for individual bullets.
+
+  - `off` (default; `false` is also accepted): analyze only the commit's own message.
+  - `fallback`: analyze the bullets only when the commit's header does not match the `commit_analyzer_preset` header pattern. A header that matches is always used as-is, so a PR title is never overridden by the types of the individual commits that were squashed.
+  - `full` (`true` is also accepted): analyze the header _and_ every bullet, so a bullet can raise the bump above the header's.
+
 - **commit_analyzer_preset** — `conventionalcommits` (default) or `angular`. Both presets and their templates ship inside the action; arbitrary installed preset packages are not loaded.
 - **preset_config** — JSON object for the conventional preset, for example `{"issuePrefixes":["AB#"],"issueUrlFormat":"https://dev.azure.com/example/project/_workitems/edit/{{id}}"}`. This action does not read `.releaserc`.
 - **tag_search_pattern** — Glob restricting the version stream, e.g. `v1.*` for a maintained v1 branch. Without a filter, the highest matching semantic version in the repository is used; branch ancestry is not inferred.
