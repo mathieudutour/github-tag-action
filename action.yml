@@ -44,9 +44,9 @@ inputs:
     required: false
     default: '[no-release],[skip-release]'
   parse_squash_commits:
-    description: 'Also analyze conventional subjects in squash-commit bullet lists. Opt-in; use conventional PR titles by default.'
+    description: "Squash-commit bullet handling: off (default, same as false) analyzes only the commit's own message; fallback uses the bullets only when the header doesn't match the preset's header pattern; full (same as true) analyzes the header and every bullet."
     required: false
-    default: 'false'
+    default: 'off'
   tag_search_pattern:
     description: 'Glob pattern selecting the tag stream, e.g. v1.*.'
     required: false

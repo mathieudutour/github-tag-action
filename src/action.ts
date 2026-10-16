@@ -1,4 +1,5 @@
 import * as core from '@actions/core';
+import { format } from 'util';
 import { gt, inc, parse, prerelease, ReleaseType, valid } from 'semver';
 import { analyzeCommits } from '@semantic-release/commit-analyzer';
 import { generateNotes } from '@semantic-release/release-notes-generator';
@@ -10,6 +11,7 @@ import {
   getLatestTag,
   getValidTags,
   mapCustomReleaseRules,
+  parseSquashMode,
   matchesBranch,
   escapeRegExp,
   filterCommits,
@@ -54,6 +56,9 @@ function bumpInput(name: string, fallback: string) {
     throw new Error(`${name} is not a valid bump type.`);
   return value as ReleaseType | 'false';
 }
+
+// semantic-release plugins call log() printf-style, which core.info does not format.
+const logger = { log: (...args: unknown[]) => core.info(format(...args)) };
 
 export default async function main() {
   // Always ignore tag-triggered runs, even when a ref override is configured.
@@ -122,15 +127,16 @@ export default async function main() {
   core.setOutput('latest_release_tag', latest.name);
   core.setOutput('latest_release_version', stableVersion);
   const rawCommits = await getCommits(previous.commit.sha, commitRef);
+  const rules = mapCustomReleaseRules(core.getInput('custom_release_rules'));
+  const config = await commitConfig(rules);
   const commits = await filterCommits(
     rawCommits,
     csv('path_filter'),
     csv('scopes'),
     csv('ignore_keywords'),
-    bool('parse_squash_commits')
+    parseSquashMode(core.getInput('parse_squash_commits')),
+    config.parserOpts.headerPattern
   );
-  const rules = mapCustomReleaseRules(core.getInput('custom_release_rules'));
-  const config = await commitConfig(rules);
   let version = core.getInput('custom_tag');
   let releaseType = 'custom';
   const force = pre
@@ -146,7 +152,7 @@ export default async function main() {
         parserOpts: config.parserOpts,
         releaseRules: rules.map(({ section, ...rule }) => rule),
       },
-      { commits, logger: { log: core.info } }
+      { commits, logger }
     );
     const defaultBump = bumpInput('default_bump', 'patch');
     const defaultPre = bumpInput('default_prerelease_bump', 'prerelease');
@@ -212,7 +218,7 @@ export default async function main() {
     `${process.env.GITHUB_SERVER_URL || 'https://github.com'}/${owner}/${repo}`;
   const changelog = await generateNotes(config, {
     commits,
-    logger: { log: core.info },
+    logger,
     options: { repositoryUrl },
     lastRelease: { gitTag: previous.commit.sha ? previous.name : '' },
     nextRelease: { gitTag: newTag, version },

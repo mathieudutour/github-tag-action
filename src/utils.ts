@@ -164,12 +164,31 @@ export function escapeRegExp(value: string) {
 }
 
 export type AnalyzedCommit = { message: string; hash: string | null };
+
+// git autosquash markers are not conventional commits; skip them as bullets.
+const AUTOSQUASH_PREFIX = /^(amend|fixup|squash)!\s/i;
+
+// off: own message only; fallback: bullets only if the header doesn't match the
+// preset's header pattern; full: header and bullets.
+export type SquashMode = 'off' | 'fallback' | 'full';
+
+export function parseSquashMode(value: string): SquashMode {
+  const mode = value.trim().toLowerCase();
+  if (mode === '' || mode === 'false' || mode === 'off') return 'off';
+  if (mode === 'fallback') return 'fallback';
+  if (mode === 'true' || mode === 'full') return 'full';
+  throw new Error(
+    'parse_squash_commits must be off, fallback, full, true or false.'
+  );
+}
+
 export async function filterCommits(
   commits: AnalyzedCommit[],
   paths: string[],
   scopes: string[],
   ignore: string[],
-  squash: boolean
+  squash: SquashMode,
+  headerPattern: RegExp
 ) {
   const result: AnalyzedCommit[] = [];
   for (const commit of commits) {
@@ -190,19 +209,24 @@ export async function filterCommits(
       )
         continue;
     }
-    // Opt-in: GitHub squash bodies may contain conventional subjects as bullets.
-    const messages = squash
-      ? [
-          commit.message,
-          ...commit.message
-            .split('\n')
-            .slice(1)
-            .flatMap((line) => {
-              const match = line.match(/^\s*[*-] (.+?(?:\([^)]*\))?!?: .+)$/u);
-              return match ? [match[1]] : [];
-            }),
-        ]
-      : [commit.message];
+    const headerLine = commit.message.split('\n', 1)[0];
+    const messages =
+      squash === 'full' ||
+      (squash === 'fallback' && !headerPattern.test(headerLine))
+        ? [
+            commit.message,
+            ...commit.message
+              .split('\n')
+              .slice(1)
+              .flatMap((line) => {
+                const match = line.match(
+                  /^\s*[*-] (.+?(?:\([^)]*\))?!?: .+)$/u
+                );
+                if (!match || AUTOSQUASH_PREFIX.test(match[1])) return [];
+                return [match[1]];
+              }),
+          ]
+        : [commit.message];
     for (const message of [...new Set(messages)]) {
       if (ignore.some((keyword) => message.includes(keyword))) continue;
       const scope = message.match(/^[^\n]+?\(([^)]+)\)!?: /)?.[1];

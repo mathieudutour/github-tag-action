@@ -188,10 +188,11 @@ test('scope and ignore filters affect both bump and changelog', async () => {
   expect(notes).not.toContain('new API');
 });
 test('squash bullet parsing is opt-in', async () => {
-  setInput('parse_squash_commits', 'true');
+  // A plain PR title has no type; the bump comes from the bullets.
+  setInput('parse_squash_commits', 'fallback');
   commits.mockResolvedValue([
     commit(
-      'fix(web): aggregate (#12)\n\n* fix(web): repair\n* feat(web): new UI'
+      'Aggregate web changes (#12)\n\n* fix(web): repair\n* feat(web): new UI'
     ),
   ]);
   await action();
@@ -201,8 +202,37 @@ test('squash bullet parsing is opt-in', async () => {
     expect.stringContaining('new UI')
   );
 });
+test('a squash header that already parses defers to it, ignoring bullets', async () => {
+  // A parseable header is not raised by a "feat" bullet.
+  setInput('parse_squash_commits', 'fallback');
+  commits.mockResolvedValue([
+    commit(
+      'fix(web): aggregate (#12)\n\n* fix(web): repair\n* feat(web): new UI'
+    ),
+  ]);
+  await action();
+  expect(output).toHaveBeenCalledWith('new_version', '1.0.1');
+  expect(output).not.toHaveBeenCalledWith(
+    'changelog',
+    expect.stringContaining('new UI')
+  );
+});
+test('autosquash artifacts (amend!/fixup!/squash!) are excluded from squash bullet fallback', async () => {
+  // A fixup! bullet is not a feat, so default_bump applies.
+  setInput('parse_squash_commits', 'fallback');
+  commits.mockResolvedValue([
+    commit(
+      'Aggregate web changes (#12)\n\n' +
+        '* amend! fix(web): repair\n' +
+        '* fixup! feat(web): new UI\n' +
+        '* chore(web): tidy'
+    ),
+  ]);
+  await action();
+  expect(output).toHaveBeenCalledWith('new_version', '1.0.1');
+});
 test('squash parsing preserves breaking change footers', async () => {
-  setInput('parse_squash_commits', 'true');
+  setInput('parse_squash_commits', 'fallback');
   commits.mockResolvedValue([
     commit('feat: aggregate\n\nBREAKING CHANGE: remove API\n\n* fix: typo'),
   ]);
@@ -375,4 +405,11 @@ test('release_type reports an actual RC increment', async () => {
   tags.mockResolvedValue([tag('v1.0.1-staging.0'), tag('v1.0.0')]);
   await action();
   expect(output).toHaveBeenCalledWith('release_type', 'prerelease');
+});
+test('analyzer log lines are printf-formatted (issue #254)', async () => {
+  const info = core.info as jest.Mock;
+  await action();
+  const lines = info.mock.calls.map(([line]) => String(line));
+  expect(lines).toContain('Analyzing commit: fix: repair');
+  expect(lines.some((line) => line.includes('%s'))).toBe(false);
 });
