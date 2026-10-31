@@ -34,7 +34,7 @@
     "semver": "^7.3.5",
     "minimatch": "^10.2.4",
     "conventional-changelog-angular": "^5.0.13",
-    "undici": "^7.24.0"
+    "undici": "^7.30.1"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
